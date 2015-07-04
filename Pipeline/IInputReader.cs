@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace Pipeline {
-    public interface IInputReader {
+    public interface IEntityReader {
         IEnumerable<Row> Read();
     }
 }

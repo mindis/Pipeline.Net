@@ -73,6 +73,8 @@ namespace Pipeline.Configuration {
         public string WebMethod { get; set; }
         [Cfg(value = true)]
         public bool Check { get; set; }
+        [Cfg(value = 0)]
+        public int Timeout { get; set; }
 
         protected override void Modify() {
             ModifyProvider();
@@ -119,5 +121,6 @@ namespace Pipeline.Configuration {
         public override string ToString() {
             return "{ name: " + Name + ", provider: " + Provider + " }";
         }
+
     }
 }

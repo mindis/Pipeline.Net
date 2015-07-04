@@ -4,18 +4,16 @@ using System.Collections.Generic;
 namespace Pipeline.Configuration {
 
     public class TransformFieldsToParametersAdapter {
-        private readonly Process _process;
+        private readonly Entity _entity;
 
-        public TransformFieldsToParametersAdapter(Process process) {
-            _process = process;
+        public TransformFieldsToParametersAdapter(Entity entity) {
+            _entity = entity;
         }
 
         public int Adapt(string transformName) {
             var count = 0;
-            foreach (Entity entity in _process.Entities) {
-                count += AddParameters(entity.Fields, transformName, entity.Alias);
-                count += AddParameters(entity.CalculatedFields, transformName, entity.Alias);
-            }
+            count += AddParameters(_entity.Fields, transformName, _entity.Alias);
+            count += AddParameters(_entity.CalculatedFields, transformName, _entity.Alias);
             return count;
         }
 

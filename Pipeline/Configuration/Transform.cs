@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pipeline.Transformers;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
@@ -190,22 +191,54 @@ namespace Pipeline.Configuration {
             switch (Method) {
                 case "shorthand":
                     if (string.IsNullOrEmpty(T)) {
-                        Error("shorthand transform requires t attribute.");
+                        Error("The shorthand transform requires t attribute.");
+                    }
+                    break;
+                case "format":
+                    if (Format == string.Empty) {
+                        Error("The format transform requires a format parameter.");
+                    }
+                    break;
+                case "left":
+                case "right":
+                    if (Index == 0) {
+                        Error("The {0} transform requires a length parameter.", Method);
                     }
                     break;
                 case "copy":
                     if (Parameter == string.Empty && !Parameters.Any()) {
-                        Error("copy transform requires a parameter (or parameters).");
+                        Error("The copy transform requires at least one parameter.");
                     }
                     break;
                 case "javascript":
                     ValidateJavascript();
+                    break;
+                case "fromxml":
+                    break;
+                default:
+                    Error("The {0} transform method is undefined.", Method);
                     break;
             }
         }
 
         private void ValidateJavascript() {
             //TODO: extract interface and inject parser
+        }
+
+        public ITransformer GetTransformer(Process process, Entity entity, Field field) {
+            switch (Method) {
+                case "format":
+                    return new FormatTransformer(process, entity, field, this);
+                case "left":
+                    return new LeftTransformer(process, entity, field, this);
+                case "right":
+                    return new RightTransformer(process, entity, field, this);
+                case "copy":
+                    return new CopyTransformer(process, entity, field, this);
+                case "fromxml":
+                    return new NullTransformer();
+            }
+            throw new Exception(string.Format("The {0} transform method is not yet implemented.", this.Method));
         }
 
     }

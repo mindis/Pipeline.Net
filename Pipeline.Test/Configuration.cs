@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Pipeline.Configuration;
@@ -11,6 +12,10 @@ namespace Pipeline.Test {
         [Test(Description = "Cfg-Net can read Files\\PersonAndPet.xml")]
         public void ConfurationIsGood() {
             var root = new Root(File.ReadAllText(@"Files\PersonAndPet.xml"));
+
+            foreach (var error in root.Errors()) {
+                Console.WriteLine(error);
+            }
 
             Assert.AreEqual(0, root.Errors().Count());
             Assert.AreEqual(0, root.Warnings().Count());
@@ -32,13 +37,13 @@ namespace Pipeline.Test {
             Assert.AreEqual(3, person.Fields[3].Index);
             Assert.AreEqual(4, person.CalculatedFields[0].Index);
 
-            Assert.AreEqual(5, pet.Fields[0].Index);
-            Assert.AreEqual(6, pet.Fields[1].Index);
-            Assert.AreEqual(7, pet.Fields[2].Index);
-            Assert.AreEqual(8, pet.Fields[3].Index);
-            Assert.AreEqual(9, pet.Fields[4].Index);
-            Assert.AreEqual(10, pet.Fields[5].Index);
-            Assert.AreEqual(11, pet.Fields[6].Index);
+            Assert.AreEqual(0, pet.Fields[0].Index);
+            Assert.AreEqual(1, pet.Fields[1].Index);
+            Assert.AreEqual(2, pet.Fields[2].Index);
+            Assert.AreEqual(3, pet.Fields[3].Index);
+            Assert.AreEqual(4, pet.Fields[4].Index);
+            Assert.AreEqual(5, pet.CalculatedFields[0].Index);
+            Assert.AreEqual(6, pet.CalculatedFields[1].Index);
         }
     }
 }

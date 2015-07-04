@@ -6,10 +6,10 @@ namespace Pipeline.Configuration {
 
     public class TransformFieldsMoveAdapter {
 
-        private readonly Process _process;
+        private readonly Entity _entity;
 
-        public TransformFieldsMoveAdapter(Process process) {
-            _process = process;
+        public TransformFieldsMoveAdapter(Entity entity) {
+            _entity = entity;
         }
 
         public void Adapt(string transformName) {
@@ -17,26 +17,24 @@ namespace Pipeline.Configuration {
             var fields = new Dictionary<string, Dictionary<string, List<Field>>>();
             var calculatedFields = new Dictionary<string, Dictionary<string, List<Field>>>();
 
-            foreach (Entity entity in _process.Entities) {
-                fields[entity.Alias] = GetFields(entity.Fields, transformName);
-                RemoveFields(entity.Fields, transformName);
+            fields[_entity.Alias] = GetFields(_entity.Fields, transformName);
+            RemoveFields(_entity.Fields, transformName);
 
-                calculatedFields[entity.Alias] = GetFields(entity.CalculatedFields, transformName);
-                RemoveFields(entity.CalculatedFields, transformName);
-            }
+            calculatedFields[_entity.Alias] = GetFields(_entity.CalculatedFields, transformName);
+            RemoveFields(_entity.CalculatedFields, transformName);
 
-            InsertFields(fields);
-            InsertFields(calculatedFields);
+            InsertAsCalculatedFields(fields);
+            InsertAsCalculatedFields(calculatedFields);
         }
 
         public Dictionary<string, List<Field>> GetFields(List<Field> fields, string transformName) {
             var result = new Dictionary<string, List<Field>>();
-            foreach (Field field in fields) {
+            foreach (var field in fields) {
                 foreach (var transform in field.Transforms) {
                     if (!transform.Method.Equals(transformName, StringComparison.OrdinalIgnoreCase))
                         continue;
                     result[field.Alias] = new List<Field>();
-                    foreach (Field tField in transform.Fields) {
+                    foreach (var tField in transform.Fields) {
                         tField.Input = false;
                         result[field.Alias].Add(tField);
                     }
@@ -55,14 +53,13 @@ namespace Pipeline.Configuration {
             }
         }
 
-        public void InsertFields(Dictionary<string, Dictionary<string, List<Field>>> fields) {
-            foreach (var entity in fields) {
-                foreach (var field in entity.Value) {
-                    var entityElement = _process.Entities.First(e => e.Alias == entity.Key);
-                    var fieldElement = entityElement.Fields.First(f => f.Alias == field.Key);
-                    var index = entityElement.Fields.IndexOf(fieldElement) + 1;
+        public void InsertAsCalculatedFields(Dictionary<string, Dictionary<string, List<Field>>> fields) {
+            foreach (var pair in fields) {
+                foreach (var field in pair.Value) {
+                    var fieldElement = _entity.CalculatedFields.FirstOrDefault(f => f.Alias == field.Key);
+                    var index = fieldElement == null ? 0 : _entity.CalculatedFields.IndexOf(fieldElement) + 1;
                     foreach (var element in field.Value) {
-                        entityElement.Fields.Insert(index, element);
+                        _entity.CalculatedFields.Insert(index, element);
                         index++;
                     }
                 }

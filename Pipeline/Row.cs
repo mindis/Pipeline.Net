@@ -3,16 +3,7 @@
         private readonly object[] _storage;
 
         public Row(int capacity) {
-            _storage = new object[capacity - 1];
-        }
-
-        public object this[int index] {
-            get {
-                return _storage[index];
-            }
-            set {
-                _storage[index] = value;
-            }
+            _storage = new object[capacity];
         }
 
         public object this[IField field] {

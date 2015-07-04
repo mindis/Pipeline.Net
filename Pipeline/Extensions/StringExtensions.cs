@@ -20,7 +20,7 @@
 
 #endregion
 
-namespace Pipeline {
+namespace Pipeline.Extensions {
     public static class StringExtensions {
         public static string Left(this string s, int length) {
             return s.Length > length ? s.Substring(0, length) : s;

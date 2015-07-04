@@ -1,4 +1,5 @@
-﻿using Transformalize.Libs.Cfg.Net;
+﻿using Pipeline.Extensions;
+using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Log : CfgNode {

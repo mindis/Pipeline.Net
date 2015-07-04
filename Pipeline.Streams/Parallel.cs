@@ -9,8 +9,8 @@ namespace Pipeline.Streams {
 
         private ParStream<Row> _output;
 
-        public void Input(IInputReader reader) {
-            _output = reader.Read().AsParStream();
+        public void Input(IEntityReader entityReader) {
+            _output = entityReader.Read().AsParStream();
         }
 
         public void Register(ITransformer transformer) {

@@ -1,18 +1,37 @@
-namespace Pipeline.Transformers {
-    public class RightTransformer : ITransformer {
-        private readonly int _length;
-        private readonly IField[] _fields;
+using System.Collections.Generic;
+using Pipeline.Configuration;
+using Pipeline.Extensions;
 
-        public RightTransformer(int length, IField[] fields) {
-            _length = length;
-            _fields = fields;
+namespace Pipeline.Transformers {
+    public class RightTransformer : BaseTransformer, ITransformer {
+        private readonly int _length;
+
+        public RightTransformer(Process process, Entity entity, Field field, Transform transform) : base(process, entity, field) {
+            _length = transform.Length;
         }
 
         public Row Transform(Row row) {
-            for (int i = 0; i < _fields.Length; i++) {
-                row[i] = row[i].ToString().Right(_length);
-            }
+            row[Field] = row[Field].ToString().Right(_length);
             return row;
+        }
+
+        Transform ITransformer.InterpretShorthand(string args, List<string> problems) {
+            return InterpretShorthand(args, problems);
+        }
+
+        public static Transform InterpretShorthand(string args, List<string> problems) {
+            int length;
+
+            if (!int.TryParse(args, out length)) {
+                problems.Add(string.Format("The right method requires a single integer representing the length, or how many right-most characters you want. You passed in '{0}'.", args));
+                return Guard();
+            }
+
+            return Configuration(t => {
+                t.Method = "right";
+                t.Length = length;
+                t.IsShortHand = true;
+            });
         }
     }
 }

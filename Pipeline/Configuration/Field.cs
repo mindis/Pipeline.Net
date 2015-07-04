@@ -1,13 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using Pipeline.Extensions;
+using Pipeline.Transformers;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
 
-        private string _type;
-        private string _length;
+        private static readonly Dictionary<string, Func<string, List<string>, Transform>> Functions = new Dictionary<string, Func<string, List<string>, Transform>> {
+            {"format", FormatTransformer.InterpretShorthand},
+            {"left", LeftTransformer.InterpretShorthand},
+            {"right", RightTransformer.InterpretShorthand},
+            {"copy", CopyTransformer.InterpretShorthand}
+        };
+
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
             {"xml", (x => x)},
             {"int16", (x => System.Convert.ToInt16(x))},
@@ -32,6 +40,9 @@ namespace Pipeline.Configuration {
             {"byte[]", (HexStringToByteArray)},
             {"rowversion", (HexStringToByteArray)}
         };
+
+        private string _type;
+        private string _length;
 
         /// <summary>
         /// Optional.  Default is `false`
@@ -381,6 +392,70 @@ namespace Pipeline.Configuration {
 
         public object Convert(string value) {
             return Type == "string" ? value : ConversionMap[Type](value);
+        }
+
+        private static Transform Interpret(string expression, List<string> problems) {
+
+            string method;
+            var arg = string.Empty;
+
+            // ReSharper disable once PossibleNullReferenceException
+            if (expression.Contains("(")) {
+                var index = expression.IndexOf('(');
+                method = expression.Left(index).ToLower();
+                arg = expression.Remove(0, index + 1).TrimEnd(new[] { ')' });
+            } else {
+                method = expression;
+            }
+
+            if (!Functions.ContainsKey(method)) {
+                problems.Add(string.Format("Sorry. Your expression '{0}' references an undefined method: '{1}'.", expression, method));
+                return BaseTransformer.Guard();
+            }
+
+            return Functions[method](arg, problems);
+        }
+
+        public List<string> ExpandShortHandTransforms() {
+
+            var problems = new List<string>();
+            var list = new LinkedList<Transform>();
+            var lastTransform = new Transform();
+            var methods = T == string.Empty
+                ? new String[0]
+                : Shared.Split(T, ").").Where(t => !string.IsNullOrEmpty(t));
+
+            foreach (var method in methods) {
+                // translate previous copy to parameters, making them compatible with verbose xml transforms
+                if (lastTransform.Method == "copy") {
+                    var tempParameter = lastTransform.Parameter;
+                    var tempParameters = lastTransform.Parameters;
+                    var transform = lastTransform = Interpret(method, problems);
+                    transform.Parameter = tempParameter;
+                    transform.Parameters = tempParameters;
+                    list.RemoveLast(); //remove previous copy
+                    list.AddLast(transform);
+                } else {
+                    lastTransform = Interpret(method, problems);
+                    list.AddLast(lastTransform);
+                }
+            }
+
+            foreach (var transform in Transforms) {
+                // expand shorthand transforms
+                if (transform.Method.Equals("t") || transform.Method.Equals("shorthand")) {
+                    var tempField = new Field { T = transform.T };
+                    tempField.ExpandShortHandTransforms();
+                    foreach (var t in tempField.Transforms) {
+                        list.AddLast(t);
+                    }
+                } else {
+                    list.AddLast(transform);
+                }
+            }
+
+            Transforms = list.Where(t => t.Method != "guard").ToList();
+            return problems;
         }
     }
 }

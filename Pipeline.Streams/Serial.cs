@@ -9,8 +9,8 @@ namespace Pipeline.Streams {
 
         private Stream<Row> _output;
 
-        public void Input(IInputReader reader) {
-            _output = reader.Read().AsStream();
+        public void Input(IEntityReader entityReader) {
+            _output = entityReader.Read().AsStream();
         }
 
         public void Register(ITransformer transformer) {

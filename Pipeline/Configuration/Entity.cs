@@ -116,6 +116,21 @@ namespace Pipeline.Configuration {
                 }
             }
             ModifyMissingPrimaryKey();
+
+            try {
+                AdaptFieldsCreatedFromTransforms(new[] { "fromxml", "fromregex", "fromjson", "fromsplit" });
+            } catch (Exception ex) {
+                Error("Trouble adapting fields created from transforms. {0}", ex.Message);
+            }
+
+            ModifyFieldIndexes();
+        }
+
+        private void ModifyFieldIndexes() {
+            var index = 0;
+            foreach (var field in GetAllFields()) {
+                field.Index = index++;
+            }
         }
 
         /// <summary>
@@ -248,5 +263,14 @@ namespace Pipeline.Configuration {
         public bool HasConnection() {
             return Connection != string.Empty || Input.Count > 0;
         }
+
+        private void AdaptFieldsCreatedFromTransforms(IEnumerable<string> transformToFields) {
+            foreach (var field in transformToFields) {
+                while (new TransformFieldsToParametersAdapter(this).Adapt(field) > 0) {
+                    new TransformFieldsMoveAdapter(this).Adapt(field);
+                }
+            }
+        }
+
     }
 }

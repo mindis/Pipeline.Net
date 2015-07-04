@@ -9,8 +9,8 @@ namespace Pipeline.Linq.Optimizer {
 
         private IEnumerable<Row> _output;
 
-        public void Input(IInputReader reader) {
-            _output = reader.Read();
+        public void Input(IEntityReader entityReader) {
+            _output = entityReader.Read();
         }
 
         public void Register(ITransformer transformer) {

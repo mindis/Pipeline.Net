@@ -30,19 +30,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.1.1\lib\CfgNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseSqlEntityReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlInputReader.cs" />
+    <Compile Include="SqlEntityReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">
       <Project>{0c47eb64-41f4-43fa-a948-6a066285934f}</Project>
       <Name>Pipeline</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

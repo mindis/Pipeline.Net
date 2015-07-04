@@ -1,6 +1,6 @@
 ﻿<cfg>
   <processes>
-    <add name='test'>
+    <add name='PersonAndPet'>
       <data-sets>
         <add name='Person'>
           <rows>
@@ -25,7 +25,7 @@
             <add name='LastName' />
           </fields>
           <calculated-fields>
-            <add name='FullName' />
+            <add name='FullName' t='copy(FirstName,MiddleName,LastName).format({0} {1} {2})' />
           </calculated-fields>
         </add>
         <add name='Pet'>

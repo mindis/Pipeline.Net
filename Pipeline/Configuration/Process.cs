@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pipeline.Linq;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
@@ -242,26 +243,18 @@ namespace Pipeline.Configuration {
             ModifyDefaultSearchTypes();
 
             try {
-                AdaptFieldsCreatedFromTransforms(new[] { "fromxml", "fromregex", "fromjson", "fromsplit" });
+                var problems = ExpandShortHandTransforms();
+                if (problems.Any()) {
+                    foreach (var problem in problems) {
+                        Error(problem);
+                    }
+                }
             } catch (Exception ex) {
-                Error("Trouble adapting fields created from transforms. {0}", ex.Message);
+                Error("Trouble expanding short hand transforms. {0}", ex.Message);
             }
 
             ModifyMergeParameters();
             ModifyMapParameters();
-
-            ModifyFieldIndexes();
-
-        }
-
-        private void ModifyFieldIndexes() {
-            var index = 0;
-            foreach (var field in Entities.SelectMany(entity => entity.GetAllFields())) {
-                field.Index = index++;
-            }
-            foreach (var field in CalculatedFields) {
-                field.Index = index++;
-            }
         }
 
         private void ModifyDefaultEntityConnections() {
@@ -381,14 +374,6 @@ namespace Pipeline.Configuration {
                     c.Name = "output";
                     c.Provider = "internal";
                 }));
-        }
-
-        private void AdaptFieldsCreatedFromTransforms(IEnumerable<string> transformToFields) {
-            foreach (var field in transformToFields) {
-                while (new TransformFieldsToParametersAdapter(this).Adapt(field) > 0) {
-                    new TransformFieldsMoveAdapter(this).Adapt(field);
-                }
-            }
         }
 
         protected override void Validate() {
@@ -572,32 +557,33 @@ namespace Pipeline.Configuration {
             }
         }
 
-        public IEnumerable<Row> GetTypedDataSet(string name) {
-            var rows = new List<Row>();
-            var dataSet = DataSets.FirstOrDefault(ds => ds.Name == name);
-
-            if (dataSet == null)
-                return rows;
-
-            var entity = Entities.FirstOrDefault(e => e.Name == name);
-            if (entity == null)
-                return rows;
-
-            var lookup = entity.Fields.ToDictionary(k => k.Name, v => v);
-            foreach (var row in dataSet.Rows) {
-                var pipelineRow = new Row(entity.GetAllFields().Count());
-                foreach (var pair in row) {
-                    if (!lookup.ContainsKey(pair.Key))
-                        continue;
-                    var field = lookup[pair.Key];
-                    pipelineRow[field] = field.Convert(pair.Value);
+        /// <summary>
+        /// Converts t attribute to configuration items for the whole process, and returns any problems found
+        /// </summary>
+        public string[] ExpandShortHandTransforms() {
+            var problems = new List<string>();
+            foreach (var entity in Entities) {
+                foreach (var field in entity.Fields) {
+                    problems.AddRange(field.ExpandShortHandTransforms());
                 }
-                rows.Add(pipelineRow);
+                foreach (var field in entity.CalculatedFields) {
+                    problems.AddRange(field.ExpandShortHandTransforms());
+                }
             }
-
-            return rows;
+            foreach (var field in CalculatedFields) {
+                problems.AddRange(field.ExpandShortHandTransforms());
+            }
+            return problems.ToArray();
         }
 
+        public IEnumerable<Field> GetAllFields() {
+            var fields = new List<Field>();
+            foreach (var e in Entities) {
+                fields.AddRange(e.GetAllFields());
+            }
+            fields.AddRange(CalculatedFields);
+            return fields;
+        }
 
     }
 }

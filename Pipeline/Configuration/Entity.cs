@@ -93,6 +93,11 @@ namespace Pipeline.Configuration {
         [Cfg(required = false)]
         public List<InputOutput> Output { get; set; }
 
+        /// <summary>
+        /// Set by Process.ModifyKeys for keyed dependency injection
+        /// </summary>
+        public string Key { get; set; }
+
         public IEnumerable<Field> GetAllFields() {
             var fields = new List<Field>();
             foreach (var f in Fields) {

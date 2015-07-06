@@ -5,20 +5,21 @@ using Pipeline.Transformers;
 
 namespace Pipeline.Streams {
 
-    public class Parallel : BasePipeline, IPipeline {
+    public class Parallel : DefaultPipeline {
 
-        private ParStream<Row> _output;
+        private ParStream<Row> _stream;
 
-        public void Input(IEntityReader entityReader) {
-            _output = entityReader.Read().AsParStream();
+        public override void Input(IEnumerable<Row> input) {
+            _stream = input.AsParStream();
         }
 
-        public void Register(ITransformer transformer) {
-            _output = _output.Select(transformer.Transform);
+        public override void Register(ITransform transformer) {
+            _stream = _stream.Select(transformer.Transform);
         }
 
-        public IEnumerable<Row> Run() {
-            return _output.Stream().ToEnumerable();
+        public override IEnumerable<Row> Run() {
+            Output = _stream.Stream().ToEnumerable();
+            return Output;
         }
     }
 }

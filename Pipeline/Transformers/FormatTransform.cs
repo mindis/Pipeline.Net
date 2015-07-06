@@ -4,14 +4,15 @@ using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
 
-    public class FormatTransformer : BaseTransformer, ITransformer {
+    public class FormatTransform : BaseTransform, ITransform {
+
         private readonly Transform _transform;
         private readonly Field[] _input;
 
-        public FormatTransformer(Process process, Entity entity, Field field, Transform transform)
+        public FormatTransform(Process process, Entity entity, Field field, Transform transform)
             : base(process, entity, field) {
             _transform = transform;
-            _input = GetInput(transform).ToArray();
+            _input = ParametersToFields(transform).ToArray();
         }
 
         public Row Transform(Row row) {
@@ -19,7 +20,7 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransformer.InterpretShorthand(string args, List<string> problems) {
+        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 

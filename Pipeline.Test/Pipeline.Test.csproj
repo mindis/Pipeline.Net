@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Cfg-NET.0.1.1\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
@@ -43,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataSets.cs" />
+    <Compile Include="PipelineModule.cs" />
     <Compile Include="Temporary.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="Configuration.cs" />
@@ -50,8 +55,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ToDo.md" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Pipeline.Linq.Optimizer\Pipeline.Linq.Optimizer.csproj">
+      <Project>{7d3cfc55-5cb3-4b38-93e0-86921037b889}</Project>
+      <Name>Pipeline.Linq.Optimizer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pipeline.Linq\Pipeline.Linq.csproj">
+      <Project>{512f7b8e-bd96-4c93-8286-8ae863bcadab}</Project>
+      <Name>Pipeline.Linq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pipeline.Provider.SqlServer\Pipeline.Provider.SqlServer.csproj">
+      <Project>{16042794-2E30-42D8-A6F9-F5D8020F9EF3}</Project>
+      <Name>Pipeline.Provider.SqlServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pipeline.Streams\Pipeline.Streams.csproj">
+      <Project>{90c59514-c296-47f7-8b19-6758d8bf9e95}</Project>
+      <Name>Pipeline.Streams</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">
       <Project>{0c47eb64-41f4-43fa-a948-6a066285934f}</Project>
       <Name>Pipeline</Name>

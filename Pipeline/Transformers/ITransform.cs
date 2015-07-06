@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
 
     /// <summary>
     /// all transformers should implement this
     /// </summary>
-    public interface ITransformer {
+    public interface ITransform {
 
         /// <summary>
         /// This transforms the row in the pipeline.
@@ -21,7 +20,7 @@ namespace Pipeline.Transformers {
         /// <param name="args"></param>
         /// <param name="problems"></param>
         /// <returns></returns>
-        Transform InterpretShorthand(string args, List<string> problems);
+        Configuration.Transform InterpretShorthand(string args, List<string> problems);
     }
 
 }

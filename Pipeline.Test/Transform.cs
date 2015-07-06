@@ -14,11 +14,11 @@ namespace Pipeline.Test {
         public void FormatTransformer() {
 
             var process = new Root(File.ReadAllText(@"Files\PersonAndPet.xml")).Processes.First();
-            var pipeline = new Serial();
-            var reader = new DataSetEntityReader(process, process.Entities.First());
+            var pipeline = new DefaultPipeline();
+            var input = new DataSetEntityReader(process, process.Entities.First()).Read();
             var calculatedField = process.Entities.First().CalculatedFields.First();
-            pipeline.Input(reader);
-            pipeline.Register(new FormatTransformer(process, process.Entities.First(), calculatedField, calculatedField.Transforms.First()));
+            pipeline.Input(input);
+            pipeline.Register(new FormatTransform(process, process.Entities.First(), calculatedField, calculatedField.Transforms.First()));
             var output = pipeline.Run().ToArray();
 
             Assert.AreEqual("Dale Edward Jones", output[0][calculatedField]);

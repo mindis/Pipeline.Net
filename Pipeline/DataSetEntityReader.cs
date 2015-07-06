@@ -5,11 +5,9 @@ using Pipeline.Configuration;
 namespace Pipeline {
 
     public class DataSetEntityReader : BaseEntityReader, IEntityReader {
-        private readonly Process _process;
 
         public DataSetEntityReader(Process process, Entity entity)
-            : base(entity) {
-            _process = process;
+            : base(process, entity) {
         }
 
         public IEnumerable<Row> Read() {
@@ -18,7 +16,7 @@ namespace Pipeline {
 
         public IEnumerable<Row> GetTypedDataSet(string name) {
             var rows = new List<Row>();
-            var dataSet = _process.DataSets.FirstOrDefault(ds => ds.Name == name);
+            var dataSet = Process.DataSets.FirstOrDefault(ds => ds.Name == name);
 
             if (dataSet == null)
                 return rows;

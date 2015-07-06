@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Pipeline.Linq;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
@@ -255,7 +254,27 @@ namespace Pipeline.Configuration {
 
             ModifyMergeParameters();
             ModifyMapParameters();
+            ModifyKeys();
         }
+
+        private void ModifyKeys()
+        {
+            Key = Name;
+            foreach (var entity in Entities) {
+                entity.Key = Name + entity.Alias;
+                var counter = 0;
+                foreach (var field in entity.GetAllFields()) {
+                    foreach (var transform in field.Transforms) {
+                        transform.Key = Name + entity.Alias + field.Alias + transform.Method + counter++;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set by Process.ModifyKeys for keyed dependency injection
+        /// </summary>
+        public string Key { get; set; }
 
         private void ModifyDefaultEntityConnections() {
             foreach (var entity in Entities.Where(entity => !entity.HasConnection())) {

@@ -3,10 +3,11 @@ using Pipeline.Configuration;
 using Pipeline.Extensions;
 
 namespace Pipeline.Transformers {
-    public class RightTransformer : BaseTransformer, ITransformer {
+    public class RightTransform : BaseTransform, ITransform {
         private readonly int _length;
 
-        public RightTransformer(Process process, Entity entity, Field field, Transform transform) : base(process, entity, field) {
+        public RightTransform(Process process, Entity entity, Field field, Configuration.Transform transform)
+            : base(process, entity, field) {
             _length = transform.Length;
         }
 
@@ -15,11 +16,11 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransformer.InterpretShorthand(string args, List<string> problems) {
+        Configuration.Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 
-        public static Transform InterpretShorthand(string args, List<string> problems) {
+        public static Configuration.Transform InterpretShorthand(string args, List<string> problems) {
             int length;
 
             if (!int.TryParse(args, out length)) {

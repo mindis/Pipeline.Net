@@ -5,20 +5,21 @@ using Pipeline.Transformers;
 
 namespace Pipeline.Streams {
 
-    public class Serial : BasePipeline, IPipeline {
+    public class Serial : DefaultPipeline {
 
-        private Stream<Row> _output;
+        private Stream<Row> _stream;
 
-        public void Input(IEntityReader entityReader) {
-            _output = entityReader.Read().AsStream();
+        public override void Input(IEnumerable<Row> input) {
+            _stream = input.AsStream();
         }
 
-        public void Register(ITransformer transformer) {
-            _output = _output.Select(transformer.Transform);
+        public new void Register(ITransform transformer) {
+            _stream = _stream.Select(transformer.Transform);
         }
 
-        public IEnumerable<Row> Run() {
-            return _output.ToEnumerable();
+        public new IEnumerable<Row> Run() {
+            Output = _stream.ToEnumerable();
+            return Output;
         }
     }
 }

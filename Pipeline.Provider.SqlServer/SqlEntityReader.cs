@@ -9,8 +9,8 @@ namespace Pipeline.Provider.SqlServer {
 
         private readonly string _query;
 
-        public SqlEntityReader(Entity entity, Connection connection)
-            : base(entity, connection) {
+        public SqlEntityReader(Process process, Entity entity)
+            : base(process, entity) {
             var fieldList = string.Join(",", InputFields.Select(f => "[" + f.Name + "]"));
             _query = string.Format("SELECT {0} FROM [{1}].[{2}];", fieldList, entity.Schema, entity.Name);
         }

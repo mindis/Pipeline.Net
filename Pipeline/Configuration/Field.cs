@@ -10,10 +10,14 @@ namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
 
         private static readonly Dictionary<string, Func<string, List<string>, Transform>> Functions = new Dictionary<string, Func<string, List<string>, Transform>> {
-            {"format", FormatTransformer.InterpretShorthand},
-            {"left", LeftTransformer.InterpretShorthand},
-            {"right", RightTransformer.InterpretShorthand},
-            {"copy", CopyTransformer.InterpretShorthand}
+            {"format", FormatTransform.InterpretShorthand},
+            {"left", LeftTransform.InterpretShorthand},
+            {"right", RightTransform.InterpretShorthand},
+            {"copy", CopyTransform.InterpretShorthand},
+            {"concat", ConcatTransform.InterpretShorthand},
+            {"fromxml", FromXmlTransform.InterpretShorthand},
+            {"htmldecode", HtmlDecodeTransform.InterpretShorthand},
+            {"xmldecode", XmlDecodeTransform.InterpretShorthand}
         };
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
@@ -410,7 +414,7 @@ namespace Pipeline.Configuration {
 
             if (!Functions.ContainsKey(method)) {
                 problems.Add(string.Format("Sorry. Your expression '{0}' references an undefined method: '{1}'.", expression, method));
-                return BaseTransformer.Guard();
+                return BaseTransform.Guard();
             }
 
             return Functions[method](arg, problems);
@@ -457,5 +461,6 @@ namespace Pipeline.Configuration {
             Transforms = list.Where(t => t.Method != "guard").ToList();
             return problems;
         }
+
     }
 }

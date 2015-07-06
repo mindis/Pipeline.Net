@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Autofac;
 using NUnit.Framework;
 using Pipeline.Configuration;
-using Pipeline.Linq;
 
 namespace Pipeline.Test {
 
@@ -13,33 +14,38 @@ namespace Pipeline.Test {
         [Test(Description = "Entity Pipeline")]
         public void EntityPipeline() {
 
-            var process = new Root(File.ReadAllText(@"Files\PersonAndPet.xml")).Processes.First();
-            var pipelines = new TemporaryProcessPipelineComposer(process).Compose();
-            var output = pipelines.First().Run();
+            var pipelines = new TemporaryProcessPipelineComposer().Compose();
+            var person = pipelines.First().Run().ToArray();
 
-            Assert.AreEqual(3, output.Count());
+            Assert.AreEqual(3, person.Length);
+
+            foreach (var row in person) {
+                Console.WriteLine(row);
+            }
+
+            var pet = pipelines.Last().Run().ToArray();
+            Assert.AreEqual(2, pet.Count());
+
+            foreach (var row in pet) {
+                Console.WriteLine(row);
+            }
         }
     }
 
     public class TemporaryProcessPipelineComposer {
-        private readonly Process _process;
-
-        public TemporaryProcessPipelineComposer(Process process) {
-            _process = process;
-        }
 
         public IPipeline[] Compose() {
+            var root = new Root(File.ReadAllText(@"Files\PersonAndPet.xml"));
+
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(new PipelineModule(root));
+            var container = builder.Build();
+
             var pipelines = new List<IPipeline>();
-            foreach (var entity in _process.Entities) {
-                var pipeline = new Serial();
-                pipeline.Input(new DataSetEntityReader(_process, entity));
-                foreach (var field in entity.GetAllFields()) {
-                    foreach (var transform in field.Transforms) {
-                        pipeline.Register(transform.GetTransformer(_process, entity, field));
-                    }
-                }
-                pipelines.Add(pipeline);
+            foreach (var process in root.Processes) {
+                pipelines.AddRange(container.ResolveNamed<IEnumerable<IPipeline>>(process.Key));
             }
+
             return pipelines.ToArray();
         }
     }

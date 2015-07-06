@@ -176,6 +176,11 @@ namespace Pipeline.Configuration {
         [Cfg(value = "sunday", domain = "friday,monday,saturday,sunday,tuesday,thursday,wednesday", toLower = true)]
         public string DayOfWeek { get; set; }
 
+        /// <summary>
+        /// Set by Process.ModifyKeys for keyed dependency injection
+        /// </summary>
+        public string Key { get; set; }
+
         protected override void Modify() {
             switch (Method) {
                 case "trimstartappend":
@@ -214,6 +219,12 @@ namespace Pipeline.Configuration {
                     ValidateJavascript();
                     break;
                 case "fromxml":
+                    if (!Fields.Any()) {
+                        Error("The fromxml transform requires a collection of output fields.");
+                    }
+                    break;
+                case "htmldecode":
+                case "xmldecode":
                     break;
                 default:
                     Error("The {0} transform method is undefined.", Method);
@@ -223,22 +234,6 @@ namespace Pipeline.Configuration {
 
         private void ValidateJavascript() {
             //TODO: extract interface and inject parser
-        }
-
-        public ITransformer GetTransformer(Process process, Entity entity, Field field) {
-            switch (Method) {
-                case "format":
-                    return new FormatTransformer(process, entity, field, this);
-                case "left":
-                    return new LeftTransformer(process, entity, field, this);
-                case "right":
-                    return new RightTransformer(process, entity, field, this);
-                case "copy":
-                    return new CopyTransformer(process, entity, field, this);
-                case "fromxml":
-                    return new NullTransformer();
-            }
-            throw new Exception(string.Format("The {0} transform method is not yet implemented.", this.Method));
         }
 
     }

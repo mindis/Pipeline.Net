@@ -35,6 +35,7 @@
             <add name='Name' />
             <add name='LicenseData'>
               <transforms>
+                <add method='htmldecode' />
                 <add method='fromxml' root='data'>
                   <fields>
                     <add name='Id' alias='LicenseId' />

@@ -4,12 +4,12 @@ using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
 
-    public class CopyTransformer : BaseTransformer, ITransformer {
+    public class CopyTransform : BaseTransform, ITransform {
 
         private readonly Field _input;
-        public CopyTransformer(Process process, Entity entity, Field field, Transform transform)
+        public CopyTransform(Process process, Entity entity, Field field, Configuration.Transform transform)
             : base(process, entity, field) {
-            _input = GetInput(transform).First();
+            _input = ParametersToFields(transform).First();
         }
 
         public Row Transform(Row row) {
@@ -17,11 +17,11 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransformer.InterpretShorthand(string args, List<string> problems) {
+        Configuration.Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 
-        public static Transform InterpretShorthand(string args, List<string> problems) {
+        public static Configuration.Transform InterpretShorthand(string args, List<string> problems) {
             if (string.IsNullOrEmpty(args)) {
                 problems.Add("The copy method requires at least one parameter referencing a field.");
                 return Guard();

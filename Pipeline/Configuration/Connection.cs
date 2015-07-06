@@ -52,7 +52,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = 0)]
         public int Port { get; set; }
 
-        [Cfg(value = "internal", domain = "sqlserver,mysql,postgresql,sqlce,analysisservices,file,folder,internal,console,log,mail,html,elasticsearch,solr,lucene,web", toLower = true)]
+        [Cfg(value = "internal", domain = "sqlserver,internal", toLower = true)]
         public string Provider { get; set; }
 
         [Cfg(value = "TopDirectoryOnly", domain = "AllDirectories,TopDirectoryOnly", ignoreCase = true)]

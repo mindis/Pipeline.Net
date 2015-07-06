@@ -67,7 +67,11 @@
     <Compile Include="Configuration\TflType.cs" />
     <Compile Include="Configuration\TransformFieldsMoveAdapter.cs" />
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
-    <Compile Include="Transformers\CopyTransformer.cs" />
+    <Compile Include="Transformers\ConcatTransform.cs" />
+    <Compile Include="Transformers\CopyTransform.cs" />
+    <Compile Include="Transformers\FromXmlTransform.cs" />
+    <Compile Include="Transformers\HtmlDecodeTransform.cs" />
+    <Compile Include="Transformers\XmlDecodeTransform.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="IField.cs" />
@@ -77,15 +81,14 @@
     <Compile Include="DataSetEntityReader.cs" />
     <Compile Include="BasePipeline.cs" />
     <Compile Include="IPipeline.cs" />
-    <Compile Include="Linq\Serial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Transformers\BaseTransformer.cs" />
-    <Compile Include="Transformers\FormatTransformer.cs" />
-    <Compile Include="Transformers\ITransformer.cs" />
-    <Compile Include="Transformers\LeftTransformer.cs" />
-    <Compile Include="Transformers\RightTransformer.cs" />
+    <Compile Include="Transformers\BaseTransform.cs" />
+    <Compile Include="Transformers\FormatTransform.cs" />
+    <Compile Include="Transformers\ITransform.cs" />
+    <Compile Include="Transformers\LeftTransform.cs" />
+    <Compile Include="Transformers\RightTransform.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">

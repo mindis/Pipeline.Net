@@ -1,24 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 using Nessos.LinqOptimizer.CSharp;
-using Pipeline.Transformers;
 
 namespace Pipeline.Linq.Optimizer {
 
-    public class Serial : BasePipeline, IPipeline {
+    public class Serial : DefaultPipeline {
 
-        private IEnumerable<Row> _output;
-
-        public void Input(IEntityReader entityReader) {
-            _output = entityReader.Read();
-        }
-
-        public void Register(ITransformer transformer) {
-            _output = _output.Select(transformer.Transform);
-        }
-
-        public IEnumerable<Row> Run() {
-            return _output.AsQueryExpr().Run();
+        public new IEnumerable<Row> Run() {
+            return Output.AsQueryExpr().Run();
         }
     }
 }

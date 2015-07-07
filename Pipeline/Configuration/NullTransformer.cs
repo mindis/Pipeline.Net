@@ -4,8 +4,8 @@ using Pipeline.Transformers;
 
 namespace Pipeline.Configuration {
     public class NullTransformer : BaseTransform, ITransform {
-        public NullTransformer(Process process, Entity entity, Field field)
-            : base(process, entity, field) {
+        public NullTransformer(Process process, Entity entity, Field field, Transform transform)
+            : base(process, entity, field, transform) {
         }
 
         public Row Transform(Row row) {
@@ -13,7 +13,7 @@ namespace Pipeline.Configuration {
         }
 
         public Transform InterpretShorthand(string args, List<string> problems) {
-            throw new NotImplementedException();
+            return Guard();
         }
     }
 }

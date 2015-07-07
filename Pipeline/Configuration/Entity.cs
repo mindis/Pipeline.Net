@@ -168,8 +168,6 @@ namespace Pipeline.Configuration {
             }
         }
 
-
-
         protected override void Validate() {
             var fields = GetAllFields().ToArray();
             var names = new HashSet<string>(fields.Select(f => f.Name).Distinct());

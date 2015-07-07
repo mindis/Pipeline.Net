@@ -13,11 +13,11 @@ namespace Pipeline.Streams {
             _stream = input.AsStream();
         }
 
-        public new void Register(ITransform transformer) {
+        public override void Register(ITransform transformer) {
             _stream = _stream.Select(transformer.Transform);
         }
 
-        public new IEnumerable<Row> Run() {
+        public override IEnumerable<Row> Run() {
             Output = _stream.ToEnumerable();
             return Output;
         }

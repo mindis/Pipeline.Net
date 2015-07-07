@@ -13,8 +13,8 @@ namespace Pipeline.Transformers {
         private readonly StringBuilder _builder;
 
         public HtmlDecodeTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field) {
-            _input = ParametersToFields(transform).First();
+            : base(process, entity, field, transform) {
+            _input = ParametersToFields().First();
             _builder = new StringBuilder();
             Name = "htmldecode";
         }

@@ -2,30 +2,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
 
-    public class BaseTransform {
+    public abstract class BaseTransform {
 
         public string Name { get; set; }
-        public Process Process { get; set; }
-        public Entity Entity { get; set; }
-        public Field Field { get; set; }
 
-        public BaseTransform(Process process, Entity entity, Field field) {
+        public Process Process { get; private set; }
+        public Entity Entity { get; private set; }
+        public Field Field { get; private set; }
+        public Transform Configuration { get; private set; }
+        public PipelineContext Context { get; private set; }
+
+        protected BaseTransform(Process process, Entity entity, Field field, Transform transform) {
             Process = process;
             Entity = entity;
             Field = field;
+            Configuration = transform;
+            Context = new PipelineContext(process, entity, field, transform);
         }
 
         /// <summary>
         /// A transformer's input can be entity fields, process fields, or the field the transform is in.
         /// </summary>
-        /// <param name="transform"></param>
         /// <returns></returns>
-        public List<Field> ParametersToFields(Transform transform) {
+        public List<Field> ParametersToFields() {
 
-            var fields = transform.Parameters
+            var fields = Configuration.Parameters
                 .Where(p => p.Field != string.Empty)
                 .Select(p =>
                     Entity == null ?
@@ -39,7 +44,7 @@ namespace Pipeline.Transformers {
             return fields;
         }
 
-        public static Transform Configuration(Action<Transform> setter) {
+        public static Transform DefaultConfiguration(Action<Transform> setter) {
             return new Transform().GetDefaultOf(setter);
         }
 
@@ -53,7 +58,7 @@ namespace Pipeline.Transformers {
                 return Guard();
             }
 
-            return Configuration(t => {
+            return DefaultConfiguration(t => {
                 t.Method = method;
                 t.IsShortHand = true;
             });

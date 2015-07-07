@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Autofac;
 using Pipeline.Configuration;
@@ -17,6 +18,7 @@ namespace Pipeline.Test {
         }
 
         protected override void Load(ContainerBuilder builder) {
+
             foreach (var p in _root.Processes) {
 
                 var process = p;
@@ -83,8 +85,10 @@ namespace Pipeline.Test {
                                         return new HtmlDecodeTransform(process, entity, field, transform);
                                     case "xmldecode":
                                         return new XmlDecodeTransform(process, entity, field, transform);
+                                    case "hashcode":
+                                        return new HashcodeTransform(process, entity, field, transform);
                                 }
-                                return new NullTransformer(process, entity, field);
+                                return new NullTransformer(process, entity, field, transform);
                             }).Named<ITransform>(t.Key);
                         }
                     }
@@ -92,16 +96,16 @@ namespace Pipeline.Test {
 
                 builder.Register((ctx) => {
                     var pipelines = new List<IPipeline>();
-                        foreach (var entity in process.Entities) {
-                            var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
-                            pipeline.Input(ctx.ResolveNamed<IEntityReader>(entity.Key).Read());
-                            foreach (var field in entity.GetAllFields()) {
-                                foreach (var transform in field.Transforms) {
-                                    pipeline.Register(ctx.ResolveNamed<ITransform>(transform.Key));
-                                }
+                    foreach (var entity in process.Entities) {
+                        var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
+                        pipeline.Input(ctx.ResolveNamed<IEntityReader>(entity.Key).Read());
+                        foreach (var field in entity.GetAllFields()) {
+                            foreach (var transform in field.Transforms) {
+                                pipeline.Register(ctx.ResolveNamed<ITransform>(transform.Key));
                             }
-                            pipelines.Add(pipeline);
                         }
+                        pipelines.Add(pipeline);
+                    }
                     return pipelines;
                 }).Named<IEnumerable<IPipeline>>(process.Key);
 

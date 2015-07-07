@@ -4,23 +4,21 @@ using Pipeline.Extensions;
 
 namespace Pipeline.Transformers {
     public class RightTransform : BaseTransform, ITransform {
-        private readonly int _length;
 
-        public RightTransform(Process process, Entity entity, Field field, Configuration.Transform transform)
-            : base(process, entity, field) {
-            _length = transform.Length;
+        public RightTransform(Process process, Entity entity, Field field, Transform transform)
+            : base(process, entity, field, transform) {
         }
 
         public Row Transform(Row row) {
-            row[Field] = row[Field].ToString().Right(_length);
+            row[Field] = row[Field].ToString().Right(Configuration.Length);
             return row;
         }
 
-        Configuration.Transform ITransform.InterpretShorthand(string args, List<string> problems) {
+        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 
-        public static Configuration.Transform InterpretShorthand(string args, List<string> problems) {
+        public static Transform InterpretShorthand(string args, List<string> problems) {
             int length;
 
             if (!int.TryParse(args, out length)) {
@@ -28,7 +26,7 @@ namespace Pipeline.Transformers {
                 return Guard();
             }
 
-            return Configuration(t => {
+            return DefaultConfiguration(t => {
                 t.Method = "right";
                 t.Length = length;
                 t.IsShortHand = true;

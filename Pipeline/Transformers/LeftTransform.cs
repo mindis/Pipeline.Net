@@ -9,9 +9,9 @@ namespace Pipeline.Transformers {
         private readonly int _length;
         private readonly IField _input;
 
-        public LeftTransform(Process process, Entity entity, Field field, Configuration.Transform transform) : base(process, entity, field) {
+        public LeftTransform(Process process, Entity entity, Field field, Transform transform) : base(process, entity, field, transform) {
             _length = transform.Length;
-            _input = ParametersToFields(transform).First();
+            _input = ParametersToFields().First();
         }
 
         public Row Transform(Row row) {
@@ -19,18 +19,18 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Configuration.Transform ITransform.InterpretShorthand(string args, List<string> problems) {
+        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 
-        public static Configuration.Transform InterpretShorthand(string args, List<string> problems) {
+        public static Transform InterpretShorthand(string args, List<string> problems) {
             int length;
             if (!int.TryParse(args, out length)) {
                 problems.Add(string.Format("The left method requires a single integer representing the length, or how many left-most characters you want. You passed in '{0}'.", args));
                 return Guard();
             }
 
-            return Configuration(t => {
+            return DefaultConfiguration(t => {
                 t.Method = "left";
                 t.Length = length;
                 t.IsShortHand = true;

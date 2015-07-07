@@ -6,17 +6,15 @@ namespace Pipeline.Transformers {
 
     public class FormatTransform : BaseTransform, ITransform {
 
-        private readonly Transform _transform;
         private readonly Field[] _input;
 
         public FormatTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field) {
-            _transform = transform;
-            _input = ParametersToFields(transform).ToArray();
+            : base(process, entity, field, transform) {
+            _input = ParametersToFields().ToArray();
         }
 
         public Row Transform(Row row) {
-            row[Field] = string.Format(_transform.Format, _input.Select(f => row[f]).ToArray());
+            row[Field] = string.Format(Configuration.Format, _input.Select(f => row[f]).ToArray());
             return row;
         }
 
@@ -43,7 +41,7 @@ namespace Pipeline.Transformers {
                 return Guard();
             }
 
-            return Configuration(t => {
+            return DefaultConfiguration(t => {
                 t.Method = "format";
                 t.Format = split[0];
                 t.IsShortHand = true;

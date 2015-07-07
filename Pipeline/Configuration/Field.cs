@@ -9,6 +9,7 @@ using Transformalize.Libs.Cfg.Net;
 namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
 
+        //todo: move this composition root... maybe a ShorthandModule that is registered before configuration?
         private static readonly Dictionary<string, Func<string, List<string>, Transform>> Functions = new Dictionary<string, Func<string, List<string>, Transform>> {
             {"format", FormatTransform.InterpretShorthand},
             {"left", LeftTransform.InterpretShorthand},
@@ -17,7 +18,8 @@ namespace Pipeline.Configuration {
             {"concat", ConcatTransform.InterpretShorthand},
             {"fromxml", FromXmlTransform.InterpretShorthand},
             {"htmldecode", HtmlDecodeTransform.InterpretShorthand},
-            {"xmldecode", XmlDecodeTransform.InterpretShorthand}
+            {"xmldecode", XmlDecodeTransform.InterpretShorthand},
+            {"hashcode", HashcodeTransform.InterpretShorthand}
         };
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {

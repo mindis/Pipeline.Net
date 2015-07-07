@@ -20,9 +20,9 @@ namespace Pipeline.Transformers {
         private readonly int _total;
 
         public FromXmlTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field) {
+            : base(process, entity, field, transform) {
             _input = field;
-            var output = ParametersToFields(transform).ToArray();
+            var output = ParametersToFields().ToArray();
 
             foreach (var f in output) {
                 if (f.NodeType.Equals("attribute", IC)) {

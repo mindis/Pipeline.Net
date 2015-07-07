@@ -3,16 +3,15 @@ using System.Linq;
 using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
-    public class ConcatTransform : BaseTransform, ITransform {
+    public class HashcodeTransform : BaseTransform, ITransform {
         private readonly Field[] _input;
-
-        public ConcatTransform(Process process, Entity entity, Field field, Transform transform)
+        public HashcodeTransform(Process process, Entity entity, Field field, Transform transform)
             : base(process, entity, field, transform) {
             _input = ParametersToFields().ToArray();
         }
 
         public Row Transform(Row row) {
-            row[Field] = string.Concat(_input.Select(f => row[f]));
+            row[Field] = string.Concat(_input.Select(f => row[f])).GetHashCode();
             return row;
         }
 
@@ -21,7 +20,7 @@ namespace Pipeline.Transformers {
         }
 
         public static Transform InterpretShorthand(string args, List<string> problems) {
-            return Parameterless("concat", "concatenated", args, problems);
+            return Parameterless("hashcode", "hashed", args, problems);
         }
     }
 }

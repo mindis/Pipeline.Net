@@ -7,9 +7,9 @@ namespace Pipeline.Transformers {
     public class CopyTransform : BaseTransform, ITransform {
 
         private readonly Field _input;
-        public CopyTransform(Process process, Entity entity, Field field, Configuration.Transform transform)
-            : base(process, entity, field) {
-            _input = ParametersToFields(transform).First();
+        public CopyTransform(Process process, Entity entity, Field field, Transform transform)
+            : base(process, entity, field, transform) {
+            _input = ParametersToFields().First();
         }
 
         public Row Transform(Row row) {
@@ -17,17 +17,17 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Configuration.Transform ITransform.InterpretShorthand(string args, List<string> problems) {
+        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
             return InterpretShorthand(args, problems);
         }
 
-        public static Configuration.Transform InterpretShorthand(string args, List<string> problems) {
+        public static Transform InterpretShorthand(string args, List<string> problems) {
             if (string.IsNullOrEmpty(args)) {
                 problems.Add("The copy method requires at least one parameter referencing a field.");
                 return Guard();
             }
 
-            var element = Configuration(t => {
+            var element = DefaultConfiguration(t => {
                 t.Method = "copy";
                 t.IsShortHand = true;
             });

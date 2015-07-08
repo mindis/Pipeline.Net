@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline {
 
     public class DataSetEntityReader : BaseEntityReader, IEntityReader {
 
-        public DataSetEntityReader(Process process, Entity entity)
-            : base(process, entity) {
+        public DataSetEntityReader(Process process, Entity entity, IPipelineLogger logger)
+            : base(process, entity, logger) {
         }
 
         public IEnumerable<Row> Read() {

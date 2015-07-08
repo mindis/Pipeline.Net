@@ -98,6 +98,9 @@ namespace Pipeline.Configuration {
         /// </summary>
         public string Key { get; set; }
 
+        [Cfg(value=(long)10000)]
+        public long LogInterval { get; set; }
+
         public IEnumerable<Field> GetAllFields() {
             var fields = new List<Field>();
             foreach (var f in Fields) {

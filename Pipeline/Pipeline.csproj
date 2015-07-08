@@ -74,7 +74,12 @@
     <Compile Include="Logging\MemoryLogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\PipelineContext.cs" />
+    <Compile Include="Logging\TraceLogger.cs" />
     <Compile Include="Transformers\ConcatTransform.cs" />
+    <Compile Include="Transformers\PadLeftTransform.cs" />
+    <Compile Include="Transformers\PadRightTransform.cs" />
+    <Compile Include="Validators\CompositeValidate.cs" />
+    <Compile Include="Validators\ContainsValidate.cs" />
     <Compile Include="Transformers\CopyTransform.cs" />
     <Compile Include="Transformers\FromXmlTransform.cs" />
     <Compile Include="Transformers\HashcodeTransform.cs" />
@@ -87,7 +92,7 @@
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="IRow.cs" />
     <Compile Include="DataSetEntityReader.cs" />
-    <Compile Include="BasePipeline.cs" />
+    <Compile Include="DefaultPipeline.cs" />
     <Compile Include="IPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />

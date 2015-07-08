@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Pipeline.Configuration;
+using Pipeline.Extensions;
 using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
 
     public abstract class BaseTransform {
-
+        private long _rowCount;
         public string Name { get; set; }
 
         public Process Process { get; private set; }
@@ -15,13 +17,35 @@ namespace Pipeline.Transformers {
         public Field Field { get; private set; }
         public Transform Configuration { get; private set; }
         public PipelineContext Context { get; private set; }
+        public IPipelineLogger Logger { get; set; }
 
-        protected BaseTransform(Process process, Entity entity, Field field, Transform transform) {
+        public long RowCount {
+            get { return _rowCount; }
+            set { _rowCount = value; }
+        }
+
+        protected BaseTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger) {
             Process = process;
             Entity = entity;
             Field = field;
             Configuration = transform;
+            Logger = logger;
             Context = new PipelineContext(process, entity, field, transform);
+        }
+
+        protected virtual void Start() {
+            Logger.Info(Context, "Start reading from ", Name);
+        }
+
+        protected virtual void Increment() {
+            _rowCount++;
+            if (_rowCount % Entity.LogInterval == 0) {
+                Logger.Info(Context, "{0} {1} rows.", Name, _rowCount);
+            }
+        }
+
+        protected virtual void Finish() {
+            Logger.Info(Context, "Finished reading from ", Name);
         }
 
         /// <summary>
@@ -63,6 +87,39 @@ namespace Pipeline.Transformers {
                 t.IsShortHand = true;
             });
         }
+
+        public static Transform Pad(string method, string arg, List<string> problems) {
+
+            var split = SplitArguments(arg);
+
+            if (split.Length < 2) {
+                problems.Add(string.Format("The {0} method requires two pararmeters: the total width, and the padding character(s).  You've provided {1} parameter{2}.", method, split.Length, split.Length.Plural()));
+                return Guard();
+            }
+
+            var element = DefaultConfiguration(t => {
+                t.Method = method;
+                t.IsShortHand = true;
+            });
+
+            int totalWidth;
+            if (int.TryParse(split[0], out totalWidth)) {
+                element.TotalWidth = totalWidth;
+            } else {
+                problems.Add(string.Format("The {0} method requires the first parameter to be total width; an integer. {1} is not an integer", method, split[0]));
+                return Guard();
+            }
+
+            element.PaddingChar = split[1][0];
+
+            if (element.PaddingChar == default(char)) {
+                problems.Add(string.Format("The {0} method's padding character must be provided.", method));
+                return Guard();
+            }
+
+            return element;
+        }
+
 
         public static string[] SplitArguments(string arg, int skip = 0) {
             return Shared.Split(arg, ",", skip);

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Pipeline.Extensions;
 using Pipeline.Transformers;
+using Pipeline.Validators;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
@@ -19,7 +20,11 @@ namespace Pipeline.Configuration {
             {"fromxml", FromXmlTransform.InterpretShorthand},
             {"htmldecode", HtmlDecodeTransform.InterpretShorthand},
             {"xmldecode", XmlDecodeTransform.InterpretShorthand},
-            {"hashcode", HashcodeTransform.InterpretShorthand}
+            {"hashcode", HashcodeTransform.InterpretShorthand},
+            {"padleft", PadLeftTransform.InterpretShorthand},
+            {"padright", PadRightTransform.InterpretShorthand},
+
+            {"contains", ContainsValidate.InterpretShorthand}
         };
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
@@ -210,7 +215,7 @@ namespace Pipeline.Configuration {
         /// This value overwrites NULL values so you don't have to worry about NULLs in the pipeline.  It can also be configured to overwrite blanks 
         /// and white-space by other attributes. 
         /// </summary>
-        [Cfg(value = "")]
+        [Cfg(value = Constants.DefaultSetting)]
         public string Default { get; set; }
 
         /// <summary>
@@ -377,6 +382,11 @@ namespace Pipeline.Configuration {
         [Cfg()]
         public List<string> Domain { get; set; }
 
+        /// <summary>
+        /// Set by Process.ModifyKeys for keyed dependency injection
+        /// </summary>
+        public string Key { get; set; }
+
         //custom
         protected override void Modify() {
             if (Alias == string.Empty) { Alias = Name; }
@@ -461,8 +471,20 @@ namespace Pipeline.Configuration {
             }
 
             Transforms = list.Where(t => t.Method != "guard").ToList();
+
+            // e.g. t="copy(x).is(int).between(3,5), both is() and between() should refer to x.
+            if (RequiresCompositeValidator()) {
+                var first = Transforms.First();
+                foreach (var transform in Transforms.Skip(1)) {
+                    transform.Parameter = transform.Parameter == string.Empty ? first.Parameter : transform.Parameter;
+                    transform.Parameters = transform.Parameters.Count == 0 ? first.Parameters : transform.Parameters;
+                }
+            }
             return problems;
         }
 
+        public bool RequiresCompositeValidator() {
+            return Transforms.Count > 1 && Transforms.All(t => t.IsValidator());
+        }
     }
 }

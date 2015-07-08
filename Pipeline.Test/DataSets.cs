@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline.Test {
 
@@ -18,7 +19,7 @@ namespace Pipeline.Test {
         public void GetTypedDataSet() {
 
             var process = new Root(File.ReadAllText(@"Files\PersonAndPet.xml")).Processes.First();
-            var rows = new DataSetEntityReader(process, process.Entities.First()).Read().ToArray();
+            var rows = new DataSetEntityReader(process, process.Entities.First(), new DebugLogger(LogLevel.Debug)).Read().ToArray();
 
             Assert.IsInstanceOf<IEnumerable<Row>>(rows);
             Assert.AreEqual(3, rows.Length);

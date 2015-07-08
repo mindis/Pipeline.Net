@@ -11,7 +11,7 @@ namespace Pipeline.Logging {
             Process = process.Name;
             Entity = entity == null ? string.Empty : entity.Alias;
             Field = field == null ? string.Empty : field.Alias;
-            Transform = transform == null ? string.Empty : transform.Name;
+            Transform = transform == null ? string.Empty : transform.Method;
         }
     }
 }

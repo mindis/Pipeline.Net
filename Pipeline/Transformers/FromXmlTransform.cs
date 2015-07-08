@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 using Transformalize.Libs.Cfg.Net.Parsers.nanoXML;
 
 namespace Pipeline.Transformers {
@@ -19,8 +20,8 @@ namespace Pipeline.Transformers {
         private readonly bool _searchAttributes;
         private readonly int _total;
 
-        public FromXmlTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field, transform) {
+        public FromXmlTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
+            : base(process, entity, field, transform, logger) {
             _input = field;
             var output = ParametersToFields().ToArray();
 
@@ -35,7 +36,7 @@ namespace Pipeline.Transformers {
             _searchAttributes = _attributes.Count > 0;
             _total = _elements.Count + _attributes.Count;
 
-            Name = string.Format("fromxml({0}=>{1})", field.Name, string.Join(",", output.Select(f => f.Name)));
+            Name = "fromxml";
         }
 
         public Row Transform(Row row) {
@@ -79,6 +80,7 @@ namespace Pipeline.Transformers {
                 }
                 subNodes = nextNodes.ToArray();
             }
+            Increment();
             return row;
         }
 

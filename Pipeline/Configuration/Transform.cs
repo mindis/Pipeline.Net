@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Pipeline.Transformers;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
 
     public class Transform : CfgNode {
+
+        public const string TransformerDomain = "concat,copy,format,fromxml,hashcode,htmldecode,left,right,xmldecode,padleft,padright";
+        public const string ValidatorDomain = "contains";
+
+        private static HashSet<string> _transformSet;
+        private static HashSet<string> _validateSet;
 
         [Cfg(value = true)]
         public bool AfterAggregation { get; set; }
@@ -63,7 +68,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = "")]
         public string Map { get; set; }
 
-        [Cfg(required = true, toLower = true)]
+        [Cfg(required = true, toLower = true, domain = TransformerDomain + "," + ValidatorDomain)]
         public string Method { get; set; }
 
         [Cfg(value = "dynamic")]
@@ -76,7 +81,7 @@ namespace Pipeline.Configuration {
         public string NewValue { get; set; }
         [Cfg(value = "")]
         public string OldValue { get; set; }
-        [Cfg(value = "Equal", domain = Constants.ValidComparisons)]
+        [Cfg(value = "Equal", domain = Constants.ComparisonDomain)]
         public string Operator { get; set; }
         [Cfg(value = '0')]
         public char PaddingChar { get; set; }
@@ -94,7 +99,7 @@ namespace Pipeline.Configuration {
         public string Root { get; set; }
         [Cfg(value = "")]
         public string RunField { get; set; }
-        [Cfg(value = "Equal", domain = Constants.ValidComparisons)]
+        [Cfg(value = "Equal", domain = Constants.ComparisonDomain)]
         public string RunOperator { get; set; }
         [Cfg(value = Constants.DefaultSetting)]
         public string RunType { get; set; }
@@ -122,6 +127,7 @@ namespace Pipeline.Configuration {
         public string TimeComponent { get; set; }
         [Cfg(value = 0)]
         public int TimeOut { get; set; }
+
         [Cfg(value = Constants.DefaultSetting, domain = Constants.DefaultSetting + "," + Constants.TypeDomain)]
         public string To { get; set; }
         [Cfg(value = "0.0")]
@@ -170,6 +176,10 @@ namespace Pipeline.Configuration {
 
         public bool IsShortHand { get; set; }
 
+        public bool IsValidator() {
+            return Validators().Contains(Method);
+        }
+
         [Cfg(value = "firstday", domain = "firstday,firstfourdayweek,firstfullweek", toLower = true)]
         public string CalendarWeekRule { get; set; }
 
@@ -195,12 +205,12 @@ namespace Pipeline.Configuration {
 
             switch (Method) {
                 case "shorthand":
-                    if (string.IsNullOrEmpty(T)) {
+                    if (String.IsNullOrEmpty(T)) {
                         Error("The shorthand transform requires t attribute.");
                     }
                     break;
                 case "format":
-                    if (Format == string.Empty) {
+                    if (Format == String.Empty) {
                         Error("The format transform requires a format parameter.");
                     }
                     break;
@@ -211,7 +221,7 @@ namespace Pipeline.Configuration {
                     }
                     break;
                 case "copy":
-                    if (Parameter == string.Empty && !Parameters.Any()) {
+                    if (Parameter == String.Empty && !Parameters.Any()) {
                         Error("The copy transform requires at least one parameter.");
                     }
                     break;
@@ -221,6 +231,22 @@ namespace Pipeline.Configuration {
                 case "fromxml":
                     if (!Fields.Any()) {
                         Error("The fromxml transform requires a collection of output fields.");
+                    }
+                    break;
+                case "padleft":
+                    if (TotalWidth == 0) {
+                        Error("The padleft transform requires total width.");
+                    }
+                    if (PaddingChar == default(char)) {
+                        Error("The padleft transform requires a padding character.");
+                    }
+                    break;
+                case "padright":
+                    if (TotalWidth == 0) {
+                        Error("The padright transform requires total width.");
+                    }
+                    if (PaddingChar == default(char)) {
+                        Error("The padright transform requires a padding character.");
                     }
                     break;
                 case "htmldecode":
@@ -234,6 +260,14 @@ namespace Pipeline.Configuration {
 
         private void ValidateJavascript() {
             //TODO: extract interface and inject parser
+        }
+
+        public static HashSet<string> Transforms() {
+            return _transformSet ?? (_transformSet = new HashSet<string>(TransformerDomain.Split(new[] { ',' })));
+        }
+
+        public static HashSet<string> Validators() {
+            return _validateSet ?? (_validateSet = new HashSet<string>(ValidatorDomain.Split(new[] { ',' })));
         }
 
     }

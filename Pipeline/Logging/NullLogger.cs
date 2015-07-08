@@ -1,7 +1,6 @@
 using System;
 
 namespace Pipeline.Logging {
-
     public class NullLogger : BaseLogger, IPipelineLogger {
         public NullLogger()
             : base(LogLevel.None) {

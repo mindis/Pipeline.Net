@@ -1,14 +1,15 @@
 using System.Data.SqlClient;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline.Provider.SqlServer {
 
     public class BaseSqlEntityReader : BaseEntityReader {
 
-        public BaseSqlEntityReader(Process process, Entity entity)
-            : base(process, entity) {
-            Connection = process.Connections.First(c => c.Name == entity.Name);
+        public BaseSqlEntityReader(Process process, Entity entity, IPipelineLogger logger)
+            : base(process, entity, logger) {
+            Connection = process.Connections.First(c => c.Name == entity.Connection);
         }
 
         public Connection Connection { get; set; }
@@ -28,7 +29,9 @@ namespace Pipeline.Provider.SqlServer {
                 Password = Connection.Password
             };
 
-            return builder.ConnectionString;
+            var cs = builder.ConnectionString;
+            Logger.Debug(Context, cs);
+            return cs;
         }
     }
 }

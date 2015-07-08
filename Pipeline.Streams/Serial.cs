@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Nessos.Streams;
 using Nessos.Streams.CSharp;
+using Pipeline.Logging;
 using Pipeline.Transformers;
 
 namespace Pipeline.Streams {
@@ -8,6 +9,10 @@ namespace Pipeline.Streams {
     public class Serial : DefaultPipeline {
 
         private Stream<Row> _stream;
+
+        public Serial(IPipelineLogger logger)
+            : base(logger) {
+        }
 
         public override void Input(IEnumerable<Row> input) {
             _stream = input.AsStream();

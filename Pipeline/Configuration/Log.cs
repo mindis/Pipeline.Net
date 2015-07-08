@@ -1,9 +1,8 @@
-﻿using Pipeline.Extensions;
+﻿using Pipeline.Logging;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Log : CfgNode {
-        private string _level;
 
         [Cfg(value = false)]
         public bool Async { get; set; }
@@ -20,31 +19,8 @@ namespace Pipeline.Configuration {
         [Cfg(value = Constants.DefaultSetting)]
         public string Layout { get; set; }
 
-        [Cfg(value = "Informational", domain = "Informational,Error,Verbose,Warning", ignoreCase = true)]
-        public string Level {
-            get { return _level; }
-            set {
-                if (value == null)
-                    return;
-                var level = value.ToLower().Left(4);
-                switch (level) {
-                    case "verb":
-                        _level = "Verbose";
-                        break;
-                    case "debu":
-                        goto case "verb";
-                    case "info":
-                        _level = "Informational";
-                        break;
-                    case "warn":
-                        _level = "Warning";
-                        break;
-                    case "erro":
-                        _level = "Error";
-                        break;
-                }
-            }
-        }
+        [Cfg(value = "none", domain = "info,error,debug,warn,none", toLower = true)]
+        public string Level { get; set; }
 
         [Cfg(value = "", required = true, unique = true)]
         public string Name { get; set; }
@@ -58,6 +34,21 @@ namespace Pipeline.Configuration {
         public string To { get; set; }
         [Cfg(value = (long)10000)]
         public long Rows { get; set; }
+
+        public LogLevel ToLogLevel() {
+            switch (Level) {
+                case "info":
+                    return LogLevel.Info;
+                case "warn":
+                    return LogLevel.Warn;
+                case "debug":
+                    return LogLevel.Debug;
+                case "error":
+                    return LogLevel.Error;
+                default:
+                    return LogLevel.None;
+            }
+        }
 
     }
 }

@@ -8,7 +8,7 @@ using Pipeline.Configuration;
 namespace Pipeline.Test {
 
     [TestFixture]
-    public class Transform {
+    public class TestTransform {
 
         [Test(Description = "Format Transformation")]
         public void FormatTransformer()

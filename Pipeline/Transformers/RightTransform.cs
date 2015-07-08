@@ -1,16 +1,19 @@
 using System.Collections.Generic;
 using Pipeline.Configuration;
 using Pipeline.Extensions;
+using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
     public class RightTransform : BaseTransform, ITransform {
 
-        public RightTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field, transform) {
+        public RightTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
+            : base(process, entity, field, transform, logger) {
+            Name = "right";
         }
 
         public Row Transform(Row row) {
             row[Field] = row[Field].ToString().Right(Configuration.Length);
+            Increment();
             return row;
         }
 

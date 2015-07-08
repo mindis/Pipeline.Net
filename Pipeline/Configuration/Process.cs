@@ -257,15 +257,15 @@ namespace Pipeline.Configuration {
             ModifyKeys();
         }
 
-        private void ModifyKeys()
-        {
+        private void ModifyKeys() {
             Key = Name;
             foreach (var entity in Entities) {
                 entity.Key = Name + entity.Alias;
                 var counter = 0;
                 foreach (var field in entity.GetAllFields()) {
+                    field.Key = entity.Key + field.Alias;
                     foreach (var transform in field.Transforms) {
-                        transform.Key = Name + entity.Alias + field.Alias + transform.Method + counter++;
+                        transform.Key = field.Key + transform.Method + counter++;
                     }
                 }
             }

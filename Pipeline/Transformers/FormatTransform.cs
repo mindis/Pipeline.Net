@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
 
@@ -8,13 +9,15 @@ namespace Pipeline.Transformers {
 
         private readonly Field[] _input;
 
-        public FormatTransform(Process process, Entity entity, Field field, Transform transform)
-            : base(process, entity, field, transform) {
+        public FormatTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
+            : base(process, entity, field, transform, logger) {
             _input = ParametersToFields().ToArray();
-        }
+            Name = "format";
+            }
 
         public Row Transform(Row row) {
             row[Field] = string.Format(Configuration.Format, _input.Select(f => row[f]).ToArray());
+            Increment();
             return row;
         }
 

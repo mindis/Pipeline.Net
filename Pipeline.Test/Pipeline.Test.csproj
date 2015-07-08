@@ -48,7 +48,9 @@
   <ItemGroup>
     <Compile Include="DataSets.cs" />
     <Compile Include="PipelineModule.cs" />
+    <Compile Include="TemporarySql.cs" />
     <Compile Include="Temporary.cs" />
+    <Compile Include="Validate.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

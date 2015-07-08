@@ -57,7 +57,7 @@ namespace Pipeline.Configuration {
         /// * LessThanEqual
         /// * NotEqual
         /// </summary>
-        [Cfg(value = "Equal", domain = Constants.ValidComparisons)]
+        [Cfg(value = "Equal", domain = Constants.ComparisonDomain)]
         public string Operator { get; set; }
 
     }

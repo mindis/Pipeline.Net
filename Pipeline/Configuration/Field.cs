@@ -23,12 +23,14 @@ namespace Pipeline.Configuration {
             {"hashcode", HashcodeTransform.InterpretShorthand},
             {"padleft", PadLeftTransform.InterpretShorthand},
             {"padright", PadRightTransform.InterpretShorthand},
+            {"splitlength", SplitLengthTransform.InterpretShorthand},
 
-            {"contains", ContainsValidate.InterpretShorthand}
+            {"contains", ContainsValidater.InterpretShorthand},
+            {"is", IsValidator.InterpretShorthand},
         };
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
-            {"xml", (x => x)},
+            {"string", (x => x)},
             {"int16", (x => System.Convert.ToInt16(x))},
             {"short", (x => System.Convert.ToInt16(x))},
             {"int32", (x => System.Convert.ToInt32(x))},
@@ -389,7 +391,7 @@ namespace Pipeline.Configuration {
 
         //custom
         protected override void Modify() {
-            if (Alias == string.Empty) { Alias = Name; }
+            if (string.IsNullOrEmpty(Alias)) { Alias = Name; }
             if (Label == string.Empty) { Label = Alias; }
             if (Type != "string") { DefaultBlank = true; }
             if (Type == "rowversion") { Length = "8"; }
@@ -485,6 +487,10 @@ namespace Pipeline.Configuration {
 
         public bool RequiresCompositeValidator() {
             return Transforms.Count > 1 && Transforms.All(t => t.IsValidator());
+        }
+
+        public override string ToString() {
+            return string.Format("{0}:{1}", Alias, Type);
         }
     }
 }

@@ -73,11 +73,15 @@
     <Compile Include="Logging\LogLevel.cs" />
     <Compile Include="Logging\MemoryLogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
-    <Compile Include="Logging\PipelineContext.cs" />
-    <Compile Include="Logging\TraceLogger.cs" />
+    <Compile Include="Logging\DebugLogger.cs" />
+    <Compile Include="PipelineActivity.cs" />
+    <Compile Include="PipelineContext.cs" />
     <Compile Include="Transformers\ConcatTransform.cs" />
+    <Compile Include="Transformers\DefaultNulls.cs" />
+    <Compile Include="Transformers\FromSplitTransform.cs" />
     <Compile Include="Transformers\PadLeftTransform.cs" />
     <Compile Include="Transformers\PadRightTransform.cs" />
+    <Compile Include="Transformers\SplitLengthTransform.cs" />
     <Compile Include="Validators\CompositeValidate.cs" />
     <Compile Include="Validators\ContainsValidate.cs" />
     <Compile Include="Transformers\CopyTransform.cs" />
@@ -102,6 +106,7 @@
     <Compile Include="Transformers\ITransform.cs" />
     <Compile Include="Transformers\LeftTransform.cs" />
     <Compile Include="Transformers\RightTransform.cs" />
+    <Compile Include="Validators\IsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">

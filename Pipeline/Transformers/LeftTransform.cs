@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using Pipeline.Configuration;
 using Pipeline.Extensions;
-using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
 
@@ -11,15 +9,14 @@ namespace Pipeline.Transformers {
         private readonly int _length;
         private readonly IField _input;
 
-        public LeftTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _length = transform.Length;
-            _input = ParametersToFields().First();
-            Name = "left";
-            }
+        public LeftTransform(PipelineContext context)
+            : base(context) {
+            _length = context.Transform.Length;
+            _input = SingleInput();
+        }
 
         public Row Transform(Row row) {
-            row[Field] = row[_input].ToString().Left(_length);
+            row[Context.Field] = row[_input].ToString().Left(_length);
             Increment();
             return row;
         }

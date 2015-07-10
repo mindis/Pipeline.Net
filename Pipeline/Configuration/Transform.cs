@@ -7,11 +7,13 @@ namespace Pipeline.Configuration {
 
     public class Transform : CfgNode {
 
-        public const string TransformerDomain = "concat,copy,format,fromxml,hashcode,htmldecode,left,right,xmldecode,padleft,padright";
+        public const string ProducerDomain = "fromxml,fromsplit";
+        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength";
         public const string ValidatorDomain = "contains";
 
         private static HashSet<string> _transformSet;
         private static HashSet<string> _validateSet;
+        private static HashSet<string> _producerSet;
 
         [Cfg(value = true)]
         public bool AfterAggregation { get; set; }
@@ -68,7 +70,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = "")]
         public string Map { get; set; }
 
-        [Cfg(required = true, toLower = true, domain = TransformerDomain + "," + ValidatorDomain)]
+        [Cfg(required = true, toLower = true, domain = TransformerDomain + "," + ValidatorDomain + "," + ProducerDomain)]
         public string Method { get; set; }
 
         [Cfg(value = "dynamic")]
@@ -140,7 +142,7 @@ namespace Pipeline.Configuration {
         public string ToTimeZone { get; set; }
         [Cfg(value = " ")]
         public string TrimChars { get; set; }
-        [Cfg(value = "")]
+        [Cfg(value = Constants.DefaultSetting, domain = Constants.DefaultSetting + "," + Constants.TypeDomain)]
         public string Type { get; set; }
         [Cfg(value = "meters")]
         public string Units { get; set; }
@@ -228,9 +230,13 @@ namespace Pipeline.Configuration {
                 case "javascript":
                     ValidateJavascript();
                     break;
+                case "fromsplit":
                 case "fromxml":
                     if (!Fields.Any()) {
-                        Error("The fromxml transform requires a collection of output fields.");
+                        Error("The {0} transform requires a collection of output fields.", Method);
+                    }
+                    if (Method == "fromsplit" && Separator == Constants.DefaultSetting) {
+                        Error("The fromsplit method requires a separator.");
                     }
                     break;
                 case "padleft":
@@ -247,6 +253,21 @@ namespace Pipeline.Configuration {
                     }
                     if (PaddingChar == default(char)) {
                         Error("The padright transform requires a padding character.");
+                    }
+                    break;
+                case "splitlength":
+                    if (Separator == Constants.DefaultSetting) {
+                        Error("The splitlength transform requires a separator.");
+                    }
+                    break;
+                case "contains":
+                    if (Value == string.Empty) {
+                        Error("The contains validator requires a value.");
+                    }
+                    break;
+                case "is":
+                    if (this.Type == Constants.DefaultSetting) {
+                        Error("The is validator requires a type.");
                     }
                     break;
                 case "htmldecode":
@@ -270,5 +291,12 @@ namespace Pipeline.Configuration {
             return _validateSet ?? (_validateSet = new HashSet<string>(ValidatorDomain.Split(new[] { ',' })));
         }
 
+        public static HashSet<string> Producers() {
+            return _producerSet ?? (_producerSet = new HashSet<string>(ProducerDomain.Split(new[] { ',' })));
+        }
+
+        public override string ToString() {
+            return Method;
+        }
     }
 }

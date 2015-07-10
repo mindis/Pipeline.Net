@@ -1,21 +1,17 @@
 using System.Collections.Generic;
-using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
-namespace Pipeline.Transformers
-{
+namespace Pipeline.Transformers {
     public class PadRightTransform : BaseTransform, ITransform {
         private readonly Field _input;
 
-        public PadRightTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _input = ParametersToFields().First();
-            Name = "padright";
-            }
+        public PadRightTransform(PipelineContext context)
+            : base(context) {
+            _input = SingleInput();
+        }
 
         public Row Transform(Row row) {
-            row[Field] = row[_input].ToString().PadRight(Configuration.TotalWidth, Configuration.PaddingChar);
+            row[Context.Field] = row[_input].ToString().PadRight(Context.Transform.TotalWidth, Context.Transform.PaddingChar);
             Increment();
             return row;
         }

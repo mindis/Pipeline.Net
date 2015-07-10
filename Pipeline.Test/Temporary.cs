@@ -48,5 +48,7 @@ namespace Pipeline.Test {
 
             return pipelines.ToArray();
         }
+
     }
+
 }

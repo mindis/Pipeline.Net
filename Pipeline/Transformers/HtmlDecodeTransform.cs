@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Transformers {
@@ -13,15 +12,14 @@ namespace Pipeline.Transformers {
         private readonly Field _input;
         private readonly StringBuilder _builder;
 
-        public HtmlDecodeTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _input = ParametersToFields().First();
+        public HtmlDecodeTransform(PipelineContext context)
+            : base(context) {
+            _input = SingleInput();
             _builder = new StringBuilder();
-            Name = "htmldecode";
         }
 
         public Row Transform(Row row) {
-            row[Field] = CfgNode.Decode(row[_input].ToString(), _builder);
+            row[Context.Field] = CfgNode.Decode(row[_input].ToString(), _builder);
             Increment();
             return row;
         }

@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 using Transformalize.Libs.Cfg.Net.Parsers.nanoXML;
 
 namespace Pipeline.Transformers {
-
-
     /// <summary>
     /// The default (portable) fromxml transform, based on Cfg-Net's modified copy of NanoXml.
     /// </summary>
@@ -20,10 +17,10 @@ namespace Pipeline.Transformers {
         private readonly bool _searchAttributes;
         private readonly int _total;
 
-        public FromXmlTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _input = field;
-            var output = ParametersToFields().ToArray();
+        public FromXmlTransform(PipelineContext context)
+            : base(context) {
+            _input = SingleInputForMultipleOutput();
+            var output = MultipleOutput();
 
             foreach (var f in output) {
                 if (f.NodeType.Equals("attribute", IC)) {
@@ -36,7 +33,6 @@ namespace Pipeline.Transformers {
             _searchAttributes = _attributes.Count > 0;
             _total = _elements.Count + _attributes.Count;
 
-            Name = "fromxml";
         }
 
         public Row Transform(Row row) {
@@ -49,7 +45,7 @@ namespace Pipeline.Transformers {
             var doc = new NanoXmlDocument(xml);
             if (_elements.ContainsKey(doc.RootNode.Name)) {
                 var field = _elements[doc.RootNode.Name];
-                row[field] = field.Convert(doc.RootNode.Value ?? (field.ReadInnerXml ? doc.RootNode.InnerText() : doc.RootNode.ToString()));
+                row[Context.Field] = field.Convert(doc.RootNode.Value ?? (field.ReadInnerXml ? doc.RootNode.InnerText() : doc.RootNode.ToString()));
                 count++;
             }
 
@@ -62,7 +58,7 @@ namespace Pipeline.Transformers {
                         count++;
                         var value = node.Value ?? (field.ReadInnerXml ? node.InnerText() : node.ToString());
                         if (!string.IsNullOrEmpty(value)) {
-                            row[field] = field.Convert(value);
+                            row[Context.Field] = field.Convert(value);
                         }
                     }
                     if (_searchAttributes) {
@@ -70,7 +66,7 @@ namespace Pipeline.Transformers {
                             var field = _attributes[attribute.Name];
                             count++;
                             if (!string.IsNullOrEmpty(attribute.Value)) {
-                                row[field] = field.Convert(attribute.Value);
+                                row[Context.Field] = field.Convert(attribute.Value);
                             }
                         }
                     }

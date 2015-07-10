@@ -255,6 +255,18 @@ namespace Pipeline.Configuration {
             ModifyMergeParameters();
             ModifyMapParameters();
             ModifyKeys();
+            ModifyLogLimits();
+        }
+
+        private void ModifyLogLimits() {
+            var entitiesAny = Entities.Any();
+            var fieldsAny = GetAllFields().Any(f => f.Transforms.Any());
+            var transformsAny = GetAllTransforms().Any();
+
+            LogLimit = Name.Length;
+            EntityLogLimit = entitiesAny ? Entities.Select(e => e.Alias.Length).Max() : 0;
+            FieldLogLimit = fieldsAny ? GetAllFields().Where(f=>f.Transforms.Any()).Select(f => f.Alias.Length).Max() : 0;
+            TransformLogLimit = transformsAny ? GetAllTransforms().Select(t => t.Method.Length).Max() : 0;
         }
 
         private void ModifyKeys() {
@@ -276,6 +288,14 @@ namespace Pipeline.Configuration {
         /// </summary>
         public string Key { get; set; }
 
+        /// <summary>
+        /// Log limits, set by ModifyLogLimits
+        /// </summary>
+        public int LogLimit { get; set; }
+        public int EntityLogLimit { get; set; }
+        public int FieldLogLimit { get; set; }
+        public int TransformLogLimit { get; set; }
+
         private void ModifyDefaultEntityConnections() {
             foreach (var entity in Entities.Where(entity => !entity.HasConnection())) {
                 entity.Connection = Connections.Any(c => c.Name == "input") ? "input" : Connections.First().Name;
@@ -294,7 +314,7 @@ namespace Pipeline.Configuration {
             }
             var index = 0;
             foreach (var field in CalculatedFields) {
-                foreach (var transform in field.Transforms.Where(t => t.Parameter != string.Empty)) {
+                foreach (var transform in field.Transforms.Where(t => t.Parameter != string.Empty && !Transform.Producers().Contains(t.Method))) {
                     if (transform.Parameter == ALL) {
                         foreach (var entity in Entities) {
                             foreach (var entityField in entity.GetAllFields().Where(f => f.Output)) {

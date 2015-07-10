@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Pipeline.Configuration;
 using Pipeline.Extensions;
 using Pipeline.Logging;
@@ -10,62 +9,71 @@ namespace Pipeline.Transformers {
 
     public abstract class BaseTransform {
         private long _rowCount;
-        public string Name { get; set; }
 
-        public Process Process { get; private set; }
-        public Entity Entity { get; private set; }
-        public Field Field { get; private set; }
-        public Transform Configuration { get; private set; }
         public PipelineContext Context { get; private set; }
         public IPipelineLogger Logger { get; set; }
+
+        protected BaseTransform(PipelineContext context) {
+            Context = context;
+        }
 
         public long RowCount {
             get { return _rowCount; }
             set { _rowCount = value; }
         }
 
-        protected BaseTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger) {
-            Process = process;
-            Entity = entity;
-            Field = field;
-            Configuration = transform;
-            Logger = logger;
-            Context = new PipelineContext(process, entity, field, transform);
-        }
-
-        protected virtual void Start() {
-            Logger.Info(Context, "Start reading from ", Name);
-        }
-
         protected virtual void Increment() {
             _rowCount++;
-            if (_rowCount % Entity.LogInterval == 0) {
-                Logger.Info(Context, "{0} {1} rows.", Name, _rowCount);
+            if (_rowCount % Context.Entity.LogInterval == 0) {
+                Logger.Info(Context, _rowCount.ToString());
             }
-        }
-
-        protected virtual void Finish() {
-            Logger.Info(Context, "Finished reading from ", Name);
         }
 
         /// <summary>
         /// A transformer's input can be entity fields, process fields, or the field the transform is in.
         /// </summary>
         /// <returns></returns>
-        public List<Field> ParametersToFields() {
+        private List<Field> ParametersToFields() {
 
-            var fields = Configuration.Parameters
+            var fields = Context.Transform.Parameters
                 .Where(p => p.Field != string.Empty)
                 .Select(p =>
-                    Entity == null ?
-                    Process.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field) :
-                    Entity.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field)
+                    Context.Entity == null ?
+                    Context.Process.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field) :
+                    Context.Entity.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field)
                 ).ToList();
 
             if (!fields.Any()) {
-                fields.Add(Field);
+                fields.Add(Context.Field);
             }
             return fields;
+        }
+
+        public Field SingleInput() {
+            return ParametersToFields().First();
+        }
+
+        /// <summary>
+        /// Only used with producers, see Transform.Producers()
+        /// </summary>
+        /// <returns></returns>
+        public Field SingleInputForMultipleOutput() {
+            if (Context.Transform.Parameter != string.Empty) {
+                return Context.Entity == null
+                    ? Context.Process.GetAllFields()
+                        .First(f => f.Alias == Context.Transform.Parameter || f.Name == Context.Transform.Parameter)
+                    : Context.Entity.GetAllFields()
+                        .First(f => f.Alias == Context.Transform.Parameter || f.Name == Context.Transform.Parameter);
+            }
+            return Context.Field;
+        }
+
+        public Field[] MultipleInput() {
+            return ParametersToFields().ToArray();
+        }
+
+        public Field[] MultipleOutput() {
+            return ParametersToFields().ToArray();
         }
 
         public static Transform DefaultConfiguration(Action<Transform> setter) {
@@ -120,10 +128,8 @@ namespace Pipeline.Transformers {
             return element;
         }
 
-
         public static string[] SplitArguments(string arg, int skip = 0) {
             return Shared.Split(arg, ",", skip);
         }
-
     }
 }

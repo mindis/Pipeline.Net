@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Autofac;
 using Pipeline.Configuration;
@@ -21,7 +20,7 @@ namespace Pipeline.Test {
 
         protected override void Load(ContainerBuilder builder) {
 
-            builder.Register<IPipelineLogger>((ctx) => new DebugLogger());
+            builder.Register<IPipelineLogger>((ctx) => new DebugLogger()).SingleInstance();
 
             foreach (var p in _root.Processes) {
 
@@ -52,13 +51,14 @@ namespace Pipeline.Test {
                         }
                     }).Named<IPipeline>(entity.Key);
 
-                    builder.Register<IEntityReader>((c) => {
+                    builder.Register<IEntityReader>((ctx) => {
                         var connection = process.Connections.First(cn => cn.Name == entity.Connection);
+                        var context = new PipelineContext(process, entity);
                         switch (connection.Provider) {
                             case "internal":
-                                return new DataSetEntityReader(process, entity, c.Resolve<IPipelineLogger>());
+                                return new DataSetEntityReader(context);
                             case "sqlserver":
-                                return new SqlEntityReader(process, entity, c.Resolve<IPipelineLogger>());
+                                return new SqlEntityReader(context);
                         }
                         return null;
                     }).Named<IEntityReader>(entity.Key);
@@ -68,28 +68,31 @@ namespace Pipeline.Test {
                         var field = f;
 
                         if (field.RequiresCompositeValidator()) {
+                            var transforms = field.Transforms.Select(t => SwitchTransform(new PipelineContext(process, entity, field, t)));
                             builder.Register<ITransform>((ctx) => new CompositeValidator(
-                                process,
-                                entity,
-                                field,
-                                field.Transforms.Select(t => SwitchTransform(process, entity, field, t, ctx.Resolve<IPipelineLogger>())),
-                                ctx.Resolve<IPipelineLogger>()
+                                new PipelineContext(process, entity, field, null),
+                                transforms
                             )).Named<ITransform>(field.Key);
                         } else {
                             foreach (var t in field.Transforms) {
-                                var transform = t;
-                                builder.Register((ctx) => SwitchTransform(process, entity, field, transform, ctx.Resolve<IPipelineLogger>())).Named<ITransform>(t.Key);
+                                var context = new PipelineContext(process, entity, field, t);
+                                builder.Register((ctx) => SwitchTransform(context)).Named<ITransform>(t.Key);
                             }
                         }
                     }
                 }
 
                 builder.Register((ctx) => {
+
                     var pipelines = new List<IPipeline>();
+
                     foreach (var entity in process.Entities) {
+
                         var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
-                        pipeline.Input(ctx.ResolveNamed<IEntityReader>(entity.Key).Read());
-                        pipeline.Register(new DefaultNulls(process, entity, null, entity.GetDefaultOf<Transform>(t=>{ t.Method = "defaultnulls";}), ctx.Resolve<IPipelineLogger>()));
+
+                        pipeline.Register(ctx.ResolveNamed<IEntityReader>(entity.Key));
+
+                        pipeline.Register(new DefaultNulls(new PipelineContext(process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
                         foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
                             if (field.RequiresCompositeValidator()) {
                                 pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
@@ -98,7 +101,6 @@ namespace Pipeline.Test {
                                     pipeline.Register(ctx.ResolveNamed<ITransform>(transform.Key));
                                 }
                             }
-
                         }
                         pipelines.Add(pipeline);
                     }
@@ -109,62 +111,26 @@ namespace Pipeline.Test {
 
         }
 
-        private static ITransform SwitchTransform(Process process, Entity entity, Field field, Pipeline.Configuration.Transform transform, IPipelineLogger logger) {
-            switch (transform.Method) {
-                case "format":
-                    return new FormatTransform(process, entity, field, transform, logger);
-                case "left":
-                    return new LeftTransform(process, entity, field, transform, logger);
-                case "right":
-                    return new RightTransform(process, entity, field, transform, logger);
-                case "copy":
-                    return new CopyTransform(process, entity, field, transform, logger);
-                case "concat":
-                    return new ConcatTransform(process, entity, field, transform, logger);
-                case "fromxml":
-                    return new FromXmlTransform(process, entity, field, transform, logger);
-                case "htmldecode":
-                    return new HtmlDecodeTransform(process, entity, field, transform, logger);
-                case "xmldecode":
-                    return new XmlDecodeTransform(process, entity, field, transform, logger);
-                case "hashcode":
-                    return new HashcodeTransform(process, entity, field, transform, logger);
-                case "contains":
-                    return new ContainsValidate(process, entity, field, transform, logger);
-                case "padleft":
-                    return new PadLeftTransform(process, entity, field, transform, logger);
-                case "padright":
-                    return new PadRightTransform(process, entity, field, transform, logger);
+        private static ITransform SwitchTransform(PipelineContext context) {
+            switch (context.Transform.Method) {
+                case "format": return new FormatTransform(context);
+                case "left": return new LeftTransform(context);
+                case "right": return new RightTransform(context);
+                case "copy": return new CopyTransform(context);
+                case "concat": return new ConcatTransform(context);
+                case "fromxml": return new FromXmlTransform(context);
+                case "fromsplit": return new FromSplitTransform(context);
+                case "htmldecode": return new HtmlDecodeTransform(context);
+                case "xmldecode": return new XmlDecodeTransform(context);
+                case "hashcode": return new HashcodeTransform(context);
+                case "padleft": return new PadLeftTransform(context);
+                case "padright": return new PadRightTransform(context);
+                case "splitlength": return new SplitLengthTransform(context);
+
+                case "contains": return new ContainsValidater(context);
+                case "is": return new IsValidator(context);
             }
-            return new NullTransformer(process, entity, field, transform, logger);
-        }
-    }
-
-    public class DefaultNulls : BaseTransform, ITransform {
-        private readonly Field[] _fields;
-        private readonly Dictionary<string, object> _typeDefaults;
-        private readonly Dictionary<int, Func<object>> _getDefaultFor = new Dictionary<int, Func<object>>();
-
-        public DefaultNulls(Process process, Entity entity, Field field, Pipeline.Configuration.Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _fields = entity.GetAllFields().ToArray();
-            _typeDefaults = Constants.TypeDefaults();
-            foreach (var fld in _fields) {
-                var f = fld;
-                _getDefaultFor[f.Index] = () => f.Default == Constants.DefaultSetting ? _typeDefaults[f.Type] : f.Convert(f.Default);
-            }
-        }
-
-        public Row Transform(Row row) {
-            foreach (var field in _fields.Where(field => row[field] == null)) {
-                row[field] = _getDefaultFor[field.Index]();
-            }
-            Increment();
-            return row;
-        }
-
-        public Pipeline.Configuration.Transform InterpretShorthand(string args, List<string> problems) {
-            throw new System.NotImplementedException();
+            return new NullTransformer(context);
         }
     }
 }

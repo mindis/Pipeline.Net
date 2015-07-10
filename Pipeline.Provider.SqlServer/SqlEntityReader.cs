@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityReader : BaseSqlEntityReader, IEntityReader {
@@ -12,14 +11,14 @@ namespace Pipeline.Provider.SqlServer {
         private readonly string _query;
         private int _rowCount;
 
-        public SqlEntityReader(Process process, Entity entity, IPipelineLogger logger)
-            : base(process, entity, logger) {
+        public SqlEntityReader(PipelineContext context)
+            : base(context) {
 
             var fieldList = string.Join(",", InputFields.Select(f => "[" + f.Name + "]"));
-            var schema = entity.Schema == string.Empty ? string.Empty : "[" + entity.Schema + "].";
-            var noLock = entity.NoLock ? "WITH (NOLOCK)" : string.Empty;
+            var schema = context.Entity.Schema == string.Empty ? string.Empty : "[" + context.Entity.Schema + "].";
+            var noLock = context.Entity.NoLock ? "WITH (NOLOCK)" : string.Empty;
 
-            _query = string.Format("SELECT {0} FROM {1}[{2}] {3};", fieldList, schema, entity.Name, noLock);
+            _query = string.Format("SELECT {0} FROM {1}[{2}] {3};", fieldList, schema, context.Entity.Name, noLock);
             Logger.Debug(Context, _query);
         }
 

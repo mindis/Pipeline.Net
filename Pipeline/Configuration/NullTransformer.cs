@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
-using Pipeline.Logging;
 using Pipeline.Transformers;
 
 namespace Pipeline.Configuration {
     public class NullTransformer : BaseTransform, ITransform {
-        public NullTransformer(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
+        public NullTransformer(PipelineContext context)
+            : base(context) {
         }
 
         public Row Transform(Row row) {

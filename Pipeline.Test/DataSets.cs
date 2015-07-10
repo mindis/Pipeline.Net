@@ -19,7 +19,8 @@ namespace Pipeline.Test {
         public void GetTypedDataSet() {
 
             var process = new Root(File.ReadAllText(@"Files\PersonAndPet.xml")).Processes.First();
-            var rows = new DataSetEntityReader(process, process.Entities.First(), new DebugLogger(LogLevel.Debug)).Read().ToArray();
+            var context = new PipelineContext(process, process.Entities.First());
+            var rows = new DataSetEntityReader(context).Read().ToArray();
 
             Assert.IsInstanceOf<IEnumerable<Row>>(rows);
             Assert.AreEqual(3, rows.Length);

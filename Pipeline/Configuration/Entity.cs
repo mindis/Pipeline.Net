@@ -98,7 +98,7 @@ namespace Pipeline.Configuration {
         /// </summary>
         public string Key { get; set; }
 
-        [Cfg(value=(long)10000)]
+        [Cfg(value = (long)10000)]
         public long LogInterval { get; set; }
 
         public IEnumerable<Field> GetAllFields() {
@@ -126,7 +126,7 @@ namespace Pipeline.Configuration {
             ModifyMissingPrimaryKey();
 
             try {
-                AdaptFieldsCreatedFromTransforms(new[] { "fromxml", "fromregex", "fromjson", "fromsplit" });
+                AdaptFieldsCreatedFromTransforms();
             } catch (Exception ex) {
                 Error("Trouble adapting fields created from transforms. {0}", ex.Message);
             }
@@ -220,7 +220,7 @@ namespace Pipeline.Configuration {
         public void MergeParameters() {
 
             foreach (var field in Fields) {
-                foreach (var transform in field.Transforms.Where(t => t.Parameter != string.Empty)) {
+                foreach (var transform in field.Transforms.Where(t => t.Parameter != string.Empty && !Transform.Producers().Contains(t.Method))) {
                     if (transform.Parameter == "*") {
                         Error("You can not reference all parameters within an entity's field: {0}", field.Name);
                     } else {
@@ -232,7 +232,7 @@ namespace Pipeline.Configuration {
 
             var index = 0;
             foreach (var calculatedField in CalculatedFields) {
-                foreach (var transform in calculatedField.Transforms.Where(t => t.Parameter != string.Empty)) {
+                foreach (var transform in calculatedField.Transforms.Where(t => t.Parameter != string.Empty && !Transform.Producers().Contains(t.Method))) {
                     if (transform.Parameter == "*") {
                         foreach (var field in Fields) {
                             transform.Parameters.Add(GetParameter(Alias, field.Alias, field.Type));
@@ -270,12 +270,16 @@ namespace Pipeline.Configuration {
             return Connection != string.Empty || Input.Count > 0;
         }
 
-        private void AdaptFieldsCreatedFromTransforms(IEnumerable<string> transformToFields) {
-            foreach (var field in transformToFields) {
-                while (new TransformFieldsToParametersAdapter(this).Adapt(field) > 0) {
-                    new TransformFieldsMoveAdapter(this).Adapt(field);
+        private void AdaptFieldsCreatedFromTransforms() {
+            foreach (var method in Transform.Producers()) {
+                while (new TransformFieldsToParametersAdapter(this).Adapt(method) > 0) {
+                    new TransformFieldsMoveAdapter(this).Adapt(method);
                 }
             }
+        }
+
+        public override string ToString() {
+            return Alias;
         }
 
     }

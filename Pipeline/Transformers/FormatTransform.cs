@@ -9,14 +9,13 @@ namespace Pipeline.Transformers {
 
         private readonly Field[] _input;
 
-        public FormatTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _input = ParametersToFields().ToArray();
-            Name = "format";
-            }
+        public FormatTransform(PipelineContext context)
+            : base(context) {
+            _input = MultipleInput();
+        }
 
         public Row Transform(Row row) {
-            row[Field] = string.Format(Configuration.Format, _input.Select(f => row[f]).ToArray());
+            row[Context.Field] = string.Format(Context.Transform.Format, _input.Select(f => row[f]).ToArray());
             Increment();
             return row;
         }

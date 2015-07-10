@@ -9,8 +9,8 @@ namespace Pipeline.Linq {
             : base(logger) {
         }
 
-        public new IEnumerable<Row> Run() {
-            return Output.AsParallel();
+        public override IEnumerable<Row> Run() {
+            return base.Run().AsParallel();
         }
     }
 }

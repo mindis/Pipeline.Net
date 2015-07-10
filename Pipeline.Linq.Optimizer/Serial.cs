@@ -9,8 +9,8 @@ namespace Pipeline.Linq.Optimizer {
             : base(logger) {
         }
 
-        public new IEnumerable<Row> Run() {
-            return Output.AsQueryExpr().Run();
+        public override IEnumerable<Row> Run() {
+            return base.Run().AsQueryExpr().Run();
         }
     }
 }

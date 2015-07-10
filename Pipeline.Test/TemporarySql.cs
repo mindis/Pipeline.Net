@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
@@ -23,7 +22,7 @@ namespace Pipeline.Test {
                 <add name='input' provider='sqlserver' server='localhost' database='ClevestAclara' />
             </connections>
             <entities>  
-                <add name='WorkOrder' log-interval='1000'>
+                <add name='WorkOrder' log-interval='1000' pipeline='linq'>
                     <fields>
 
                         <add name='WorkOrderKey' type='guid' primary-key='true' label='Work Order Key'/>

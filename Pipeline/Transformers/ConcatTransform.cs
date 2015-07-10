@@ -1,20 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
     public class ConcatTransform : BaseTransform, ITransform {
         private readonly Field[] _input;
 
-        public ConcatTransform(Process process, Entity entity, Field field, Transform transform, IPipelineLogger logger)
-            : base(process, entity, field, transform, logger) {
-            _input = ParametersToFields().ToArray();
-            Name = "concat";
-            }
+        public ConcatTransform(PipelineContext context)
+            : base(context) {
+            _input = MultipleInput();
+        }
 
         public Row Transform(Row row) {
-            row[Field] = string.Concat(_input.Select(f => row[f]));
+            row[Context.Field] = string.Concat(_input.Select(f => row[f]));
             Increment();
             return row;
         }

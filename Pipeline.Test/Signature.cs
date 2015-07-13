@@ -45,29 +45,27 @@ namespace Pipeline.Test {
       </entities>
     </add>
   </processes>
-</cfg>
-            ".Replace('\'', '"');
+</cfg>";
 
-            var root = new Root(xml);
-
-            if (root.Errors().Any()) {
-                foreach (var error in root.Errors()) {
+            var module = new PipelineModule(xml);
+            if (module.Root.Errors().Any()) {
+                foreach (var error in module.Root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
-                Assert.AreEqual("See", "Errors");
-            } else {
-                var builder = new ContainerBuilder();
-                builder.RegisterModule(new PipelineModule(root));
-                var container = builder.Build();
-                var process = root.Processes.First();
+                throw new Exception("Configuration Error(s)");
+            }
 
-                var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(module);
+            var container = builder.Build();
+            var process = module.Root.Processes.First();
 
-                Assert.AreEqual(2, output[0][process.Entities.First().CalculatedFields.First(cf => cf.Name == "length")]);
+            var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
 
-                foreach (var row in output) {
-                    Console.WriteLine(row);
-                }
+            Assert.AreEqual(2, output[0][process.Entities.First().CalculatedFields.First(cf => cf.Name == "length")]);
+
+            foreach (var row in output) {
+                Console.WriteLine(row);
             }
         }
     }

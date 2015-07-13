@@ -35,14 +35,21 @@ namespace Pipeline.Test {
     public class TemporaryProcessPipelineComposer {
 
         public IPipeline[] Compose() {
-            var root = new Root(File.ReadAllText(@"Files\PersonAndPet.xml"));
-
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root));
+            var module = new PipelineModule(File.ReadAllText(@"Files\PersonAndPet.xml"));
+            builder.RegisterModule(module);
+
+            if (module.Root.Errors().Any()) {
+                foreach (var error in module.Errors) {
+                    Console.WriteLine(error);
+                }
+                throw new Exception("Configuration Error(s)");
+            }
+
             var container = builder.Build();
 
             var pipelines = new List<IPipeline>();
-            foreach (var process in root.Processes) {
+            foreach (var process in module.Root.Processes) {
                 pipelines.AddRange(container.ResolveNamed<IEnumerable<IPipeline>>(process.Key));
             }
 

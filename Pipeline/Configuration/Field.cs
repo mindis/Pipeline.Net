@@ -4,30 +4,19 @@ using System.Globalization;
 using System.Linq;
 using Pipeline.Extensions;
 using Pipeline.Transformers;
-using Pipeline.Validators;
 using Transformalize.Libs.Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
 
-        //todo: move this composition root... maybe a ShorthandModule that is registered before configuration?
-        private static readonly Dictionary<string, Func<string, List<string>, Transform>> Functions = new Dictionary<string, Func<string, List<string>, Transform>> {
-            {"format", FormatTransform.InterpretShorthand},
-            {"left", LeftTransform.InterpretShorthand},
-            {"right", RightTransform.InterpretShorthand},
-            {"copy", CopyTransform.InterpretShorthand},
-            {"concat", ConcatTransform.InterpretShorthand},
-            {"fromxml", FromXmlTransform.InterpretShorthand},
-            {"htmldecode", HtmlDecodeTransform.InterpretShorthand},
-            {"xmldecode", XmlDecodeTransform.InterpretShorthand},
-            {"hashcode", HashcodeTransform.InterpretShorthand},
-            {"padleft", PadLeftTransform.InterpretShorthand},
-            {"padright", PadRightTransform.InterpretShorthand},
-            {"splitlength", SplitLengthTransform.InterpretShorthand},
-
-            {"contains", ContainsValidater.InterpretShorthand},
-            {"is", IsValidator.InterpretShorthand},
-        };
+        /// <summary>
+        /// Set at composition root.  Needed to add to Cfg-Net's validation.
+        /// </summary>
+        private static Dictionary<string, Func<string, List<string>, Transform>> _shorthandParsers = new Dictionary<string, Func<string, List<string>, Transform>>();
+        public static Dictionary<string, Func<string, List<string>, Transform>> ShorthandParsers {
+            get { return _shorthandParsers; }
+            set { _shorthandParsers = value; }
+        }
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
             {"string", (x => x)},
@@ -426,12 +415,12 @@ namespace Pipeline.Configuration {
                 method = expression;
             }
 
-            if (!Functions.ContainsKey(method)) {
+            if (!ShorthandParsers.ContainsKey(method)) {
                 problems.Add(string.Format("Sorry. Your expression '{0}' references an undefined method: '{1}'.", expression, method));
                 return BaseTransform.Guard();
             }
 
-            return Functions[method](arg, problems);
+            return ShorthandParsers[method](arg, problems);
         }
 
         public List<string> ExpandShortHandTransforms() {

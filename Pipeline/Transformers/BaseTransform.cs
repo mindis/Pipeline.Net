@@ -84,17 +84,17 @@ namespace Pipeline.Transformers {
             return new Transform().GetDefaultOf<Transform>(t => { t.Method = "guard"; });
         }
 
-        public static Transform Parameterless(string method, string result, string args, List<string> problems) {
-            if (!string.IsNullOrEmpty(args)) {
-                problems.Add(string.Format("The {0} transform does not take parameters. It returns a {1} version of the value or values in the field. To get data into the field, proceed {0}() with copy(f1) or copy(f1,f2,etc) short-hand method.", method, result));
-                return Guard();
-            }
+        //public static Transform Parameterless(string method, string result, string args, List<string> problems) {
+        //    if (!string.IsNullOrEmpty(args)) {
+        //        problems.Add(string.Format("The {0} transform does not take parameters. It returns a {1} version of the value or values in the field. To get data into the field, proceed {0}() with copy(f1) or copy(f1,f2,etc) short-hand method.", method, result));
+        //        return Guard();
+        //    }
 
-            return DefaultConfiguration(t => {
-                t.Method = method;
-                t.IsShortHand = true;
-            });
-        }
+        //    return DefaultConfiguration(t => {
+        //        t.Method = method;
+        //        t.IsShortHand = true;
+        //    });
+        //}
 
         public static Transform Pad(string method, string arg, List<string> problems) {
 

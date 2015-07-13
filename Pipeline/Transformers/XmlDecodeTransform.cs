@@ -8,8 +8,8 @@ namespace Pipeline.Transformers {
             : base(context) {
         }
 
-        public new static Transform InterpretShorthand(string args, List<string> problems) {
-            return Parameterless("xmldecode", "xml-decoded", args, problems);
-        }
+        //public new static Transform InterpretShorthand(string args, List<string> problems) {
+        //    return Parameterless("xmldecode", "xml-decoded", args, problems);
+        //}
     }
 }

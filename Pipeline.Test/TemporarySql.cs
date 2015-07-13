@@ -147,19 +147,18 @@ namespace Pipeline.Test {
 </cfg>
 ";
 
-            var root = new Root(xml);
-
-            if (root.Errors().Any()) {
-                foreach (var error in root.Errors()) {
+            var module = new PipelineModule(xml);
+            if (module.Root.Errors().Any()) {
+                foreach (var error in module.Root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
-                System.Environment.Exit(1);
+                throw new Exception("Configuration Error(s)");
             }
 
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root));
+            builder.RegisterModule(module);
             var container = builder.Build();
-            var process = root.Processes.First();
+            var process = module.Root.Processes.First();
 
             var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
 

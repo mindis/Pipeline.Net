@@ -11,14 +11,14 @@ namespace Pipeline.Test {
 
         [Test(Description = "Cfg-Net can read Files\\PersonAndPet.xml")]
         public void ConfurationIsGood() {
-            var root = new Root(File.ReadAllText(@"Files\PersonAndPet.xml"));
+            var module = new PipelineModule(File.ReadAllText(@"Files\PersonAndPet.xml"));
 
-            foreach (var error in root.Errors()) {
+            foreach (var error in module.Root.Errors()) {
                 Console.WriteLine(error);
             }
 
-            Assert.AreEqual(0, root.Errors().Count());
-            Assert.AreEqual(0, root.Warnings().Count());
+            Assert.AreEqual(0, module.Root.Errors().Count());
+            Assert.AreEqual(0, module.Root.Warnings().Count());
         }
 
 

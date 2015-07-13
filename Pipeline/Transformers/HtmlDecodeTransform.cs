@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,11 +26,12 @@ namespace Pipeline.Transformers {
         }
 
         Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
+            //return InterpretShorthand(args, problems);
+            throw new NotImplementedException();
         }
 
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            return Parameterless("htmldecode", "html-decoded", args, problems);
-        }
+        //public static Transform InterpretShorthand(string args, List<string> problems) {
+        //    return Parameterless("htmldecode", "html-decoded", args, problems);
+        //}
     }
 }

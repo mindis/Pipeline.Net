@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
@@ -18,11 +19,13 @@ namespace Pipeline.Transformers {
         }
 
         Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
+            //return InterpretShorthand(args, problems);
+            throw new NotImplementedException();
         }
 
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            return Parameterless("concat", "concatenated", args, problems);
-        }
+        //public static Transform InterpretShorthand(string args, List<string> problems) {
+        //    return Parameterless("concat", "concatenated", args, problems);
+        //}
+
     }
 }

@@ -76,6 +76,10 @@
     <Compile Include="Logging\DebugLogger.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
+    <Compile Include="Shorthand\BaseShorthandParser.cs" />
+    <Compile Include="Shorthand\IShorthandParser.cs" />
+    <Compile Include="Shorthand\ParameterlessParser.cs" />
+    <Compile Include="Shorthand\ParameterlessValidator.cs" />
     <Compile Include="Transformers\ConcatTransform.cs" />
     <Compile Include="Transformers\DefaultNulls.cs" />
     <Compile Include="Transformers\FromSplitTransform.cs" />
@@ -111,6 +115,10 @@
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Cfg-NET.0.1.1\lib\CfgNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FluentValidation, Version=5.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.5.6.2.0\lib\portable-net40+sl50+wp80+win8+wpa81\FluentValidation.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>

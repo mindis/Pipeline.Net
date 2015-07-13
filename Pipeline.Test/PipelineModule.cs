@@ -5,6 +5,7 @@ using Pipeline.Configuration;
 using Pipeline.Linq;
 using Pipeline.Logging;
 using Pipeline.Provider.SqlServer;
+using Pipeline.Shorthand;
 using Pipeline.Transformers;
 using Pipeline.Validators;
 
@@ -12,17 +13,36 @@ namespace Pipeline.Test {
 
     public class PipelineModule : Module {
 
-        private readonly Root _root;
+        public string[] Warnings { get; set; }
+        public string[] Errors { get; set; }
+        public Root Root { get; set; }
 
-        public PipelineModule(Root root) {
-            _root = root;
+        public PipelineModule(string cfg) {
+
+            Field.ShorthandParsers["format"] = FormatTransform.InterpretShorthand;
+
+            Field.ShorthandParsers["left"] = LeftTransform.InterpretShorthand;
+            Field.ShorthandParsers["right"] = RightTransform.InterpretShorthand;
+            Field.ShorthandParsers["copy"] = CopyTransform.InterpretShorthand;
+            Field.ShorthandParsers["concat"] = new ParameterlessParser("concat").Parse;
+            Field.ShorthandParsers["fromxml"] = FromXmlTransform.InterpretShorthand;
+            Field.ShorthandParsers["htmldecode"] = new ParameterlessParser("concat").Parse;
+            Field.ShorthandParsers["xmldecode"] = new ParameterlessParser("concat").Parse;
+            Field.ShorthandParsers["hashcode"] = new ParameterlessParser("concat").Parse;
+            Field.ShorthandParsers["padleft"] = PadLeftTransform.InterpretShorthand;
+            Field.ShorthandParsers["padright"] = PadRightTransform.InterpretShorthand;
+            Field.ShorthandParsers["splitlength"] = SplitLengthTransform.InterpretShorthand;
+
+            Field.ShorthandParsers["contains"] = ContainsValidater.InterpretShorthand;
+            Field.ShorthandParsers["is"] = IsValidator.InterpretShorthand;
+            Root = new Root(cfg);
         }
 
         protected override void Load(ContainerBuilder builder) {
 
             builder.Register<IPipelineLogger>((ctx) => new DebugLogger()).SingleInstance();
 
-            foreach (var p in _root.Processes) {
+            foreach (var p in Root.Processes) {
 
                 var process = p;
 

@@ -1,18 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Configuration;
+using Transformalize.Libs.Cfg.Net;
+using Transformalize.Libs.Cfg.Net.Shorthand;
 
 namespace Pipeline.Test {
 
     [TestFixture]
     public class TestSignature {
 
+        [Test]
+        public void Test1()
+        {
+            const string stuff = @"something(1,2,\,)";
+            var expression = new Expression(stuff);
+            Assert.AreEqual("something", expression.Method);
+            Assert.AreEqual(3, expression.Parameters.Length);
+            Assert.AreEqual("1", expression.Parameters[0]);
+            Assert.AreEqual("2", expression.Parameters[1]);
+            Assert.AreEqual(",", expression.Parameters[2]);
+
+        }
+
         [Test(Description = "Validator")]
         public void Validator() {
-            var xml = @"
+            const string xml = @"
 <cfg>
   <processes>
     <add name='TestSignature'>
@@ -47,7 +62,8 @@ namespace Pipeline.Test {
   </processes>
 </cfg>";
 
-            var module = new PipelineModule(xml);
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var module = new PipelineModule(xml, shorthand);
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {
                     Console.Error.WriteLine(error);
@@ -62,7 +78,8 @@ namespace Pipeline.Test {
 
             var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
 
-            Assert.AreEqual(2, output[0][process.Entities.First().CalculatedFields.First(cf => cf.Name == "length")]);
+            var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
+            Assert.AreEqual(2, output[0][field]);
 
             foreach (var row in output) {
                 Console.WriteLine(row);

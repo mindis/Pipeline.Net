@@ -11,7 +11,9 @@ namespace Pipeline.Test {
 
         [Test(Description = "Cfg-Net can read Files\\PersonAndPet.xml")]
         public void ConfurationIsGood() {
-            var module = new PipelineModule(File.ReadAllText(@"Files\PersonAndPet.xml"));
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var module = new PipelineModule(cfg, shorthand);
 
             foreach (var error in module.Root.Errors()) {
                 Console.WriteLine(error);
@@ -25,7 +27,9 @@ namespace Pipeline.Test {
         [Test(Description = "Process populates index for each field")]
         public void FieldsAreIndexed() {
 
-            var root = new Root(File.ReadAllText(@"Files\PersonAndPet.xml"));
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var root = new Root(cfg, shorthand);
 
             var person = root.Processes.First().Entities.First();
             var pet = root.Processes.First().Entities.Last();

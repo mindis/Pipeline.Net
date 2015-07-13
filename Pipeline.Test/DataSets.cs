@@ -16,9 +16,12 @@ namespace Pipeline.Test {
         }
 
         [Test(Description = "A DataSet can be stored in an configuration, typed, and enumerated through.")]
-        public void GetTypedDataSet() {
+        public void GetTypedDataSet()
+        {
 
-            var process = new Root(File.ReadAllText(@"Files\PersonAndPet.xml")).Processes.First();
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var process = new Root(cfg, shorthand).Processes.First();
             var context = new PipelineContext(process, process.Entities.First());
             var rows = new DataSetEntityReader(context).Read().ToArray();
 

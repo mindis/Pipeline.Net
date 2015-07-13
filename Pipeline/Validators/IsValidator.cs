@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using Pipeline.Configuration;
 using Pipeline.Transformers;
 
@@ -25,27 +23,5 @@ namespace Pipeline.Validators {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
-        }
-
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            var split = SplitArguments(args);
-            if (split.Length != 1) {
-                problems.Add("The is(type) validator requires a type argument.");
-                return Guard();
-            }
-
-            if (!Constants.TypeSet().Contains(split[0])) {
-                problems.Add(string.Format("The type {0} is not recognized.  Valid types are {1}.", split[0], Constants.TypeDomain));
-                return Guard();
-            }
-
-            return DefaultConfiguration(a => {
-                a.Method = "is";
-                a.Type = split[0];
-                a.To = split[0];
-            });
-        }
     }
 }

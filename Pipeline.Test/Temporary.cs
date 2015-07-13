@@ -36,11 +36,13 @@ namespace Pipeline.Test {
 
         public IPipeline[] Compose() {
             var builder = new ContainerBuilder();
-            var module = new PipelineModule(File.ReadAllText(@"Files\PersonAndPet.xml"));
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var module = new PipelineModule(cfg, shorthand);
             builder.RegisterModule(module);
 
             if (module.Root.Errors().Any()) {
-                foreach (var error in module.Errors) {
+                foreach (var error in module.Root.Errors()) {
                     Console.WriteLine(error);
                 }
                 throw new Exception("Configuration Error(s)");

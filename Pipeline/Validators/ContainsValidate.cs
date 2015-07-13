@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 using Pipeline.Transformers;
 
 namespace Pipeline.Validators {
@@ -29,21 +27,5 @@ namespace Pipeline.Validators {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
-        }
-
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            var split = SplitArguments(args);
-            if (split.Length != 1) {
-                problems.Add("The contains validator requires a value to search for.");
-                return Guard();
-            }
-
-            return DefaultConfiguration(a => {
-                a.Method = "contains";
-                a.Value = args;
-            });
-        }
     }
 }

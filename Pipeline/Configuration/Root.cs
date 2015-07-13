@@ -14,10 +14,11 @@ namespace Pipeline.Configuration {
 
         public Root(
                 string xml,
+                string shorthand,
                 Dictionary<string, string> parameters = null,
                 ILogger logger = null)
             : base(null, logger) {
-
+            LoadShorthand(shorthand);
             Load(xml, parameters);
         }
 

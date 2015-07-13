@@ -242,12 +242,7 @@ namespace Pipeline.Configuration {
             ModifyDefaultSearchTypes();
 
             try {
-                var problems = ExpandShortHandTransforms();
-                if (problems.Any()) {
-                    foreach (var problem in problems) {
-                        Error(problem);
-                    }
-                }
+                ExpandShortHandTransforms();
             } catch (Exception ex) {
                 Error("Trouble expanding short hand transforms. {0}", ex.Message);
             }
@@ -597,22 +592,20 @@ namespace Pipeline.Configuration {
         }
 
         /// <summary>
-        /// Converts t attribute to configuration items for the whole process, and returns any problems found
+        /// Converts custom shorthand transforms
         /// </summary>
-        public string[] ExpandShortHandTransforms() {
-            var problems = new List<string>();
+        public void ExpandShortHandTransforms() {
             foreach (var entity in Entities) {
                 foreach (var field in entity.Fields) {
-                    problems.AddRange(field.ExpandShortHandTransforms());
+                    field.ExpandShortHandTransforms();
                 }
                 foreach (var field in entity.CalculatedFields) {
-                    problems.AddRange(field.ExpandShortHandTransforms());
+                    field.ExpandShortHandTransforms();
                 }
             }
             foreach (var field in CalculatedFields) {
-                problems.AddRange(field.ExpandShortHandTransforms());
+                field.ExpandShortHandTransforms();
             }
-            return problems.ToArray();
         }
 
         public IEnumerable<Field> GetAllFields() {

@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
+
     public class HashcodeTransform : BaseTransform, ITransform {
         private readonly Field[] _input;
         public HashcodeTransform(PipelineContext context)
@@ -17,13 +16,5 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            //return InterpretShorthand(args, problems);
-            throw new NotImplementedException();
-        }
-
-        //public static Transform InterpretShorthand(string args, List<string> problems) {
-        //    return Parameterless("hashcode", "hashed", args, problems);
-        //}
     }
 }

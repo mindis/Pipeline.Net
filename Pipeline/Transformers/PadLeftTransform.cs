@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
@@ -16,12 +15,5 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
-        }
-
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            return Pad("padleft", args, problems);
-        }
     }
 }

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
     public class SplitLengthTransform : BaseTransform, ITransform {
@@ -19,22 +17,5 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
-        }
-
-        static public Transform InterpretShorthand(string args, List<string> problems) {
-            var split = SplitArguments(args);
-
-            if (split.Length != 1) {
-                problems.Add("The splitlength transform requires a single parameter: a separator.");
-                return Guard();
-            }
-
-            return DefaultConfiguration(t => {
-                t.Method = "splitlength";
-                t.Separator = split[0];
-            });
-        }
     }
 }

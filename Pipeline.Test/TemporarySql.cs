@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
@@ -146,8 +147,9 @@ namespace Pipeline.Test {
     </processes>
 </cfg>
 ";
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var module = new PipelineModule(xml, shorthand);
 
-            var module = new PipelineModule(xml);
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {
                     Console.Error.WriteLine(error);

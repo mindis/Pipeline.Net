@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
@@ -46,7 +47,8 @@ namespace Pipeline.Test {
             ".Replace('\'', '"');
 
             var builder = new ContainerBuilder();
-            var module = new PipelineModule(xml);
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var module = new PipelineModule(xml, shorthand);
 
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {

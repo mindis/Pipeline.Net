@@ -9,7 +9,7 @@ namespace Pipeline.Configuration {
 
         public const string ProducerDomain = "fromxml,fromsplit";
         public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength";
-        public const string ValidatorDomain = "contains";
+        public const string ValidatorDomain = "contains,is";
 
         private static HashSet<string> _transformSet;
         private static HashSet<string> _validateSet;
@@ -214,6 +214,12 @@ namespace Pipeline.Configuration {
                 case "format":
                     if (Format == String.Empty) {
                         Error("The format transform requires a format parameter.");
+                    } else {
+                        if (Format.IndexOf('{') == -1) {
+                            Error("The format transform's format must contain a curly braced place-holder.");
+                        } else if (Format.IndexOf('}') == -1) {
+                            Error("The format transform's format must contain a curly braced place-holder.");
+                        }
                     }
                     break;
                 case "left":
@@ -266,7 +272,7 @@ namespace Pipeline.Configuration {
                     }
                     break;
                 case "is":
-                    if (this.Type == Constants.DefaultSetting) {
+                    if (Type == Constants.DefaultSetting) {
                         Error("The is validator requires a type.");
                     }
                     break;

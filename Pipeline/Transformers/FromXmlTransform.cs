@@ -80,13 +80,5 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        Transform ITransform.InterpretShorthand(string args, List<string> problems) {
-            return InterpretShorthand(args, problems);
-        }
-
-        public static Transform InterpretShorthand(string args, List<string> problems) {
-            problems.Add("Sorry.  The fromxml transform is not supported in short-hand.  Use verbose configuration.");
-            return Guard();
-        }
     }
 }

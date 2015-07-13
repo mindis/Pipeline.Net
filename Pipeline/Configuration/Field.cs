@@ -5,18 +5,10 @@ using System.Linq;
 using Pipeline.Extensions;
 using Pipeline.Transformers;
 using Transformalize.Libs.Cfg.Net;
+using Transformalize.Libs.Cfg.Net.Shorthand;
 
 namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
-
-        /// <summary>
-        /// Set at composition root.  Needed to add to Cfg-Net's validation.
-        /// </summary>
-        private static Dictionary<string, Func<string, List<string>, Transform>> _shorthandParsers = new Dictionary<string, Func<string, List<string>, Transform>>();
-        public static Dictionary<string, Func<string, List<string>, Transform>> ShorthandParsers {
-            get { return _shorthandParsers; }
-            set { _shorthandParsers = value; }
-        }
 
         private static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
             {"string", (x => x)},
@@ -296,7 +288,7 @@ namespace Pipeline.Configuration {
         /// 
         ///     <add name="Name" t="trim()" />
         /// </summary>
-        [Cfg(value = "")]
+        [Cfg(value = "", shorthand = true)]
         public string T { get; set; }
 
         /// <summary>
@@ -401,67 +393,29 @@ namespace Pipeline.Configuration {
             return Type == "string" ? value : ConversionMap[Type](value);
         }
 
-        private static Transform Interpret(string expression, List<string> problems) {
+        public void ExpandShortHandTransforms() {
 
-            string method;
-            var arg = string.Empty;
-
-            // ReSharper disable once PossibleNullReferenceException
-            if (expression.Contains("(")) {
-                var index = expression.IndexOf('(');
-                method = expression.Left(index).ToLower();
-                arg = expression.Remove(0, index + 1).TrimEnd(new[] { ')' });
-            } else {
-                method = expression;
-            }
-
-            if (!ShorthandParsers.ContainsKey(method)) {
-                problems.Add(string.Format("Sorry. Your expression '{0}' references an undefined method: '{1}'.", expression, method));
-                return BaseTransform.Guard();
-            }
-
-            return ShorthandParsers[method](arg, problems);
-        }
-
-        public List<string> ExpandShortHandTransforms() {
-
-            var problems = new List<string>();
-            var list = new LinkedList<Transform>();
-            var lastTransform = new Transform();
-            var methods = T == string.Empty
-                ? new String[0]
-                : Shared.Split(T, ").").Where(t => !string.IsNullOrEmpty(t));
-
-            foreach (var method in methods) {
-                // translate previous copy to parameters, making them compatible with verbose xml transforms
-                if (lastTransform.Method == "copy") {
-                    var tempParameter = lastTransform.Parameter;
-                    var tempParameters = lastTransform.Parameters;
-                    var transform = lastTransform = Interpret(method, problems);
-                    transform.Parameter = tempParameter;
-                    transform.Parameters = tempParameters;
-                    list.RemoveLast(); //remove previous copy
-                    list.AddLast(transform);
-                } else {
-                    lastTransform = Interpret(method, problems);
-                    list.AddLast(lastTransform);
-                }
-            }
-
-            foreach (var transform in Transforms) {
-                // expand shorthand transforms
-                if (transform.Method.Equals("t") || transform.Method.Equals("shorthand")) {
-                    var tempField = new Field { T = transform.T };
-                    tempField.ExpandShortHandTransforms();
-                    foreach (var t in tempField.Transforms) {
-                        list.AddLast(t);
+            if (RequiresCopyParameters()) {
+                var expression = new Expressions(T).First();
+                var first = Transforms.First();
+                foreach (var p in expression.Parameters) {
+                    var parameter = first.GetDefaultOf<Parameter>();
+                    if (p.Contains(":")) {
+                        //named values
+                        var named = p.Split(':');
+                        parameter.Name = named[0];
+                        parameter.Value = named[1];
+                    } else if (p.Contains(".")) {
+                        // entity, field combinations
+                        var dotted = p.Split('.');
+                        parameter.Entity = dotted[0];
+                        parameter.Field = dotted[1];
+                    } else {
+                        parameter.Field = p; // just fields
                     }
-                } else {
-                    list.AddLast(transform);
+                    first.Parameters.Add(parameter);
                 }
             }
-
-            Transforms = list.Where(t => t.Method != "guard").ToList();
 
             // e.g. t="copy(x).is(int).between(3,5), both is() and between() should refer to x.
             if (RequiresCompositeValidator()) {
@@ -471,7 +425,10 @@ namespace Pipeline.Configuration {
                     transform.Parameters = transform.Parameters.Count == 0 ? first.Parameters : transform.Parameters;
                 }
             }
-            return problems;
+        }
+
+        private bool RequiresCopyParameters() {
+            return T.StartsWith("copy(") && Transforms.Any();
         }
 
         public bool RequiresCompositeValidator() {

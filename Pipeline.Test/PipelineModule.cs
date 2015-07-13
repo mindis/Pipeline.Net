@@ -13,29 +13,10 @@ namespace Pipeline.Test {
 
     public class PipelineModule : Module {
 
-        public string[] Warnings { get; set; }
-        public string[] Errors { get; set; }
         public Root Root { get; set; }
 
-        public PipelineModule(string cfg) {
-
-            Field.ShorthandParsers["format"] = FormatTransform.InterpretShorthand;
-
-            Field.ShorthandParsers["left"] = LeftTransform.InterpretShorthand;
-            Field.ShorthandParsers["right"] = RightTransform.InterpretShorthand;
-            Field.ShorthandParsers["copy"] = CopyTransform.InterpretShorthand;
-            Field.ShorthandParsers["concat"] = new ParameterlessParser("concat").Parse;
-            Field.ShorthandParsers["fromxml"] = FromXmlTransform.InterpretShorthand;
-            Field.ShorthandParsers["htmldecode"] = new ParameterlessParser("concat").Parse;
-            Field.ShorthandParsers["xmldecode"] = new ParameterlessParser("concat").Parse;
-            Field.ShorthandParsers["hashcode"] = new ParameterlessParser("concat").Parse;
-            Field.ShorthandParsers["padleft"] = PadLeftTransform.InterpretShorthand;
-            Field.ShorthandParsers["padright"] = PadRightTransform.InterpretShorthand;
-            Field.ShorthandParsers["splitlength"] = SplitLengthTransform.InterpretShorthand;
-
-            Field.ShorthandParsers["contains"] = ContainsValidater.InterpretShorthand;
-            Field.ShorthandParsers["is"] = IsValidator.InterpretShorthand;
-            Root = new Root(cfg);
+        public PipelineModule(string cfg, string shorthand) {
+            Root = new Root(cfg, shorthand);
         }
 
         protected override void Load(ContainerBuilder builder) {

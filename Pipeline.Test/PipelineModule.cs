@@ -1,27 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Autofac;
 using Pipeline.Configuration;
 using Pipeline.Linq;
 using Pipeline.Logging;
 using Pipeline.Provider.SqlServer;
-using Pipeline.Shorthand;
 using Pipeline.Transformers;
 using Pipeline.Validators;
 
 namespace Pipeline.Test {
 
     public class PipelineModule : Module {
+        private readonly LogLevel _level;
 
         public Root Root { get; set; }
 
-        public PipelineModule(string cfg, string shorthand) {
+        public PipelineModule(string cfg, string shorthand, LogLevel level = LogLevel.Info) {
+            _level = level;
             Root = new Root(cfg, shorthand);
         }
 
         protected override void Load(ContainerBuilder builder) {
 
-            builder.Register<IPipelineLogger>((ctx) => new DebugLogger()).SingleInstance();
+            builder.Register<IPipelineLogger>((ctx) => new DebugLogger(_level)).SingleInstance();
 
             foreach (var p in Root.Processes) {
 
@@ -35,8 +37,6 @@ namespace Pipeline.Test {
 
                     builder.Register<IPipeline>((ctx) => {
                         switch (pipeline) {
-                            case "linq":
-                                return new DefaultPipeline(ctx.Resolve<IPipelineLogger>());
                             case "parallel.linq":
                                 return new Parallel(ctx.Resolve<IPipelineLogger>());
                             case "streams":
@@ -52,16 +52,18 @@ namespace Pipeline.Test {
                         }
                     }).Named<IPipeline>(entity.Key);
 
+                    //input
                     builder.Register<IEntityReader>((ctx) => {
                         var connection = process.Connections.First(cn => cn.Name == entity.Connection);
-                        var context = new PipelineContext(process, entity);
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         switch (connection.Provider) {
                             case "internal":
                                 return new DataSetEntityReader(context);
                             case "sqlserver":
                                 return new SqlEntityReader(context);
+                            default:
+                                return new NullEntityReader(context);
                         }
-                        return null;
                     }).Named<IEntityReader>(entity.Key);
 
                     foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
@@ -69,18 +71,31 @@ namespace Pipeline.Test {
                         var field = f;
 
                         if (field.RequiresCompositeValidator()) {
-                            var transforms = field.Transforms.Select(t => SwitchTransform(new PipelineContext(process, entity, field, t)));
                             builder.Register<ITransform>((ctx) => new CompositeValidator(
-                                new PipelineContext(process, entity, field, null),
-                                transforms
+                                new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field),
+                                field.Transforms.Select(t => SwitchTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, t)))
                             )).Named<ITransform>(field.Key);
                         } else {
                             foreach (var t in field.Transforms) {
-                                var context = new PipelineContext(process, entity, field, t);
-                                builder.Register((ctx) => SwitchTransform(context)).Named<ITransform>(t.Key);
+                                var transform = t;
+                                builder.Register((ctx) => SwitchTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, transform))).Named<ITransform>(transform.Key);
                             }
                         }
                     }
+
+                    //output
+                    builder.Register<IEntityWriter>((ctx) => {
+                        var connection = process.Connections.First(cn => cn.Name == "output");
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                        switch (connection.Provider) {
+                            case "sqlserver":
+                                return new SqlEntityBulkInserter(context);
+                                //return new SqlEntityWriter(context);
+                            default:
+                                return new NullEntityWriter(context);
+                        }
+                    }).Named<IEntityWriter>(entity.Key);
+
                 }
 
                 builder.Register((ctx) => {
@@ -89,11 +104,15 @@ namespace Pipeline.Test {
 
                     foreach (var entity in process.Entities) {
 
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+
                         var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
 
+                        //extract
                         pipeline.Register(ctx.ResolveNamed<IEntityReader>(entity.Key));
 
-                        pipeline.Register(new DefaultNulls(new PipelineContext(process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
+                        //transform
+                        pipeline.Register(new DefaultNulls(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
                         foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
                             if (field.RequiresCompositeValidator()) {
                                 pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
@@ -103,6 +122,15 @@ namespace Pipeline.Test {
                                 }
                             }
                         }
+
+                        //provider specific transforms
+                        if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
+                            pipeline.Register(new MinDateTransform(context, new DateTime(1753, 1, 1)));
+                        }
+
+                        //load
+                        pipeline.Register(ctx.ResolveNamed<IEntityWriter>(entity.Key));
+
                         pipelines.Add(pipeline);
                     }
                     return pipelines;
@@ -127,11 +155,15 @@ namespace Pipeline.Test {
                 case "padleft": return new PadLeftTransform(context);
                 case "padright": return new PadRightTransform(context);
                 case "splitlength": return new SplitLengthTransform(context);
+                case "trim": return new TrimTransform(context);
+                case "trimstart": return new TrimStartTransform(context);
+                case "trimend": return new TrimEndTransform(context);
 
                 case "contains": return new ContainsValidater(context);
                 case "is": return new IsValidator(context);
+
+                default: return new NullTransformer(context);
             }
-            return new NullTransformer(context);
         }
     }
 }

@@ -33,6 +33,11 @@
         <add name="type" />
       </parameters>
     </add>
+    <add name="trim">
+      <parameters>
+        <add name="trim-chars" value=" " />
+      </parameters>
+    </add>
   </signatures>
 
   <targets>
@@ -52,6 +57,7 @@
     <add name="splitlength" signature="separator" target="t" />
     <add name="contains" signature="value" target="t" />
     <add name="is" signature="type" target="t" />
+    <add name="trim" signature="trim" target="t" />
   </methods>
 
 </cfg>

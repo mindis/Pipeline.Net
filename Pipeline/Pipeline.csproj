@@ -34,7 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BaseEntity.cs" />
     <Compile Include="BaseEntityReader.cs" />
+    <Compile Include="BaseEntityWriter.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Branch.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -67,6 +69,8 @@
     <Compile Include="Configuration\TflType.cs" />
     <Compile Include="Configuration\TransformFieldsMoveAdapter.cs" />
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
+    <Compile Include="Extensions\LinqExtensions.cs" />
+    <Compile Include="IEntityWriter.cs" />
     <Compile Include="Logging\BaseLogger.cs" />
     <Compile Include="Logging\IPipelineLogger.cs" />
     <Compile Include="Logging\LogEntry.cs" />
@@ -74,6 +78,8 @@
     <Compile Include="Logging\MemoryLogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\DebugLogger.cs" />
+    <Compile Include="NullEntityReader.cs" />
+    <Compile Include="NullEntityWriter.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
     <Compile Include="Shorthand\BaseShorthandParser.cs" />
@@ -83,9 +89,13 @@
     <Compile Include="Transformers\ConcatTransform.cs" />
     <Compile Include="Transformers\DefaultNulls.cs" />
     <Compile Include="Transformers\FromSplitTransform.cs" />
+    <Compile Include="Transformers\MinDateTransform.cs" />
     <Compile Include="Transformers\PadLeftTransform.cs" />
     <Compile Include="Transformers\PadRightTransform.cs" />
     <Compile Include="Transformers\SplitLengthTransform.cs" />
+    <Compile Include="Transformers\TrimEndTransform.cs" />
+    <Compile Include="Transformers\TrimStartTransform.cs" />
+    <Compile Include="Transformers\TrimTransform.cs" />
     <Compile Include="Validators\CompositeValidate.cs" />
     <Compile Include="Validators\ContainsValidate.cs" />
     <Compile Include="Transformers\CopyTransform.cs" />
@@ -114,7 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.1.1\lib\CfgNet.dll</HintPath>
+      <HintPath>..\packages\Cfg-NET.0.1.2\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FluentValidation, Version=5.6.2.0, Culture=neutral, processorArchitecture=MSIL">

@@ -34,7 +34,7 @@ namespace Pipeline.Test {
             <add name='Field3' />
           </fields>
           <calculated-fields>
-            <add name='Format' t='copy(Field1,Field2,Field3).format({0}-{1}+{2})' />
+            <add name='Format' t='copy(Field1,Field2,Field3).format({0}-{1}+{2} ).trim()' />
           </calculated-fields>
         </add>
       </entities>

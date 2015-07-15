@@ -1,10 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
-
     public class FormatTransform : BaseTransform, ITransform {
 
         private readonly Field[] _input;

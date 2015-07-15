@@ -8,6 +8,7 @@ namespace Pipeline {
 
         protected IPipelineLogger Logger { get; private set; }
         protected List<IEntityReader> Readers { get; private set; }
+        protected IEntityWriter Writer { get; private set; }
         protected List<ITransform> Transformers { get; private set; }
 
         public DefaultPipeline(IPipelineLogger logger) {
@@ -17,20 +18,28 @@ namespace Pipeline {
         }
 
         public void Register(IEntityReader reader) {
-            reader.Logger = Logger;
             reader.Context.Activity = PipelineActivity.Extract;
             Readers.Add(reader);
         }
 
         public void Register(ITransform transformer) {
-            transformer.Logger = Logger;
             transformer.Context.Activity = PipelineActivity.Transform;
             Transformers.Add(transformer);
+        }
+
+        public void Register(IEntityWriter writer) {
+            writer.Context.Activity = PipelineActivity.Load;
+            Writer = writer;
         }
 
         public virtual IEnumerable<Row> Run() {
             var output = Readers.SelectMany(r => r.Read());
             return Transformers.Aggregate(output, (current, transform) => current.Select(transform.Transform));
         }
+
+        public virtual void Execute() {
+            Writer.Write(Run());
+        }
+
     }
 }

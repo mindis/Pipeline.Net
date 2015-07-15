@@ -11,8 +11,5 @@ namespace Pipeline.Configuration {
             return row;
         }
 
-        public Transform InterpretShorthand(string args, List<string> problems) {
-            return Guard();
-        }
     }
 }

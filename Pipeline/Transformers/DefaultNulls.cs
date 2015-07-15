@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Transformers {
+
     public class DefaultNulls : BaseTransform, ITransform {
+
         private readonly Field[] _fields;
         private readonly Dictionary<string, object> _typeDefaults;
         private readonly Dictionary<int, Func<object>> _getDefaultFor = new Dictionary<int, Func<object>>();
@@ -28,8 +29,5 @@ namespace Pipeline.Transformers {
             return row;
         }
 
-        public Transform InterpretShorthand(string args, List<string> problems) {
-            throw new System.NotImplementedException();
-        }
     }
 }

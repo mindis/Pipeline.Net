@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Pipeline.Logging;
 
 namespace Pipeline {
-    public interface IEntityReader {
-        IEnumerable<Row> Read();
+    public interface IEntityWriter {
+        void Write(IEnumerable<Row> rows);
         PipelineContext Context { get; }
     }
 }

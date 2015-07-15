@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Pipeline.Logging;
-
 namespace Pipeline.Transformers {
 
     /// <summary>
@@ -8,7 +5,6 @@ namespace Pipeline.Transformers {
     /// </summary>
     public interface ITransform {
 
-        IPipelineLogger Logger { get; set; }
         PipelineContext Context { get; }
 
         /// <summary>

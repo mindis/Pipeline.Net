@@ -8,7 +8,7 @@ namespace Pipeline.Configuration {
     public class Transform : CfgNode {
 
         public const string ProducerDomain = "fromxml,fromsplit";
-        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength";
+        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength,trim,trimstart,trimend";
         public const string ValidatorDomain = "contains,is";
 
         private static HashSet<string> _transformSet;
@@ -188,6 +188,9 @@ namespace Pipeline.Configuration {
         [Cfg(value = "sunday", domain = "friday,monday,saturday,sunday,tuesday,thursday,wednesday", toLower = true)]
         public string DayOfWeek { get; set; }
 
+        [Cfg()]
+        public DateTime Date { get; set; }
+
         /// <summary>
         /// Set by Process.ModifyKeys for keyed dependency injection
         /// </summary>
@@ -274,6 +277,13 @@ namespace Pipeline.Configuration {
                 case "is":
                     if (Type == Constants.DefaultSetting) {
                         Error("The is validator requires a type.");
+                    }
+                    break;
+                case "trimstart":
+                case "trimend":
+                case "trim":
+                    if (TrimChars == string.Empty) {
+                        Error("The {0} transform requires trim-chars.", Method);
                     }
                     break;
                 case "htmldecode":

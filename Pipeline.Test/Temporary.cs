@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
@@ -39,8 +38,6 @@ namespace Pipeline.Test {
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
             var module = new PipelineModule(cfg, shorthand);
-            builder.RegisterModule(module);
-
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {
                     Console.WriteLine(error);
@@ -48,6 +45,7 @@ namespace Pipeline.Test {
                 throw new Exception("Configuration Error(s)");
             }
 
+            builder.RegisterModule(module);
             var container = builder.Build();
 
             var pipelines = new List<IPipeline>();

@@ -336,26 +336,11 @@ namespace Pipeline.Configuration {
             }
         }
 
-        /// <summary>
-        /// Optional. Default defers to entity's unicode attribute, which defaults to `true`
-        /// 
-        /// Sometimes source data is ASCII, and you want it to stay that way. Take the SQL Server output connection for example: 
-        /// If set to true, a string is stored in the NVARCHAR data type (unicode).
-        /// If set to false, a string is stored in the VARCHAR data type (not unicode).
-        /// </summary>
-        [Cfg(value = Constants.DefaultSetting)]
-        public string Unicode { get; set; }
+        [Cfg(value = true)]
+        public bool Unicode { get; set; }
 
-        /// <summary>
-        /// Optional. Default defers to entity's variable-length attribute, which defaults to `true`
-        /// 
-        /// Sometimes source data is not a variable length, and you want it to stay that way. Take the SQL Server output connection for example:
-        /// If set to true, a string is stored in the NVARCHAR data type (variable length).
-        /// If set to false, a string is stored in the NCHAR data type (fixed length).
-        /// </summary>
-        [Cfg(value = Constants.DefaultSetting)]
-        public string VariableLength { get; set; }
-
+        [Cfg(value = true)]
+        public bool VariableLength { get; set; }
 
         //lists
         [Cfg()]

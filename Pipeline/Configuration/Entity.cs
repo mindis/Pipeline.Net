@@ -97,7 +97,7 @@ namespace Pipeline.Configuration {
         /// Set by Process.ModifyKeys for keyed dependency injection
         /// </summary>
         public string Key { get; set; }
-
+        
         [Cfg(value = (long)10000)]
         public long LogInterval { get; set; }
 
@@ -282,5 +282,8 @@ namespace Pipeline.Configuration {
             return Alias;
         }
 
+        public string OutputName(string processName) {
+            return PrependProcessNameToOutputName ? processName + Alias : Alias;
+        }
     }
 }

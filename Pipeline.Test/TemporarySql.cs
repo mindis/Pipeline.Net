@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
@@ -21,6 +20,7 @@ namespace Pipeline.Test {
         <add name='test'>
             <connections>
                 <add name='input' provider='sqlserver' server='localhost' database='ClevestAclara' />
+                <add name='output' provider='sqlserver' server='localhost' database='TflAclara' />
             </connections>
             <entities>  
                 <add name='WorkOrder' log-interval='1000' pipeline='linq'>
@@ -162,13 +162,13 @@ namespace Pipeline.Test {
             var container = builder.Build();
             var process = module.Root.Processes.First();
 
-            var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
+            container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Execute();
 
-            Assert.AreEqual(20088, output.Count());
+            //Assert.AreEqual(20088, output.Count());
 
-            foreach (var row in output.Take(10)) {
-                Console.WriteLine(row);
-            }
+            //foreach (var row in output.Take(10)) {
+            //    Console.WriteLine(row);
+            //}
         }
     }
 

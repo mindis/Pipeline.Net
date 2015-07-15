@@ -1,7 +1,6 @@
 using Pipeline.Extensions;
 
 namespace Pipeline.Transformers {
-
     public class LeftTransform : BaseTransform, ITransform {
 
         private readonly int _length;

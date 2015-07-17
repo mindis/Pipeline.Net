@@ -8,20 +8,16 @@ using Pipeline.Extensions;
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityWriter : BaseEntityWriter, IEntityWriter {
 
-        public SqlEntityWriter(PipelineContext context)
-            : base(context) {
+        public SqlEntityWriter(PipelineContext context, IEntityInitializer initializer)
+            : base(context, initializer) {
         }
 
         public void Write(IEnumerable<Row> rows) {
+
+            Initialize();
+
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();
-                try {
-                    cn.Execute(Context.SqlDropOutputStatement());
-                } catch { } finally {
-                    cn.Execute(Context.SqlCreateOutputStatement());
-                    cn.Execute(Context.SqlCreateOutputUniqueClusteredIndex());
-                    cn.Execute(Context.SqlCreateOutputPrimaryKey());
-                }
                 const int batchId = 0;
                 var count = 0;
                 foreach (var batch in rows.Partition(Connection.BatchSize)) {

@@ -11,7 +11,7 @@ namespace Pipeline {
         }
 
         public void Increment(int by = 1) {
-            _rowCount+=by;
+            _rowCount += by;
             if (_rowCount % Context.Entity.LogInterval == 0) {
                 Context.Info(_rowCount.ToString());
             }

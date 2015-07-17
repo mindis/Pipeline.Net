@@ -23,7 +23,7 @@ namespace Pipeline.Test {
 
         protected override void Load(ContainerBuilder builder) {
 
-            builder.Register<IPipelineLogger>((ctx) => new DebugLogger(_level)).SingleInstance();
+            builder.Register<IPipelineLogger>((ctx) => new TraceLogger(_level)).SingleInstance();
 
             foreach (var p in Root.Processes) {
 
@@ -89,8 +89,7 @@ namespace Pipeline.Test {
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         switch (connection.Provider) {
                             case "sqlserver":
-                                return new SqlEntityBulkInserter(context);
-                                //return new SqlEntityWriter(context);
+                                return new SqlEntityBulkInserter(context, new SqlEntityInitializer(context));
                             default:
                                 return new NullEntityWriter(context);
                         }
@@ -125,7 +124,9 @@ namespace Pipeline.Test {
 
                         //provider specific transforms
                         if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
-                            pipeline.Register(new MinDateTransform(context, new DateTime(1753, 1, 1)));
+                            var specialContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity,
+                                null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
+                            pipeline.Register(new MinDateTransform(specialContext, new DateTime(1753, 1, 1)));
                         }
 
                         //load

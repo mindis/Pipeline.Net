@@ -283,7 +283,7 @@ namespace Pipeline.Configuration {
         }
 
         public string OutputName(string processName) {
-            return PrependProcessNameToOutputName ? processName + Alias : Alias;
+            return (PrependProcessNameToOutputName ? processName + Alias : Alias);
         }
     }
 }

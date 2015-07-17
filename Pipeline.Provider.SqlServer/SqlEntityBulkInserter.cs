@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using Dapper;
 using Pipeline.Extensions;
 
@@ -10,8 +8,8 @@ namespace Pipeline.Provider.SqlServer {
     public class SqlEntityBulkInserter : BaseEntityWriter, IEntityWriter {
         private SqlBulkCopyOptions _bulkCopyOptions;
 
-        public SqlEntityBulkInserter(PipelineContext context)
-            : base(context) {
+        public SqlEntityBulkInserter(PipelineContext context, IEntityInitializer initializer)
+            : base(context, initializer) {
             _bulkCopyOptions = SqlBulkCopyOptions.Default;
 
             TurnOptionOn(SqlBulkCopyOptions.TableLock);
@@ -35,19 +33,12 @@ namespace Pipeline.Provider.SqlServer {
 
         public void Write(IEnumerable<Row> rows) {
 
+            Initialize();
+            
             var batchId = 0;
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();
-
-                try {
-                    cn.Execute(Context.SqlDropOutputStatement());
-                } catch { } finally {
-                    cn.Execute(Context.SqlCreateOutputStatement());
-                    cn.Execute(Context.SqlCreateOutputUniqueClusteredIndex());
-                    cn.Execute(Context.SqlCreateOutputPrimaryKey());
-                }
-
                 var count = 0;
                 SqlDataAdapter adapter;
                 var dt = new DataTable();
@@ -58,12 +49,12 @@ namespace Pipeline.Provider.SqlServer {
                 var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
                     BatchSize = Connection.BatchSize,
                     BulkCopyTimeout = Connection.Timeout,
-                    DestinationTableName = Context.Entity.OutputName(Context.Process.Name),
+                    DestinationTableName = Context.SqlOutputTableName(),
                 };
 
                 var counter = 0;
                 for (int i = 0; i < OutputFields.Length; i++) {
-                    bulkCopy.ColumnMappings.Add(i,i);
+                    bulkCopy.ColumnMappings.Add(i, i);
                     counter++;
                 }
                 bulkCopy.ColumnMappings.Add(counter, counter); //TflBatchId

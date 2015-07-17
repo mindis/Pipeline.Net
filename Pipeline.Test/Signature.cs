@@ -18,7 +18,7 @@ namespace Pipeline.Test {
             const string stuff = @"something(1,2,\,)";
             var expression = new Expression(stuff);
             Assert.AreEqual("something", expression.Method);
-            Assert.AreEqual(3, expression.Parameters.Length);
+            Assert.AreEqual(3, expression.Parameters.Count);
             Assert.AreEqual("1", expression.Parameters[0]);
             Assert.AreEqual("2", expression.Parameters[1]);
             Assert.AreEqual(",", expression.Parameters[2]);

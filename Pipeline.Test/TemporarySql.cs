@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
+using Pipeline.Logging;
 
 namespace Pipeline.Test {
 
@@ -30,12 +31,8 @@ namespace Pipeline.Test {
                         <add name='Id' type='int64'/>
                         <add name='Timestamp' type='datetime' />
                         <add name='ParentOrderKey' type='guid' label='Parent Order Key'/>
-                        <add name='CreatorKey' type='guid' label='Creator Key'/>
                         <add name='OrderNumber' length='50' label='Order Number'/>
-                        <add name='CreateOrderNumber' length='50' label='Create Order Number'/>
                         <add name='HostOrderNumber' length='50' label='Host Order Number'/>
-                        <add name='HostProjectNumber' length='50' label='Host Project Number'/>
-                        <add name='ProjectOrderNumber' length='50' label='Project Order Number'/>
                         <add name='AuditOrderNumber' length='50' label='Audit Order Number'/>
                         <add name='OrderStatusId' type='int32' label='Order Status Id'/>
                         <add name='CreationDatetime' type='datetime' label='Creation Datetime' />
@@ -54,25 +51,15 @@ namespace Pipeline.Test {
                         <add name='CancelReason' length='255' label='Cancel Reason'/>
                         <add name='SentBackToHostFlag' type='byte' label='Sent Back To Host Flag'/>
                         <add name='SentBackToHostDatetime' type='datetime' label='Sent Back To Host Datetime' />
-                        <add name='LastWorkerKey' type='guid' label='Last Worker Key'/>
-                        <add name='UnassignedBy' type='guid' label='Unassigned By'/>
-                        <add name='MappableFlag' type='byte' label='Mappable Flag'/>
                         <add name='BusinessGroupKey' type='guid' label='Business Group Key'/>
                         <add name='FinalCompletionDatetime' type='datetime' label='Final Completion Datetime' />
                         <add name='ResolvedDatetime' type='datetime' label='Resolved Datetime' />
-                        <add name='DispatcherKey' type='guid' label='Dispatcher Key'/>
                         <add name='RequestStartDatetime' type='datetime' label='Request Start Datetime' />
                         <add name='RequestEndDatetime' type='datetime' label='Request End Datetime' />
                         <add name='DueByDate' type='datetime' label='Due By Date' />
                         <add name='SpecialIndicatorKey' type='guid' label='Special Indicator Key'/>
                         <add name='AuditPassed' type='byte' label='Audit Passed'/>
-                        <add name='ProcessStatusId' type='int32' label='Process Status Id'/>
-                        <add name='ProcessStatus' length='50' label='Process Status'/>
-                        <add name='ProcessStatusTimeStamp' type='datetime' label='Process Status Time Stamp'/>
                         <add name='AttachmentCount' type='int32' label='Attachment Count'/>
-                        <add name='CustomerCompany' length='100' label='Customer Company'/>
-                        <add name='CustomerFirstname' length='100' label='Customer Firstname'/>
-                        <add name='CustomerLastname' length='100' label='Customer Lastname'/>
                         <add name='CustomerAddress1' length='100' label='Customer Address1' search-type='search-display'/>
                         <add name='CustomerAddress2' length='100' label='Customer Address2'/>
                         <add name='CustomerCity' length='100' label='Customer City'/>
@@ -80,7 +67,6 @@ namespace Pipeline.Test {
                         <add name='CustomerCounty' length='100' label='Customer County'/>
                         <add name='CustomerTown' length='100' label='Customer Town'/>
                         <add name='CustomerZip' length='100' label='Customer Zip'/>
-                        <add name='CustomerCountry' length='100' label='Customer Country'/>
                         <add name='CustomerPhone' length='100' label='Customer Phone'/>
                         <add name='CustomerEmail' length='100' label='Customer Email'/>
                         <add name='Latitude' type='decimal' precision='12' scale='9'/>
@@ -94,7 +80,6 @@ namespace Pipeline.Test {
                         <add name='NonWorkableDates' length='1000' label='Non Workable Dates'/>
                         <add name='LiftBlackoutFlag' type='byte' label='Lift Blackout Flag'/>
                         <add name='LocationMatch' length='100' label='Location Match'/>
-                        <add name='CrewChiefKey' type='guid' label='Crew Chief Key'/>
                         <add name='SuspendReason' label='Suspend Reason'/>
                         <add name='SuspendComment' length='255' label='Suspend Comment'/>
                         <add name='OrderData' type='string' length='max' label='Order Data' length='max' output='false'>
@@ -139,7 +124,6 @@ namespace Pipeline.Test {
                           </transforms>
                         </add>
                         <add name='SS_RowVersion' type='byte[]' length='8' label='S S Row Version'/>
-
                     </fields>
                 </add>
             </entities>
@@ -148,7 +132,7 @@ namespace Pipeline.Test {
 </cfg>
 ";
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand);
+            var module = new PipelineModule(xml, shorthand, LogLevel.Info);
 
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {

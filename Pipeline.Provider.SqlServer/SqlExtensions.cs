@@ -59,7 +59,11 @@ namespace Pipeline.Provider.SqlServer {
             return c.Entity.Schema == string.Empty ? string.Empty : "[" + c.Entity.Schema + "].";
         }
 
-        private static string SqlOutputName(this PipelineContext c) {
+        public static string SqlOutputTableName(this PipelineContext c) {
+            return c.Entity.OutputName(c.Process.Name) + "Table";
+        }
+
+        public static string SqlOutputViewName(this PipelineContext c) {
             return c.Entity.OutputName(c.Process.Name);
         }
 
@@ -69,13 +73,47 @@ namespace Pipeline.Provider.SqlServer {
             var columns = string.Join(",", fields.Select(f => "[f" + f.Index + "]"));
             var parameters = string.Join(",", fields.Select(f => "@f" + f.Index));
 
-            var sql = string.Format("INSERT {0}{1}({2},TflBatchId) VALUES({3},{4});", SqlSchemaPrefix(c), SqlOutputName(c), columns, parameters, batchId);
+            var sql = string.Format("INSERT {0}{1}({2},TflBatchId) VALUES({3},{4});", SqlSchemaPrefix(c), SqlOutputTableName(c), columns, parameters, batchId);
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlDropOutputStatement(this PipelineContext c) {
-            var sql = string.Format("DROP TABLE {0}{1};", SqlSchemaPrefix(c), SqlOutputName(c));
+            var sql = string.Format("DROP TABLE {0};", SqlOutputTableName(c));
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlDropOutputViewStatement(this PipelineContext c) {
+            var sql = string.Format("DROP VIEW {0};", SqlOutputViewName(c));
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlDropControlStatement(this PipelineContext c) {
+            var sql = string.Format("DROP TABLE {0}Control;", SqlIdentifier(c.Process.Name));
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlCreateControlStatement(this PipelineContext c) {
+            var sql = string.Format(@"
+                CREATE TABLE {0}Control(
+                    [BatchId] INT NOT NULL,
+                    [Entity] NVARCHAR(128) NOT NULL,
+                    [Inserts] INT NOT NULL,
+                    [Updates] INT NOT NULL,
+                    [Deletes] INT NOT NULL,
+                    [Start] DATETIME NOT NULL,
+                    [End] DATETIME,
+                    [Version] NVARCHAR(64),
+                    [VersionType] NVARCHAR(32),
+                    CONSTRAINT PK_{0}Control_BatchId PRIMARY KEY (
+						BatchId ASC,
+                        [Entity] ASC
+					)
+                );
+            ", SqlIdentifier(c.Process.Name));
             c.Debug(sql);
             return sql;
         }
@@ -83,7 +121,19 @@ namespace Pipeline.Provider.SqlServer {
         public static string SqlCreateOutputStatement(this PipelineContext c) {
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
             var columnsAndDefinitions = string.Join(",", fields.Select(f => "[f" + f.Index + "] " + f.SqlDataType() + " NOT NULL"));
-            var sql = string.Format("CREATE TABLE {0}({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", SqlOutputName(c), columnsAndDefinitions);
+            var sql = string.Format("CREATE TABLE {0}({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", SqlOutputTableName(c), columnsAndDefinitions);
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlCreateOutputViewStatement(this PipelineContext c) {
+            var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
+            var columnNames = string.Join(",", fields.Select(f => "[f" + f.Index + "] AS [" + f.Alias + "]"));
+            var sql = string.Format(@"
+                CREATE VIEW {0} 
+                AS 
+                SELECT {1},TflBatchId,TflKey
+                FROM {2} WITH (NOLOCK);", SqlOutputViewName(c), columnNames, SqlOutputTableName(c));
             c.Debug(sql);
             return sql;
         }
@@ -99,8 +149,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlSelectOutputSchemaStatement(this PipelineContext c) {
-            var noLock = c.Entity.NoLock ? "WITH (NOLOCK)" : string.Empty;
-            var sql = string.Format("SELECT TOP 0 * FROM [{0}] {1};", SqlOutputName(c), noLock);
+            var sql = string.Format("SELECT TOP 0 * FROM [{0}] WITH (NOLOCK);", SqlOutputTableName(c));
             c.Debug(sql);
             return sql;
         }
@@ -110,7 +159,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlCreateOutputUniqueClusteredIndex(this PipelineContext c) {
-            var sql = string.Format("CREATE UNIQUE CLUSTERED INDEX [UX_{0}_TflKey] ON [{1}] (TflKey ASC);", SqlIdentifier(SqlOutputName(c)), SqlOutputName(c));
+            var sql = string.Format("CREATE UNIQUE CLUSTERED INDEX [UX_{0}_TflKey] ON [{1}] (TflKey ASC);", SqlIdentifier(SqlOutputTableName(c)), SqlOutputTableName(c));
             c.Debug(sql);
             return sql;
         }
@@ -120,8 +169,8 @@ namespace Pipeline.Provider.SqlServer {
             var keyList = string.Join(", ", pk);
             var sql = string.Format(
                 "ALTER TABLE [{0}] ADD CONSTRAINT [PK_{1}_{2}] PRIMARY KEY NONCLUSTERED ({3}) WITH (IGNORE_DUP_KEY = ON);",
-                SqlOutputName(c),
-                SqlIdentifier(SqlOutputName(c)),
+                SqlOutputTableName(c),
+                SqlIdentifier(SqlOutputTableName(c)),
                 SqlKeyName(pk),
                 keyList
             );

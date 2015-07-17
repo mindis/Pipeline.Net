@@ -4,6 +4,9 @@ namespace Pipeline {
     public class NullEntityWriter : IEntityWriter {
         public PipelineContext Context { get; private set; }
 
+        public void Initialize() {
+        }
+
         public NullEntityWriter(PipelineContext context) {
             Context = context;
         }

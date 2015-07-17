@@ -31,7 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.1.2\lib\CfgNet.dll</HintPath>
+      <HintPath>..\packages\Cfg-NET.0.1.3\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="SqlEntityBulkInserter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlEntityInitializer.cs" />
     <Compile Include="SqlEntityReader.cs" />
     <Compile Include="SqlEntityWriter.cs" />
     <Compile Include="SqlExtensions.cs" />

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using Nessos.LinqOptimizer.CSharp;
-using Pipeline.Logging;
 
 namespace Pipeline.Linq.Optimizer {
 
     public class Serial : DefaultPipeline {
-        public Serial(IPipelineLogger logger)
-            : base(logger) {
+        public Serial(IEntityController controller)
+            : base(controller) {
         }
 
         public override IEnumerable<Row> Run() {

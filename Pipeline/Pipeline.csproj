@@ -70,8 +70,10 @@
     <Compile Include="Configuration\TransformFieldsMoveAdapter.cs" />
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
+    <Compile Include="IEntityController.cs" />
     <Compile Include="IEntityInitializer.cs" />
     <Compile Include="IEntityWriter.cs" />
+    <Compile Include="KeyType.cs" />
     <Compile Include="Logging\BaseLogger.cs" />
     <Compile Include="Logging\IPipelineLogger.cs" />
     <Compile Include="Logging\LogEntry.cs" />
@@ -79,6 +81,7 @@
     <Compile Include="Logging\MemoryLogger.cs" />
     <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\DebugLogger.cs" />
+    <Compile Include="NullEntityController.cs" />
     <Compile Include="NullEntityInitializer.cs" />
     <Compile Include="NullEntityReader.cs" />
     <Compile Include="NullEntityWriter.cs" />
@@ -104,7 +107,7 @@
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="IField.cs" />
-    <Compile Include="IInputReader.cs" />
+    <Compile Include="IEntityReader.cs" />
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="IRow.cs" />
     <Compile Include="DataSetEntityReader.cs" />
@@ -123,10 +126,6 @@
   <ItemGroup>
     <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Cfg-NET.0.1.3\lib\CfgNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FluentValidation, Version=5.6.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentValidation.5.6.2.0\lib\portable-net40+sl50+wp80+win8+wpa81\FluentValidation.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>

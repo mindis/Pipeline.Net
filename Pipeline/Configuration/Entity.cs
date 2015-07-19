@@ -97,7 +97,7 @@ namespace Pipeline.Configuration {
         /// Set by Process.ModifyKeys for keyed dependency injection
         /// </summary>
         public string Key { get; set; }
-        
+
         [Cfg(value = (long)10000)]
         public long LogInterval { get; set; }
 
@@ -284,6 +284,19 @@ namespace Pipeline.Configuration {
 
         public string OutputName(string processName) {
             return (PrependProcessNameToOutputName ? processName + Alias : Alias);
+        }
+
+        public Field GetVersionField() {
+            return GetAllFields().FirstOrDefault(f => f.Alias == Version || f.Name == Version);
+        }
+
+        public Field GetField(string aliasOrName) {
+            return GetAllFields().FirstOrDefault(f => f.Alias == aliasOrName) ?? GetAllFields().FirstOrDefault(f => f.Name == aliasOrName);
+        }
+
+        public bool TryGetField(string aliasOrName, out Field field) {
+            field = GetField(aliasOrName);
+            return field != null;
         }
     }
 }

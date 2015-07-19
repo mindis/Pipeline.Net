@@ -6,8 +6,8 @@ namespace Pipeline.Streams {
 
     public class Parallel : DefaultPipeline {
 
-        public Parallel(IPipelineLogger logger)
-            : base(logger) {
+        public Parallel(IEntityController controller)
+            : base(controller) {
         }
 
         public override IEnumerable<Row> Run() {

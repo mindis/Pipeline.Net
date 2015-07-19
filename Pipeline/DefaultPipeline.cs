@@ -1,20 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
-using Pipeline.Logging;
 using Pipeline.Transformers;
 
 namespace Pipeline {
     public class DefaultPipeline : IPipeline {
-
-        protected IPipelineLogger Logger { get; private set; }
+        private readonly IEntityController _controller;
         protected List<IEntityReader> Readers { get; private set; }
         protected IEntityWriter Writer { get; private set; }
         protected List<ITransform> Transformers { get; private set; }
 
-        public DefaultPipeline(IPipelineLogger logger) {
+        public DefaultPipeline(IEntityController controller) {
+            _controller = controller;
             Readers = new List<IEntityReader>();
             Transformers = new List<ITransform>();
-            Logger = logger;
+            _controller.Start();
         }
 
         public void Register(IEntityReader reader) {
@@ -33,12 +32,14 @@ namespace Pipeline {
         }
 
         public virtual IEnumerable<Row> Run() {
-            var output = Readers.SelectMany(r => r.Read());
+            var min = Writer.GetVersion();
+            var output = Readers.SelectMany(r => r.Read(min));
             return Transformers.Aggregate(output, (current, transform) => current.Select(transform.Transform));
         }
 
-        public virtual void Execute() {
-            Writer.Write(Run());
+        public void Execute() {
+            Writer.Write(Run(), _controller.BatchId);
+            _controller.End();
         }
 
     }

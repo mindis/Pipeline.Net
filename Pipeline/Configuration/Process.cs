@@ -251,6 +251,16 @@ namespace Pipeline.Configuration {
             ModifyMapParameters();
             ModifyKeys();
             ModifyLogLimits();
+            ModifyKeyTypes();
+        }
+
+        private void ModifyKeyTypes() {
+            // set primary on none
+            foreach (var entity in Entities) {
+                foreach (var field in entity.GetAllFields()) {
+                    field.KeyType = field.PrimaryKey ? KeyType.Primary : KeyType.None;
+                }
+            }
         }
 
         private void ModifyLogLimits() {
@@ -260,7 +270,7 @@ namespace Pipeline.Configuration {
 
             LogLimit = Name.Length;
             EntityLogLimit = entitiesAny ? Entities.Select(e => e.Alias.Length).Max() : 0;
-            FieldLogLimit = fieldsAny ? GetAllFields().Where(f=>f.Transforms.Any()).Select(f => f.Alias.Length).Max() : 0;
+            FieldLogLimit = fieldsAny ? GetAllFields().Where(f => f.Transforms.Any()).Select(f => f.Alias.Length).Max() : 0;
             TransformLogLimit = transformsAny ? GetAllTransforms().Select(t => t.Method.Length).Max() : 0;
         }
 
@@ -488,45 +498,55 @@ namespace Pipeline.Configuration {
             }
 
             //entity alias, name check, and if that passes, do field alias, name check
-            //TODO: refactor left and right side to single method
-            var keys = GetEntityNames();
             foreach (var relationship in Relationships) {
+                var error = false;
 
-                // validate left side
-                if (keys.Contains(relationship.LeftEntity)) {
-                    var fieldKeys = GetEntityFieldKeys(relationship.LeftEntity);
-                    if (relationship.Join.Count == 0) {
-                        if (!fieldKeys.Contains(relationship.LeftField)) {
-                            Error("A relationship references a left-field that doesn't exist: {0}", relationship.LeftField);
-                        }
-                    } else {
-                        foreach (var j in relationship.Join.Where(j => !fieldKeys.Contains(j.LeftField))) {
-                            Error("A relationship join references a left-field that doesn't exist: {0}", j.LeftField);
+                // validate (and modify) left side
+                Entity leftEntity;
+                if (TryGetEntity(relationship.LeftEntity, out leftEntity)) {
+                    relationship.Summary.LeftEntity = leftEntity;
+                    foreach (var leftField in relationship.GetLeftJoinFields()) {
+                        Field field;
+                        if (leftEntity.TryGetField(leftField, out field)) {
+                            relationship.Summary.LeftFields.Add(field);
+                        } else {
+                            Error("A relationship references a left-field that doesn't exist: {0}", leftField);
+                            error = true;
                         }
                     }
                 } else {
                     Error("A relationship references a left-entity that doesn't exist: {0}", relationship.LeftEntity);
+                    error = true;
                 }
 
-                //validate right side
-                if (keys.Contains(relationship.RightEntity)) {
-                    var fieldKeys = GetEntityFieldKeys(relationship.RightEntity);
-                    if (relationship.Join.Count == 0) {
-                        if (!fieldKeys.Contains(relationship.RightField)) {
-                            Error("A relationship references a right-field that doesn't exist: {0}",
-                                relationship.RightField);
-                        }
-                    } else {
-                        foreach (var j in relationship.Join.Where(j => !fieldKeys.Contains(j.RightField))) {
-                            Error("A relationship join references a right-field that doesn't exist: {0}", j.RightField);
+                //validate (and modify) right side
+                Entity rightEntity;
+                if (TryGetEntity(relationship.RightEntity, out rightEntity)) {
+                    relationship.Summary.RightEntity = rightEntity;
+                    foreach (var rightField in relationship.GetRightJoinFields()) {
+                        Field field;
+                        if (rightEntity.TryGetField(rightField, out field)) {
+                            relationship.Summary.RightFields.Add(field);
+                        } else {
+                            Error("A relationship references a right-field that doesn't exist: {0}", rightField);
+                            error = true;
                         }
                     }
                 } else {
-                    Error("A relationship references a right-entity that doesn't exist: {0}", relationship.LeftEntity);
+                    Error("A relationship references a right-entity that doesn't exist: {0}", relationship.RightEntity);
+                    error = true;
                 }
+
+                //if everything is cool, set the foreign key flags
+                if (!error && relationship.Summary.IsAligned()) {
+                    relationship.Summary.SetForeignKeys();
+                }
+
             }
 
         }
+
+
 
         private HashSet<string> GetEntityFieldKeys(string nameOrAlias) {
             var keys = new HashSet<string>();
@@ -552,6 +572,16 @@ namespace Pipeline.Configuration {
                 }
             }
             return keys;
+        }
+
+        public Entity GetEntity(string nameOrAlias) {
+            var entity = Entities.FirstOrDefault(e => e.Alias == nameOrAlias);
+            return entity ?? Entities.FirstOrDefault(e => e.Name != e.Alias && e.Name == nameOrAlias);
+        }
+
+        public bool TryGetEntity(string nameOrAlias, out Entity entity) {
+            entity = GetEntity(nameOrAlias);
+            return entity != null;
         }
 
         private void ValidateLogConnections() {

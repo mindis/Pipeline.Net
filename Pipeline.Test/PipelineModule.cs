@@ -33,22 +33,34 @@ namespace Pipeline.Test {
 
                     var entity = e;
 
+                    //controller
+                    builder.Register<IEntityController>((ctx) => {
+                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                        switch (provider) {
+                            case "sqlserver":
+                                return new SqlEntityController(context);
+                            default:
+                                return new NullEntityController();
+                        }
+                    }).Named<IEntityController>(entity.Key);
+
                     var pipeline = process.Pipeline == "defer" ? entity.Pipeline : process.Pipeline;
 
                     builder.Register<IPipeline>((ctx) => {
                         switch (pipeline) {
                             case "parallel.linq":
-                                return new Parallel(ctx.Resolve<IPipelineLogger>());
+                                return new Parallel(ctx.ResolveNamed<IEntityController>(entity.Key));
                             case "streams":
-                                return new Streams.Serial(ctx.Resolve<IPipelineLogger>());
+                                return new Streams.Serial(ctx.ResolveNamed<IEntityController>(entity.Key));
                             case "parallel.streams":
-                                return new Streams.Parallel(ctx.Resolve<IPipelineLogger>());
+                                return new Streams.Parallel(ctx.ResolveNamed<IEntityController>(entity.Key));
                             case "linq.optimizer":
-                                return new Linq.Optimizer.Serial(ctx.Resolve<IPipelineLogger>());
+                                return new Linq.Optimizer.Serial(ctx.ResolveNamed<IEntityController>(entity.Key));
                             case "parallel.linq.optimizer":
-                                return new Linq.Optimizer.Parallel(ctx.Resolve<IPipelineLogger>());
+                                return new Linq.Optimizer.Parallel(ctx.ResolveNamed<IEntityController>(entity.Key));
                             default:
-                                return new DefaultPipeline(ctx.Resolve<IPipelineLogger>());
+                                return new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key));
                         }
                     }).Named<IPipeline>(entity.Key);
 
@@ -85,11 +97,11 @@ namespace Pipeline.Test {
 
                     //output
                     builder.Register<IEntityWriter>((ctx) => {
-                        var connection = process.Connections.First(cn => cn.Name == "output");
+                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
-                        switch (connection.Provider) {
+                        switch (provider) {
                             case "sqlserver":
-                                return new SqlEntityBulkInserter(context, new SqlEntityInitializer(context));
+                                return new SqlEntityBulkInserter(context);
                             default:
                                 return new NullEntityWriter(context);
                         }
@@ -102,8 +114,6 @@ namespace Pipeline.Test {
                     var pipelines = new List<IPipeline>();
 
                     foreach (var entity in process.Entities) {
-
-                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
 
                         var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
 

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Nessos.Streams;
 using Nessos.Streams.CSharp;
 using Pipeline.Logging;
 
@@ -8,8 +6,8 @@ namespace Pipeline.Streams {
 
     public class Serial : DefaultPipeline {
 
-        public Serial(IPipelineLogger logger)
-            : base(logger) {
+        public Serial(IEntityController controller)
+            : base(controller) {
         }
 
         public override IEnumerable<Row> Run() {

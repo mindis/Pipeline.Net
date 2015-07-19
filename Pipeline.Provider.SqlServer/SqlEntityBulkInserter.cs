@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using Dapper;
 using Pipeline.Extensions;
 
 namespace Pipeline.Provider.SqlServer {
+
     public class SqlEntityBulkInserter : BaseEntityWriter, IEntityWriter {
         private SqlBulkCopyOptions _bulkCopyOptions;
 
-        public SqlEntityBulkInserter(PipelineContext context, IEntityInitializer initializer)
-            : base(context, initializer) {
+        public SqlEntityBulkInserter(PipelineContext context)
+            : base(context) {
             _bulkCopyOptions = SqlBulkCopyOptions.Default;
 
             TurnOptionOn(SqlBulkCopyOptions.TableLock);
@@ -31,18 +33,14 @@ namespace Pipeline.Provider.SqlServer {
                 _bulkCopyOptions ^= option;
         }
 
-        public void Write(IEnumerable<Row> rows) {
-
-            Initialize();
-            
-            var batchId = 0;
+        public void Write(IEnumerable<Row> rows, int batchId) {
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();
                 var count = 0;
                 SqlDataAdapter adapter;
                 var dt = new DataTable();
-                using (adapter = new SqlDataAdapter(Context.SqlSelectOutputSchemaStatement(), cn)) {
+                using (adapter = new SqlDataAdapter(Context.SqlSelectOutputSchema(), cn)) {
                     adapter.Fill(dt);
                 }
 
@@ -77,6 +75,20 @@ namespace Pipeline.Provider.SqlServer {
                 }
                 Context.Info("{0} to {1}", count, Connection.Name);
 
+            }
+        }
+
+        public object GetVersion() {
+            if (Context.Entity.Version == string.Empty)
+                return null;
+
+            var field = Context.Entity.GetVersionField();
+
+            if (field == null)
+                return null;
+
+            using (var cn = new SqlConnection(Connection.GetConnectionString())) {
+                return cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
             }
         }
     }

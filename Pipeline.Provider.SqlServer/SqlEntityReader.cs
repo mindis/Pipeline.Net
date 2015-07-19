@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Dapper;
+using Pipeline.Configuration;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -13,18 +15,27 @@ namespace Pipeline.Provider.SqlServer {
             : base(context) {
         }
 
-        public IEnumerable<Row> Read() {
-            var selectSql = Context.SqlSelectInputStatement();
-            Context.Debug(selectSql);
-
-            var cs = Connection.GetConnectionString();
-            Context.Debug(cs);
-
-            using (var cn = new SqlConnection(cs)) {
+        public IEnumerable<Row> Read(object min) {
+            using (var cn = new SqlConnection(Connection.GetConnectionString())) {
 
                 cn.Open();
                 var cmd = cn.CreateCommand();
-                cmd.CommandText = selectSql;
+
+                var version = Context.Entity.GetVersionField();
+                var max = version == null ? null : GetVersion(cn, version);
+                if (max == null) {
+                    cmd.CommandText = Context.SqlSelectInput();
+                } else {
+                    if (min == null) {
+                        cmd.CommandText = Context.SqlSelectInputWithMaxVersion(version);
+                        cmd.Parameters.AddWithValue("@Version", max);
+                    } else {
+                        cmd.CommandText = Context.SqlSelectInputWithMinAndMaxVersion(version);
+                        cmd.Parameters.AddWithValue("@MinVersion", min);
+                        cmd.Parameters.AddWithValue("@MaxVersion", max);
+                    }
+                }
+
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = Connection.Timeout;
 
@@ -45,6 +56,10 @@ namespace Pipeline.Provider.SqlServer {
 
                 Context.Info("{0} from {1}", _rowCount, Connection.Name);
             }
+        }
+
+        private object GetVersion(IDbConnection cn, Field version) {
+            return cn.ExecuteScalar(Context.SqlGetInputMaxVersion(version));
         }
     }
 }

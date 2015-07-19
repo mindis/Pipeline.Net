@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="SqlEntityBulkInserter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlEntityController.cs" />
     <Compile Include="SqlEntityInitializer.cs" />
     <Compile Include="SqlEntityReader.cs" />
     <Compile Include="SqlEntityWriter.cs" />

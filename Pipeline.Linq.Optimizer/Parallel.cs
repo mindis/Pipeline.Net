@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using Nessos.LinqOptimizer.CSharp;
-using Pipeline.Logging;
 
 namespace Pipeline.Linq.Optimizer {
 
     public class Parallel : DefaultPipeline {
-        public Parallel(IPipelineLogger logger)
-            : base(logger) {
+        public Parallel(IEntityController controller)
+            : base(controller) {
         }
 
         public override IEnumerable<Row> Run() {

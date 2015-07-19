@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Pipeline.Extensions;
-using Pipeline.Transformers;
 using Transformalize.Libs.Cfg.Net;
 using Transformalize.Libs.Cfg.Net.Shorthand;
 
@@ -31,8 +29,7 @@ namespace Pipeline.Configuration {
             {"float", (x => System.Convert.ToSingle(x))},
             {"guid", (x => Guid.Parse(x))},
             {"byte", (x => System.Convert.ToByte(x))},
-            {"byte[]", (HexStringToByteArray)},
-            {"rowversion", (HexStringToByteArray)}
+            {"byte[]", (HexStringToByteArray)}
         };
 
         private string _type;
@@ -355,12 +352,26 @@ namespace Pipeline.Configuration {
         /// </summary>
         public string Key { get; set; }
 
+        /// <summary>
+        /// Set by Process.ModifyKeyTypes
+        /// </summary>
+        public KeyType KeyType { get; set; }
+
         //custom
         protected override void Modify() {
+
             if (string.IsNullOrEmpty(Alias)) { Alias = Name; }
+            
             if (Label == string.Empty) { Label = Alias; }
+            
             if (Type != "string") { DefaultBlank = true; }
+            
             if (Type == "rowversion") { Length = "8"; }
+
+            if (PrimaryKey && !Output) {
+                Warn("Primary Keys must be output. Overriding output to true.");
+                Output = true;
+            }
         }
 
         private static byte[] HexStringToByteArray(string hex) {
@@ -372,6 +383,17 @@ namespace Pipeline.Configuration {
                                   hexValue[Char.ToUpper(hex[i + 1]) - '0']);
             }
             return bytes;
+        }
+
+        private static string BytesToHexString(byte[] bytes) {
+            var c = new char[bytes.Length * 2];
+            for (var i = 0; i < bytes.Length; i++) {
+                var b = bytes[i] >> 4;
+                c[i * 2] = (char)(55 + b + (((b - 10) >> 31) & -7));
+                b = bytes[i] & 0xF;
+                c[i * 2 + 1] = (char)(55 + b + (((b - 10) >> 31) & -7));
+            }
+            return new string(c);
         }
 
         public object Convert(string value) {

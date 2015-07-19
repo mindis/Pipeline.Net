@@ -2,7 +2,6 @@
 using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
-using Pipeline.Configuration;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityInitializer : IEntityInitializer {
@@ -17,24 +16,24 @@ namespace Pipeline.Provider.SqlServer {
 
         private void Destroy(IDbConnection cn) {
             try {
-                cn.Execute(_context.SqlDropOutputViewStatement());
+                cn.Execute(_context.SqlDropOutputView());
             } catch { }
 
             try {
-                cn.Execute(_context.SqlDropControlStatement());
+                cn.Execute(_context.SqlDropControl());
             } catch { }
 
             try {
-                cn.Execute(_context.SqlDropOutputStatement());
+                cn.Execute(_context.SqlDropOutput());
             } catch { }
         }
 
         private void Create(IDbConnection cn) {
-            cn.Execute(_context.SqlCreateOutputStatement());
+            cn.Execute(_context.SqlCreateOutput());
             cn.Execute(_context.SqlCreateOutputUniqueClusteredIndex());
             cn.Execute(_context.SqlCreateOutputPrimaryKey());
-            cn.Execute(_context.SqlCreateOutputViewStatement());
-            cn.Execute(_context.SqlCreateControlStatement());
+            cn.Execute(_context.SqlCreateOutputView());
+            cn.Execute(_context.SqlCreateControl());
         }
 
         public void Initialize() {

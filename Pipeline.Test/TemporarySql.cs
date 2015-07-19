@@ -24,7 +24,7 @@ namespace Pipeline.Test {
                 <add name='output' provider='sqlserver' server='localhost' database='TflAclara' />
             </connections>
             <entities>  
-                <add name='WorkOrder' log-interval='1000' pipeline='linq'>
+                <add name='WorkOrder' log-interval='1000' pipeline='linq' version='SS_RowVersion'>
                     <fields>
 
                         <add name='WorkOrderKey' type='guid' primary-key='true' label='Work Order Key'/>

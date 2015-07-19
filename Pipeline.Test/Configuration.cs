@@ -49,5 +49,32 @@ namespace Pipeline.Test {
             Assert.AreEqual(5, pet.CalculatedFields[0].Index);
             Assert.AreEqual(6, pet.CalculatedFields[1].Index);
         }
+
+        [Test(Description = "Process populates key types")]
+        public void KeysTypesSet() {
+
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var root = new Root(cfg, shorthand);
+
+            foreach (var error in root.Errors()) {
+                Console.WriteLine(error);
+            }
+
+            foreach (var warning in root.Warnings()) {
+                Console.WriteLine(warning);
+            }
+
+            var person = root.Processes.First().Entities.First();
+            var pet = root.Processes.First().Entities.Last();
+
+            Assert.AreEqual(KeyType.Primary, person.Fields[0].KeyType);
+            Assert.IsTrue(person.Fields.Skip(1).All(f => f.KeyType == KeyType.None));
+
+            Assert.AreEqual(KeyType.Primary, pet.Fields[0].KeyType);
+            Assert.AreEqual(KeyType.None, pet.Fields[1].KeyType);
+            Assert.IsTrue(pet.Fields[4].KeyType.HasFlag(KeyType.Foreign) && pet.Fields[4].KeyType.HasFlag(KeyType.None));
+        }
+
     }
 }

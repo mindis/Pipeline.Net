@@ -9,8 +9,12 @@ namespace Pipeline {
             : base(context) {
         }
 
-        public IEnumerable<Row> Read() {
+        public IEnumerable<Row> Read(object min) {
             return GetTypedDataSet(Context.Entity.Name);
+        }
+
+        public object GetVersion() {
+            return null;
         }
 
         public IEnumerable<Row> GetTypedDataSet(string name) {

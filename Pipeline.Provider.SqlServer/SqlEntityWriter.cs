@@ -18,7 +18,15 @@ namespace Pipeline.Provider.SqlServer {
                 cn.Open();
                 var count = 0;
                 foreach (var batch in rows.Partition(Connection.BatchSize)) {
-                    var batchCount = cn.Execute(Context.SqlInsertIntoOutput(batchId), batch.Select(r => r.ToExpandoObject(OutputFields, batchId)), null, Connection.Timeout, CommandType.Text);
+                    var trans = cn.BeginTransaction();
+                    var batchCount = cn.Execute(
+                        Context.SqlInsertIntoOutput(batchId),
+                        batch.Select(r => r.ToExpandoObject(OutputFields, batchId)),
+                        trans,
+                        Connection.Timeout,
+                        CommandType.Text
+                    );
+                    trans.Commit();
                     count += batchCount;
                     Increment(batchCount);
                 }
@@ -36,7 +44,7 @@ namespace Pipeline.Provider.SqlServer {
                 return null;
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
-                return cn.Query<object>(Context.SqlGetOutputMaxVersion(field)).SingleOrDefault();
+                return cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
             }
         }
     }

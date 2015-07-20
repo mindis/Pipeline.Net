@@ -251,10 +251,10 @@ namespace Pipeline.Configuration {
             ModifyMapParameters();
             ModifyKeys();
             ModifyLogLimits();
-            ModifyKeyTypes();
+            ModifyPrimaryKeyTypes();
         }
 
-        private void ModifyKeyTypes() {
+        private void ModifyPrimaryKeyTypes() {
             // set primary on none
             foreach (var entity in Entities) {
                 foreach (var field in entity.GetAllFields()) {
@@ -540,38 +540,18 @@ namespace Pipeline.Configuration {
                 //if everything is cool, set the foreign key flags
                 if (!error && relationship.Summary.IsAligned()) {
                     relationship.Summary.SetForeignKeys();
+                    foreach (var field in relationship.Summary.LeftFields) {
+                        if (!field.Output) {
+                            Warn("Foreign Keys must be output. Overriding output to true for {0}.", field.Alias);
+                            field.Output = true;
+                        }
+                    }
                 }
+
+
 
             }
 
-        }
-
-
-
-        private HashSet<string> GetEntityFieldKeys(string nameOrAlias) {
-            var keys = new HashSet<string>();
-            var entity = Entities.FirstOrDefault(e => e.Alias == nameOrAlias || e.Name == nameOrAlias);
-            if (entity == null)
-                return keys;
-
-            foreach (var field in entity.GetAllFields()) {
-                keys.Add(field.Alias);
-                if (field.Alias != field.Name) {
-                    keys.Add(field.Name);
-                }
-            }
-            return keys;
-        }
-
-        private HashSet<string> GetEntityNames() {
-            var keys = new HashSet<string>();
-            foreach (var entity in Entities) {
-                keys.Add(entity.Alias);
-                if (entity.Alias != entity.Name) {
-                    keys.Add(entity.Name);
-                }
-            }
-            return keys;
         }
 
         public Entity GetEntity(string nameOrAlias) {

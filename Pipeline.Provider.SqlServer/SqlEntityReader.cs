@@ -30,6 +30,9 @@ namespace Pipeline.Provider.SqlServer {
                         cmd.CommandText = Context.SqlSelectInputWithMaxVersion(version);
                         cmd.Parameters.AddWithValue("@Version", max);
                     } else {
+                        if (min == max) {
+                            yield break;
+                        }
                         cmd.CommandText = Context.SqlSelectInputWithMinAndMaxVersion(version);
                         cmd.Parameters.AddWithValue("@MinVersion", min);
                         cmd.Parameters.AddWithValue("@MaxVersion", max);

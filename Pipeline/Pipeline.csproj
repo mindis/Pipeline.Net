@@ -58,6 +58,7 @@
     <Compile Include="Configuration\Process.cs" />
     <Compile Include="Configuration\Provider.cs" />
     <Compile Include="Configuration\Relationship.cs" />
+    <Compile Include="Configuration\RelationshipSummary.cs" />
     <Compile Include="Configuration\Response.cs" />
     <Compile Include="Configuration\ResponseLog.cs" />
     <Compile Include="Configuration\Root.cs" />

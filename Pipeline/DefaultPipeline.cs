@@ -16,6 +16,10 @@ namespace Pipeline {
             _controller.Start();
         }
 
+        public void Initialize() {
+            _controller.Initialize();
+        }
+
         public void Register(IEntityReader reader) {
             reader.Context.Activity = PipelineActivity.Extract;
             Readers.Add(reader);

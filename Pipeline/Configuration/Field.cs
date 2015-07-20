@@ -369,7 +369,7 @@ namespace Pipeline.Configuration {
             if (Type == "rowversion") { Length = "8"; }
 
             if (PrimaryKey && !Output) {
-                Warn("Primary Keys must be output. Overriding output to true.");
+                Warn("Primary Keys must be output. Overriding output to true for {0}.", Alias);
                 Output = true;
             }
         }

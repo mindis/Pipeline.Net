@@ -1,4 +1,3 @@
-using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -6,15 +5,18 @@ using Dapper;
 using Pipeline.Configuration;
 
 namespace Pipeline.Provider.SqlServer {
+
     public class SqlEntityController : IEntityController {
         private readonly PipelineContext _context;
+        private readonly IEntityInitializer _initializer;
         private readonly Connection _output;
 
         public int BatchId { get; private set; }
         public object StartVersion { get; private set; }
 
-        public SqlEntityController(PipelineContext context) {
+        public SqlEntityController(PipelineContext context, IEntityInitializer initializer) {
             _context = context;
+            _initializer = initializer;
             _output = context.Process.Connections.First(c => c.Name == "output");
             BatchId = 0;
             StartVersion = null;
@@ -40,5 +42,10 @@ namespace Pipeline.Provider.SqlServer {
                 cn.Execute(_context.SqlControlEndBatch(), new { Inserts = 0, Updates = 0, Deletes = 0, BatchId });
             }
         }
+
+        public void Initialize() {
+            _initializer.Initialize();
+        }
+
     }
 }

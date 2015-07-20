@@ -39,7 +39,7 @@ namespace Pipeline.Test {
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         switch (provider) {
                             case "sqlserver":
-                                return new SqlEntityController(context);
+                                return new SqlEntityController(context, new SqlEntityInitializer(context));
                             default:
                                 return new NullEntityController();
                         }
@@ -102,6 +102,7 @@ namespace Pipeline.Test {
                         switch (provider) {
                             case "sqlserver":
                                 return new SqlEntityBulkInserter(context);
+                                //return new SqlEntityWriter(context); slow!
                             default:
                                 return new NullEntityWriter(context);
                         }
@@ -116,6 +117,7 @@ namespace Pipeline.Test {
                     foreach (var entity in process.Entities) {
 
                         var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
+                        pipeline.Initialize();
 
                         //extract
                         pipeline.Register(ctx.ResolveNamed<IEntityReader>(entity.Key));

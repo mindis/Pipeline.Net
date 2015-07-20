@@ -12,7 +12,7 @@ namespace Pipeline.Test {
     public class TemporarySql {
 
         [Test(Description = "Entity Pipeline")]
-        [Ignore("Integration testing")]
+        //[Ignore("Integration testing")]
         public void EntityPipeline() {
 
             const string xml = @"

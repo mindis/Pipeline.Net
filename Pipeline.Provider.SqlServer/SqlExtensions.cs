@@ -74,10 +74,11 @@ namespace Pipeline.Provider.SqlServer {
         public static string SqlInsertIntoOutput(this PipelineContext c, int batchId) {
 
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
-            var columns = string.Join(",", fields.Select(f => "[f" + f.Index + "]"));
+            //var columns = string.Join(",", fields.Select(f => "[f" + f.Index + "]"));
             var parameters = string.Join(",", fields.Select(f => "@f" + f.Index));
 
-            var sql = string.Format("INSERT {0}{1}({2},TflBatchId) VALUES({3},{4});", SqlSchemaPrefix(c), SqlOutputTableName(c), columns, parameters, batchId);
+            //var sql = string.Format("INSERT {0}{1}({2},TflBatchId) VALUES({3},{4});", SqlSchemaPrefix(c), SqlOutputTableName(c), columns, parameters, batchId);
+            var sql = string.Format("INSERT {0}{1} VALUES({2},{3});", SqlSchemaPrefix(c), SqlOutputTableName(c), parameters, batchId);
             c.Debug(sql);
             return sql;
         }
@@ -204,6 +205,7 @@ AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock,
             c.Debug(sql);
             return sql;
         }
+
         public static string SqlGetInputMaxVersion(this PipelineContext c, Field version) {
             var sql = string.Format("SELECT MAX([{0}]) FROM {1}[{2}];", version.Name, SqlSchemaPrefix(c), c.Entity.Name);
             c.Debug(sql);

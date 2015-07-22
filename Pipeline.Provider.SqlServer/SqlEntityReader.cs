@@ -13,29 +13,29 @@ namespace Pipeline.Provider.SqlServer {
 
         public SqlEntityReader(PipelineContext context)
             : base(context) {
-        }
+       } 
 
-        public IEnumerable<Row> Read(object min) {
+        public IEnumerable<Row> Read() {
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
 
                 cn.Open();
                 var cmd = cn.CreateCommand();
 
-                var version = Context.Entity.GetVersionField();
-                var max = version == null ? null : GetVersion(cn, version);
-                if (max == null) {
+                LoadVersion(cn);
+
+                if (Context.Entity.MaxVersion == null) {
                     cmd.CommandText = Context.SqlSelectInput();
                 } else {
-                    if (min == null) {
-                        cmd.CommandText = Context.SqlSelectInputWithMaxVersion(version);
-                        cmd.Parameters.AddWithValue("@Version", max);
+                    if (Context.Entity.MinVersion == null) {
+                        cmd.CommandText = Context.SqlSelectInputWithMaxVersion();
+                        cmd.Parameters.AddWithValue("@Version", Context.Entity.MaxVersion);
                     } else {
-                        if (min == max) {
+                        if (Context.Entity.MinVersion == Context.Entity.MaxVersion) {
                             yield break;
                         }
-                        cmd.CommandText = Context.SqlSelectInputWithMinAndMaxVersion(version);
-                        cmd.Parameters.AddWithValue("@MinVersion", min);
-                        cmd.Parameters.AddWithValue("@MaxVersion", max);
+                        cmd.CommandText = Context.SqlSelectInputWithMinAndMaxVersion();
+                        cmd.Parameters.AddWithValue("@MinVersion", Context.Entity.MinVersion);
+                        cmd.Parameters.AddWithValue("@MaxVersion", Context.Entity.MaxVersion);
                     }
                 }
 
@@ -61,8 +61,8 @@ namespace Pipeline.Provider.SqlServer {
             }
         }
 
-        private object GetVersion(IDbConnection cn, Field version) {
-            return cn.ExecuteScalar(Context.SqlGetInputMaxVersion(version));
+        private void LoadVersion(IDbConnection cn) {
+            Context.Entity.MaxVersion = Context.Entity.Version == string.Empty ? null : cn.ExecuteScalar(Context.SqlGetInputMaxVersion());
         }
     }
 }

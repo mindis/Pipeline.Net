@@ -11,10 +11,9 @@ namespace Pipeline {
             Context = context;
         }
 
-        public void Write(IEnumerable<Row> rows, int batchId) {}
+        public void Write(IEnumerable<Row> rows) {}
 
-        public object GetVersion() {
-            return null;
+        public void LoadVersion() {
         }
 
     }

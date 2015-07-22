@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using Dapper;
+using Pipeline.Configuration;
 using Pipeline.Extensions;
 
 namespace Pipeline.Provider.SqlServer {
@@ -33,7 +34,7 @@ namespace Pipeline.Provider.SqlServer {
                 _bulkCopyOptions ^= option;
         }
 
-        public void Write(IEnumerable<Row> rows, int batchId) {
+        public void Write(IEnumerable<Row> rows) {
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();
@@ -63,7 +64,8 @@ namespace Pipeline.Provider.SqlServer {
                     var batchCount = 0;
                     foreach (var row in batch) {
                         var dr = dt.NewRow();
-                        dr.ItemArray = row.ToObjectArray(OutputFields, batchId);
+                        var values = new List<object>(row.ToEnumerable(OutputFields)) {Context.Entity.BatchId};
+                        dr.ItemArray = values.ToArray();
                         dataRows.Add(dr);
                         batchCount++;
                     }
@@ -78,17 +80,17 @@ namespace Pipeline.Provider.SqlServer {
             }
         }
 
-        public object GetVersion() {
+        public void LoadVersion() {
             if (Context.Entity.Version == string.Empty)
-                return null;
+                return;
 
             var field = Context.Entity.GetVersionField();
 
             if (field == null)
-                return null;
+                return;
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
-                return cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
+                Context.Entity.MinVersion = cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
             }
         }
     }

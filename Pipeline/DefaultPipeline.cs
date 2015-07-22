@@ -1,17 +1,20 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Transformers;
 
 namespace Pipeline {
-    public class DefaultPipeline : IPipeline {
+    public class DefaultPipeline : IEntityPipeline {
+
         private readonly IEntityController _controller;
-        protected List<IEntityReader> Readers { get; private set; }
+
+        protected IEntityReader Reader { get; private set; }
         protected IEntityWriter Writer { get; private set; }
+        protected IMasterUpdater MasterUpdater { get; private set; }
         protected List<ITransform> Transformers { get; private set; }
 
         public DefaultPipeline(IEntityController controller) {
             _controller = controller;
-            Readers = new List<IEntityReader>();
             Transformers = new List<ITransform>();
             _controller.Start();
         }
@@ -22,7 +25,7 @@ namespace Pipeline {
 
         public void Register(IEntityReader reader) {
             reader.Context.Activity = PipelineActivity.Extract;
-            Readers.Add(reader);
+            Reader = reader;
         }
 
         public void Register(ITransform transformer) {
@@ -35,14 +38,19 @@ namespace Pipeline {
             Writer = writer;
         }
 
+        public void Register(IMasterUpdater updater) {
+            updater.Context.Activity = PipelineActivity.Load;
+            MasterUpdater = updater;
+        }
+
         public virtual IEnumerable<Row> Run() {
-            var min = Writer.GetVersion();
-            var output = Readers.SelectMany(r => r.Read(min));
-            return Transformers.Aggregate(output, (current, transform) => current.Select(transform.Transform));
+            Writer.LoadVersion();
+            return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
         }
 
         public void Execute() {
-            Writer.Write(Run(), _controller.BatchId);
+            Writer.Write(Run());
+            MasterUpdater.Update();
             _controller.End();
         }
 

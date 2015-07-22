@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Pipeline.Configuration;
 using Pipeline.Extensions;
+using System.Text;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -72,12 +73,8 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlInsertIntoOutput(this PipelineContext c, int batchId) {
-
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
-            //var columns = string.Join(",", fields.Select(f => "[f" + f.Index + "]"));
             var parameters = string.Join(",", fields.Select(f => "@f" + f.Index));
-
-            //var sql = string.Format("INSERT {0}{1}({2},TflBatchId) VALUES({3},{4});", SqlSchemaPrefix(c), SqlOutputTableName(c), columns, parameters, batchId);
             var sql = string.Format("INSERT {0}{1} VALUES({2},{3});", SqlSchemaPrefix(c), SqlOutputTableName(c), parameters, batchId);
             c.Debug(sql);
             return sql;
@@ -97,6 +94,57 @@ namespace Pipeline.Provider.SqlServer {
 
         public static string SqlDropControl(this PipelineContext c) {
             var sql = string.Format("DROP TABLE {0};", SqlControlTableName(c));
+            c.Debug(sql);
+            return sql;
+        }
+
+        private static string Enclose(string name) {
+            return "[" + name + "]";
+        }
+
+        public static string SqlUpdateMaster(this PipelineContext c) {
+            //note: TflBatchId is updated and next process depends it.
+
+            var master = Enclose(c.Process.Entities.First(e => e.IsMaster).OutputName(c.Process.Name));
+            var entity = Enclose(c.Entity.OutputName(c.Process.Name));
+            var builder = new StringBuilder();
+
+            var sets = c.Entity.Fields.Any(f=>f.KeyType.HasFlag(KeyType.Foreign)) ?
+                string.Join(",", c.Entity.Fields
+                    .Where(f=>f.KeyType.HasFlag(KeyType.Foreign))
+                    .Select(f=> string.Concat(master, ".", f.Alias, " = ", entity, ".", f.Alias)))
+                :
+                string.Empty;
+
+            builder.AppendFormat("UPDATE {0}\r\n", master);
+            builder.AppendFormat("SET {0} {1}.TflBatchId = @TflBatchId\r\n", sets, master);
+            builder.AppendFormat("FROM {0}\r\n", entity);
+
+            foreach (var relationship in c.Entity.RelationshipToMaster) {
+                var left = Enclose(relationship.Summary.LeftEntity.OutputName(c.Process.Name));
+
+                builder.AppendFormat("INNER JOIN {0} ON (\r\n", left);
+
+                var right = Enclose(relationship.Summary.RightEntity.OutputName(c.Process.Name));
+                for (int i = 0; i < relationship.Summary.LeftFields.Count(); i++) {
+                    var leftAlias = relationship.Summary.LeftFields[i].Alias;
+                    var rightAlias = relationship.Summary.RightFields[i].Alias;
+                    var conjunction = i > 0 ? " AND " : string.Empty;
+                    builder.AppendFormat(
+                        "{0}{1}.{2} = {3}.{4}", 
+                        conjunction,
+                        left,
+                        Enclose(leftAlias),
+                        right,
+                        Enclose(rightAlias)
+                    );
+                }
+                builder.AppendLine(")");
+            }
+
+            //todo: consider whether or not entity or master changed first
+            builder.AppendFormat("WHERE {0}.TflBatchId = @TflBatchId OR {1}.TflBatchId = @MasterTflBatchId", entity, master);
+            var sql = builder.ToString();
             c.Debug(sql);
             return sql;
         }
@@ -179,7 +227,7 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlSelectInputWithMaxVersion(this PipelineContext c, Field version) {
+        public static string SqlSelectInputWithMaxVersion(this PipelineContext c) {
             var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
             var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
@@ -187,12 +235,12 @@ namespace Pipeline.Provider.SqlServer {
             var sql = string.Format(@"
 SELECT {0} 
 FROM {1}[{2}] {3}
-WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, version.Name);
+WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
             c.Debug(sql);
             return sql;
         }
 
-        public static string SqlSelectInputWithMinAndMaxVersion(this PipelineContext c, Field version) {
+        public static string SqlSelectInputWithMinAndMaxVersion(this PipelineContext c) {
             var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
             var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
@@ -201,13 +249,13 @@ WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock,
 SELECT {0} 
 FROM {1}[{2}] {3}
 WHERE [{4}] >= @MinVersion
-AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, version.Name);
+AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
             c.Debug(sql);
             return sql;
         }
 
-        public static string SqlGetInputMaxVersion(this PipelineContext c, Field version) {
-            var sql = string.Format("SELECT MAX([{0}]) FROM {1}[{2}];", version.Name, SqlSchemaPrefix(c), c.Entity.Name);
+        public static string SqlGetInputMaxVersion(this PipelineContext c) {
+            var sql = string.Format("SELECT MAX([{0}]) FROM {1}[{2}];", c.Entity.GetVersionField().Name, SqlSchemaPrefix(c), c.Entity.Name);
             c.Debug(sql);
             return sql;
         }

@@ -47,7 +47,7 @@ namespace Pipeline.Test {
 
                     var pipeline = process.Pipeline == "defer" ? entity.Pipeline : process.Pipeline;
 
-                    builder.Register<IPipeline>((ctx) => {
+                    builder.Register<IEntityPipeline>((ctx) => {
                         switch (pipeline) {
                             case "parallel.linq":
                                 return new Parallel(ctx.ResolveNamed<IEntityController>(entity.Key));
@@ -62,7 +62,7 @@ namespace Pipeline.Test {
                             default:
                                 return new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key));
                         }
-                    }).Named<IPipeline>(entity.Key);
+                    }).Named<IEntityPipeline>(entity.Key);
 
                     //input
                     builder.Register<IEntityReader>((ctx) => {
@@ -102,25 +102,37 @@ namespace Pipeline.Test {
                         switch (provider) {
                             case "sqlserver":
                                 return new SqlEntityBulkInserter(context);
-                                //return new SqlEntityWriter(context); slow!
+                                //return new SqlEntityWriter(context);
                             default:
                                 return new NullEntityWriter(context);
                         }
                     }).Named<IEntityWriter>(entity.Key);
 
+                    //master updater
+                    builder.Register<IMasterUpdater>((ctx) => {
+                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                        switch (provider) {
+                            case "sqlserver":
+                                return new SqlMasterUpdater(context);
+                            default:
+                                return new NullMasterUpdater(context);
+                        }
+                    }).Named<IMasterUpdater>(entity.Key);
+
                 }
 
                 builder.Register((ctx) => {
 
-                    var pipelines = new List<IPipeline>();
+                    var pipelines = new List<IEntityPipeline>();
 
                     foreach (var entity in process.Entities) {
 
-                        var pipeline = ctx.ResolveNamed<IPipeline>(entity.Key);
-                        pipeline.Initialize();
+                        var pipeline = ctx.ResolveNamed<IEntityPipeline>(entity.Key);
+                        //pipeline.Initialize();
 
                         //extract
-                        pipeline.Register(ctx.ResolveNamed<IEntityReader>(entity.Key));
+                        pipeline.Register(ctx.ResolveNamed<IEntityReader>((string)entity.Key));
 
                         //transform
                         pipeline.Register(new DefaultNulls(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
@@ -136,18 +148,18 @@ namespace Pipeline.Test {
 
                         //provider specific transforms
                         if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
-                            var specialContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity,
-                                null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
+                            var specialContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
                             pipeline.Register(new MinDateTransform(specialContext, new DateTime(1753, 1, 1)));
                         }
 
                         //load
                         pipeline.Register(ctx.ResolveNamed<IEntityWriter>(entity.Key));
+                        pipeline.Register(ctx.ResolveNamed<IMasterUpdater>(entity.Key));
 
                         pipelines.Add(pipeline);
                     }
                     return pipelines;
-                }).Named<IEnumerable<IPipeline>>(process.Key);
+                }).Named<IEnumerable<IEntityPipeline>>(process.Key);
 
             }
 

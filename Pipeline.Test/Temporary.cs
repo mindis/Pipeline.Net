@@ -33,7 +33,7 @@ namespace Pipeline.Test {
 
     public class TemporaryProcessPipelineComposer {
 
-        public IPipeline[] Compose() {
+        public IEntityPipeline[] Compose() {
             var builder = new ContainerBuilder();
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
@@ -48,9 +48,9 @@ namespace Pipeline.Test {
             builder.RegisterModule(module);
             var container = builder.Build();
 
-            var pipelines = new List<IPipeline>();
+            var pipelines = new List<IEntityPipeline>();
             foreach (var process in module.Root.Processes) {
-                pipelines.AddRange(container.ResolveNamed<IEnumerable<IPipeline>>(process.Key));
+                pipelines.AddRange(container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key));
             }
 
             return pipelines.ToArray();

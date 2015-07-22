@@ -6,6 +6,8 @@ using Transformalize.Libs.Cfg.Net;
 namespace Pipeline.Configuration {
     public class Entity : CfgNode {
 
+        public bool IsMaster { get; set; }
+
         [Cfg(required = false, unique = true)]
         public string Alias { get; set; }
 
@@ -14,29 +16,6 @@ namespace Pipeline.Configuration {
 
         [Cfg(value = false)]
         public bool Delete { get; set; }
-
-        /// <summary>
-        /// Optional : `True` by default.
-        /// 
-        /// Currently this is a confusing option.  It's ambiguous:
-        /// 
-        /// * Does it mean "detect changes" between the input and output?
-        ///   * If true, TFL will attempt to insert or update data, if a version field is available.  
-        ///   * If false, TFL will only insert data, it will not compare input with output to `insert` or `update`.
-        /// 
-        /// * Does it affect what is loaded from the input
-        ///   * If true, and input is capable of querying, and output has previous version value, TFL will pull delta from the input
-        ///   * If false, TFL will not attempt to pull delta from input.
-        /// 
-        /// ###Ideas
-        /// 
-        /// * Add CanQuery to connection (true or false).  It's all queryable, just a matter of whether or not you have to load everything into memory.
-        /// * This was mostly added to deal with importing single files.  If file connection was implemented to detect changes, might not need this. 
-        /// * There are two concepts, querying just the delta from the input, and comparing the input and output, which requires a version and loading the corresponding output keys and version
-        /// 
-        /// </summary>
-        [Cfg(value = true)]
-        public bool DetectChanges { get; set; }
 
         [Cfg(value = false)]
         public bool Group { get; set; }
@@ -73,6 +52,7 @@ namespace Pipeline.Configuration {
         public string Script { get; set; }
         [Cfg(value = "")]
         public string ScriptKeys { get; set; }
+
         [Cfg(value = false)]
         public bool TrimAll { get; set; }
         [Cfg(value = true)]
@@ -92,14 +72,19 @@ namespace Pipeline.Configuration {
         public List<InputOutput> Input { get; set; }
         [Cfg(required = false)]
         public List<InputOutput> Output { get; set; }
+        [Cfg(value = (long)10000)]
+        public long LogInterval { get; set; }
 
         /// <summary>
         /// Set by Process.ModifyKeys for keyed dependency injection
         /// </summary>
         public string Key { get; set; }
 
-        [Cfg(value = (long)10000)]
-        public long LogInterval { get; set; }
+        public IEnumerable<Relationship> RelationshipToMaster { get; internal set; }
+
+        public int BatchId { get; set; }
+        public object MinVersion { get; set; }
+        public object MaxVersion { get; set; }
 
         public IEnumerable<Field> GetAllFields() {
             var fields = new List<Field>();
@@ -298,5 +283,9 @@ namespace Pipeline.Configuration {
             field = GetField(aliasOrName);
             return field != null;
         }
+        public bool IsFirstRun() {
+            return MinVersion == null;
+        }
+
     }
 }

@@ -12,7 +12,7 @@ namespace Pipeline.Provider.SqlServer {
             : base(context) {
         }
 
-        public void Write(IEnumerable<Row> rows, int batchId) {
+        public void Write(IEnumerable<Row> rows) {
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();
@@ -20,8 +20,8 @@ namespace Pipeline.Provider.SqlServer {
                 foreach (var batch in rows.Partition(Connection.BatchSize)) {
                     var trans = cn.BeginTransaction();
                     var batchCount = cn.Execute(
-                        Context.SqlInsertIntoOutput(batchId),
-                        batch.Select(r => r.ToExpandoObject(OutputFields, batchId)),
+                        Context.SqlInsertIntoOutput(Context.Entity.BatchId),
+                        batch.Select(r => r.ToExpandoObject(OutputFields)),
                         trans,
                         Connection.Timeout,
                         CommandType.Text
@@ -34,17 +34,17 @@ namespace Pipeline.Provider.SqlServer {
             }
         }
 
-        public object GetVersion() {
+        public void LoadVersion() {
             if (Context.Entity.Version == string.Empty)
-                return null;
+                return;
 
             var field = Context.Entity.GetVersionField();
 
             if (field == null)
-                return null;
+                return;
 
             using (var cn = new SqlConnection(Connection.GetConnectionString())) {
-                return cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
+                Context.Entity.MinVersion = cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
             }
         }
     }

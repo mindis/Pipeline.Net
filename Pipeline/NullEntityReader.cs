@@ -9,7 +9,7 @@ namespace Pipeline {
             Context = context;
         }
 
-        public IEnumerable<Row> Read(object min) {
+        public IEnumerable<Row> Read() {
             return new Row[0];
         }
 

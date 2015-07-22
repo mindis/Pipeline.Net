@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Pipeline {
     public interface IEntityReader {
-        IEnumerable<Row> Read(object min);
+        IEnumerable<Row> Read();
         PipelineContext Context { get; }
     }
 }

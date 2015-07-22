@@ -61,7 +61,7 @@ namespace Pipeline.Test {
             var container = builder.Build();
             var process = module.Root.Processes.First();
 
-            var output = container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Run().ToArray();
+            var output = container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key).First().Run().ToArray();
 
             Assert.AreEqual("1-2+3", output[0][process.Entities.First().CalculatedFields.First()]);
 

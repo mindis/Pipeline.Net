@@ -63,7 +63,7 @@ namespace Pipeline.Test {
 
             foreach (var warning in root.Warnings()) {
                 Console.WriteLine(warning);
-            }
+           } 
 
             var person = root.Processes.First().Entities.First();
             var pet = root.Processes.First().Entities.Last();
@@ -73,7 +73,18 @@ namespace Pipeline.Test {
 
             Assert.AreEqual(KeyType.Primary, pet.Fields[0].KeyType);
             Assert.AreEqual(KeyType.None, pet.Fields[1].KeyType);
-            Assert.IsTrue(pet.Fields[4].KeyType.HasFlag(KeyType.Foreign) && pet.Fields[4].KeyType.HasFlag(KeyType.None));
+            Assert.IsTrue(pet.Fields[4].KeyType.HasFlag(KeyType.Foreign));
+        }
+
+        [Test]
+        public void TestRelationshipToMaster() {
+            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
+            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
+            var root = new Root(cfg, shorthand);
+            var rtm = root.Processes[0].Entities[1].RelationshipToMaster;
+
+            Assert.AreEqual(1, rtm.Count());
+
         }
 
     }

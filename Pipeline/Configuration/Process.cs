@@ -222,7 +222,7 @@ namespace Pipeline.Configuration {
 
         protected override void Modify() {
 
-            if (String.IsNullOrEmpty(Star)) {
+            if (string.IsNullOrEmpty(Star)) {
                 Star = Name + "Star";
             }
 
@@ -249,16 +249,15 @@ namespace Pipeline.Configuration {
 
             ModifyMergeParameters();
             ModifyMapParameters();
-            ModifyKeys();
-            ModifyLogLimits();
-            ModifyPrimaryKeyTypes();
         }
 
         private void ModifyPrimaryKeyTypes() {
             // set primary on none
             foreach (var entity in Entities) {
                 foreach (var field in entity.GetAllFields()) {
-                    field.KeyType = field.PrimaryKey ? KeyType.Primary : KeyType.None;
+                    if (field.PrimaryKey) {
+                        field.KeyType = KeyType.Primary;
+                    }
                 }
             }
         }
@@ -431,6 +430,26 @@ namespace Pipeline.Configuration {
             ValidateTransformConnections();
             ValidateMapConnections();
             ValidateDataSets();
+
+            if (Errors().Length == 0) {
+                ModifyKeys();
+                ModifyLogLimits();
+                ModifyPrimaryKeyTypes();
+                Entities.First().IsMaster = true;
+                foreach(var entity in Entities.Where(e=>!e.IsMaster)) {
+                    entity.RelationshipToMaster = ReadRelationshipToMaster(entity);
+                }
+            }
+        }
+
+        private IEnumerable<Relationship> ReadRelationshipToMaster(Entity entity) {
+            var relationships = Relationships.Where(r => r.Summary.RightEntity.Equals(entity)).ToList();
+
+            if (relationships.Any() && !relationships.Any(r => r.Summary.LeftEntity.IsMaster)) {
+                var leftEntity = relationships.Last().Summary.LeftEntity;
+                relationships.AddRange(ReadRelationshipToMaster(leftEntity));
+            }
+            return relationships;
         }
 
         private void ValidateDataSets() {

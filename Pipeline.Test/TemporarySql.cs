@@ -126,15 +126,28 @@ namespace Pipeline.Test {
                         <add name='SS_RowVersion' type='byte[]' length='8' label='S S Row Version'/>
                     </fields>
                 </add>
+
+                <add name='OrderStatus' version='SS_RowVersion'>
+                    <fields>
+                        <add name='Id' alias='OrderStatusId' type='int' primary-key='true' />
+                        <add name='Name' alias='OrderStatus' length='255' />
+                        <add name='SS_RowVersion' alias='OrderStatusVersion' type='byte[]' length='8' search-type='none' />
+                    </fields>
+                </add>
+
             </entities>
+
+            <relationships>
+                <add left-entity='WorkOrder' left-field='OrderStatusId' right-entity='OrderStatus' right-field='OrderStatusId'/>
+            </relationships>
+
         </add>
     </processes>
-</cfg>
-";
+</cfg>";
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand, LogLevel.Info);
+            var module = new PipelineModule(xml, shorthand, LogLevel.Debug);
 
-            if (module.Root.Errors().Any()) {
+            if (module.Root.Errors().Any()){ 
                 foreach (var error in module.Root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
@@ -146,7 +159,9 @@ namespace Pipeline.Test {
             var container = builder.Build();
             var process = module.Root.Processes.First();
 
-            container.ResolveNamed<IEnumerable<IPipeline>>(process.Key).First().Execute();
+            foreach(var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
+                pipeline.Execute();
+            }
 
             //Assert.AreEqual(20088, output.Count());
 

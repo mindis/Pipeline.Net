@@ -11,14 +11,12 @@ namespace Pipeline.Provider.SqlServer {
         private readonly IEntityInitializer _initializer;
         private readonly Connection _output;
 
-        public int BatchId { get; private set; }
         public object StartVersion { get; private set; }
 
         public SqlEntityController(PipelineContext context, IEntityInitializer initializer) {
             _context = context;
             _initializer = initializer;
             _output = context.Process.Connections.First(c => c.Name == "output");
-            BatchId = 0;
             StartVersion = null;
         }
 
@@ -31,15 +29,15 @@ namespace Pipeline.Provider.SqlServer {
         public void Start() {
             using (var cn = new SqlConnection(_output.GetConnectionString())) {
                 cn.Open();
-                BatchId = GetBatchId(cn);
-                cn.Execute(_context.SqlControlStartBatch(), new { BatchId, Entity = _context.Entity.Alias });
+                _context.Entity.BatchId = GetBatchId(cn);
+                cn.Execute(_context.SqlControlStartBatch(), new { _context.Entity.BatchId, Entity = _context.Entity.Alias });
             }
         }
 
         public void End() {
             using (var cn = new SqlConnection(_output.GetConnectionString())) {
                 cn.Open();
-                cn.Execute(_context.SqlControlEndBatch(), new { Inserts = 0, Updates = 0, Deletes = 0, BatchId });
+                cn.Execute(_context.SqlControlEndBatch(), new { Inserts = 0, Updates = 0, Deletes = 0, _context.Entity.BatchId });
             }
         }
 

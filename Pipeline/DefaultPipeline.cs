@@ -16,7 +16,6 @@ namespace Pipeline {
         public DefaultPipeline(IEntityController controller) {
             _controller = controller;
             Transformers = new List<ITransform>();
-            _controller.Start();
         }
 
         public void Initialize() {
@@ -49,6 +48,7 @@ namespace Pipeline {
         }
 
         public void Execute() {
+            _controller.Start();
             Writer.Write(Run());
             MasterUpdater.Update();
             _controller.End();

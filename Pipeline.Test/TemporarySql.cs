@@ -11,9 +11,9 @@ namespace Pipeline.Test {
     [TestFixture(Description = "Proof of concept")]
     public class TemporarySql {
 
-        [Test(Description = "Entity Pipeline")]
+        [Test(Description = "Integration Testing (Sql Server)")]
         //[Ignore("Integration testing")]
-        public void EntityPipeline() {
+        public void SqlServerIntegrationTesting() {
 
             const string xml = @"
 <cfg>

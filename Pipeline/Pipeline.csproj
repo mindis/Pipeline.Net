@@ -91,12 +91,13 @@
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
     <Compile Include="Transformers\ConcatTransform.cs" />
-    <Compile Include="Transformers\DefaultNulls.cs" />
+    <Compile Include="Transformers\System\DefaultTransform.cs" />
     <Compile Include="Transformers\FromSplitTransform.cs" />
-    <Compile Include="Transformers\MinDateTransform.cs" />
+    <Compile Include="Transformers\System\MinDateTransform.cs" />
     <Compile Include="Transformers\PadLeftTransform.cs" />
     <Compile Include="Transformers\PadRightTransform.cs" />
     <Compile Include="Transformers\SplitLengthTransform.cs" />
+    <Compile Include="Transformers\System\StringTruncateTransform.cs" />
     <Compile Include="Transformers\TrimEndTransform.cs" />
     <Compile Include="Transformers\TrimStartTransform.cs" />
     <Compile Include="Transformers\TrimTransform.cs" />

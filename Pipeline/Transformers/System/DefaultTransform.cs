@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
 
-namespace Pipeline.Transformers {
+namespace Pipeline.Transformers.System {
 
-    public class DefaultNulls : BaseTransform, ITransform {
+    public class DefaultTransform : BaseTransform, ITransform {
 
         private readonly Field[] _fields;
         private readonly Dictionary<string, object> _typeDefaults;
         private readonly Dictionary<int, Func<object>> _getDefaultFor = new Dictionary<int, Func<object>>();
 
-        public DefaultNulls(PipelineContext context)
+        public DefaultTransform(PipelineContext context)
             : base(context) {
             _fields = context.Entity.GetAllFields().ToArray();
             _typeDefaults = Constants.TypeDefaults();

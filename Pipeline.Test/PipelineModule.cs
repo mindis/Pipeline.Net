@@ -8,11 +8,13 @@ using Pipeline.Logging;
 using Pipeline.Provider.SqlServer;
 using Pipeline.Transformers;
 using Pipeline.Validators;
+using Pipeline.Transformers.System;
 
 namespace Pipeline.Test {
 
     public class PipelineModule : Module {
-        private readonly LogLevel _level;
+
+        readonly LogLevel _level;
 
         public Root Root { get; set; }
 
@@ -124,6 +126,7 @@ namespace Pipeline.Test {
 
                 builder.Register((ctx) => {
 
+                    var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
                     var pipelines = new List<IEntityPipeline>();
 
                     foreach (var entity in process.Entities) {
@@ -135,7 +138,8 @@ namespace Pipeline.Test {
                         pipeline.Register(ctx.ResolveNamed<IEntityReader>((string)entity.Key));
 
                         //transform
-                        pipeline.Register(new DefaultNulls(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
+                        pipeline.Register(new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
+
                         foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
                             if (field.RequiresCompositeValidator()) {
                                 pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
@@ -147,9 +151,14 @@ namespace Pipeline.Test {
                         }
 
                         //provider specific transforms
-                        if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
-                            var specialContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
-                            pipeline.Register(new MinDateTransform(specialContext, new DateTime(1753, 1, 1)));
+                        if (outputProvider == "sqlserver") {
+                            var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
+                            pipeline.Register(new MinDateTransform(sqlDatesContext, new DateTime(1753, 1, 1)));
+                        }
+
+                        if(outputProvider != "internal") {
+                            var stringTruncateContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "truncate"; }));
+                            pipeline.Register(new StringTruncateTransfom(stringTruncateContext));
                         }
 
                         //load

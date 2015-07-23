@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using Pipeline.Configuration;
 
-namespace Pipeline.Transformers {
+namespace Pipeline.Transformers.System {
+
     public class MinDateTransform : BaseTransform, ITransform {
         private readonly Field[] _dates;
         private readonly DateTime _minDate;

@@ -6,14 +6,14 @@ using Dapper;
 namespace Pipeline.Provider.SqlServer {
 
     public class SqlMasterUpdater : BaseEntityWriter, IMasterUpdater {
-        private Entity _master;
+        Entity _master;
 
         public SqlMasterUpdater(PipelineContext context) : base(context) {
             _master = context.Process.Entities.First(e => e.IsMaster);
         }
 
         public void Update() {
-            if (Context.Entity.IsMaster || Context.Entity.IsFirstRun())
+            if (Context.Entity.IsMaster || (Context.Entity.IsFirstRun() && !Context.Entity.Fields.Any(f=>f.Denormalize)))
                 return;
             using(var cn = new SqlConnection(Connection.GetConnectionString())) {
                 cn.Open();

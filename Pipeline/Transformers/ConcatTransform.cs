@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
+
     public class ConcatTransform : BaseTransform, ITransform {
-        private readonly Field[] _input;
+        readonly Field[] _input;
 
         public ConcatTransform(PipelineContext context)
             : base(context) {

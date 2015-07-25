@@ -8,12 +8,12 @@ namespace Pipeline.Provider.SqlServer {
 
     public class SqlEntityController : IEntityController {
         private readonly PipelineContext _context;
-        private readonly IEntityInitializer _initializer;
+        private readonly IInitializer _initializer;
         private readonly Connection _output;
 
         public object StartVersion { get; private set; }
 
-        public SqlEntityController(PipelineContext context, IEntityInitializer initializer) {
+        public SqlEntityController(PipelineContext context, IInitializer initializer) {
             _context = context;
             _initializer = initializer;
             _output = context.Process.Connections.First(c => c.Name == "output");

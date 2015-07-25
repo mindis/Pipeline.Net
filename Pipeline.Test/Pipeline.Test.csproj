@@ -66,6 +66,7 @@
     <Compile Include="TemporarySql.cs" />
     <Compile Include="Temporary.cs" />
     <Compile Include="Signature.cs" />
+    <Compile Include="JavascriptTransform.cs" />
     <Compile Include="Validate.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="Configuration.cs" />

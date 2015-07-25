@@ -1,5 +1,5 @@
 namespace Pipeline {
-    public class NullEntityInitializer : IEntityInitializer {
+    public class NullEntityInitializer : IInitializer {
         public void Initialize() {
         }
     }

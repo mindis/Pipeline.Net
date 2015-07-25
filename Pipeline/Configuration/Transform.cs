@@ -8,12 +8,12 @@ namespace Pipeline.Configuration {
     public class Transform : CfgNode {
 
         public const string ProducerDomain = "fromxml,fromsplit";
-        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength,trim,trimstart,trimend";
+        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength,trim,trimstart,trimend,javascript";
         public const string ValidatorDomain = "contains,is";
 
-        private static HashSet<string> _transformSet;
-        private static HashSet<string> _validateSet;
-        private static HashSet<string> _producerSet;
+        static HashSet<string> _transformSet;
+        static HashSet<string> _validateSet;
+        static HashSet<string> _producerSet;
 
         [Cfg(value = true)]
         public bool AfterAggregation { get; set; }

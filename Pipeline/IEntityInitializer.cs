@@ -1,5 +1,5 @@
 namespace Pipeline {
-    public interface IEntityInitializer {
+    public interface IInitializer {
         void Initialize();
     }
 }

@@ -26,7 +26,7 @@ namespace Pipeline {
 
             var lookup = Context.Entity.Fields.ToDictionary(k => k.Name, v => v);
             foreach (var row in dataSet.Rows) {
-                var pipelineRow = new Row(RowCapacity);
+                var pipelineRow = new Row(RowCapacity, Context.Entity.IsMaster);
                 foreach (var pair in row) {
                     if (!lookup.ContainsKey(pair.Key))
                         continue;

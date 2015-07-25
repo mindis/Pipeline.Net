@@ -38,6 +38,11 @@
         <add name="trim-chars" value=" " />
       </parameters>
     </add>
+    <add name="script">
+      <parameters>
+        <add name="script"  />
+      </parameters>
+    </add>
   </signatures>
 
   <targets>
@@ -58,6 +63,7 @@
     <add name="contains" signature="value" target="t" />
     <add name="is" signature="type" target="t" />
     <add name="trim" signature="trim" target="t" />
+    <add name="javascript" signature="script" target="t" />
   </methods>
 
 </cfg>

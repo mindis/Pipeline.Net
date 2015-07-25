@@ -1,5 +1,6 @@
 ﻿namespace Pipeline {
-    public interface IField {
-        int Index { get; set; }
-    }
+   public interface IField {
+      short Index { get; }
+      short MasterIndex { get; }
+   }
 }

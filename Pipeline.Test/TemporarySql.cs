@@ -130,7 +130,7 @@ namespace Pipeline.Test {
                 <add name='OrderStatus' version='SS_RowVersion'>
                     <fields>
                         <add name='Id' alias='OrderStatusId' type='int' primary-key='true' />
-                        <add name='Name' alias='OrderStatus' length='255' />
+                        <add name='Name' alias='OrderStatus' length='255' denormalize='true' />
                         <add name='SS_RowVersion' alias='OrderStatusVersion' type='byte[]' length='8' search-type='none' />
                     </fields>
                 </add>

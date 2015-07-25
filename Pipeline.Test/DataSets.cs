@@ -11,8 +11,8 @@ namespace Pipeline.Test {
     [TestFixture]
     public class DataSets {
 
-        private static Field FieldAt(int index) {
-            return new Field { Index = index };
+        static Field FieldAt(short index) {
+            return new Field { Index = index, MasterIndex = index };
         }
 
         [Test(Description = "A DataSet can be stored in an configuration, typed, and enumerated through.")]

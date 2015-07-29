@@ -48,6 +48,9 @@
     <Compile Include="Configuration\FileInspection.cs" />
     <Compile Include="Configuration\Filter.cs" />
     <Compile Include="Configuration\InputOutput.cs" />
+    <Compile Include="IMapReader.cs" />
+    <Compile Include="IScript.cs" />
+    <Compile Include="IScriptParser.cs" />
     <Compile Include="Configuration\Join.cs" />
     <Compile Include="Configuration\Log.cs" />
     <Compile Include="Configuration\Map.cs" />
@@ -75,6 +78,7 @@
     <Compile Include="IEntityInitializer.cs" />
     <Compile Include="IEntityWriter.cs" />
     <Compile Include="IMasterUpdater.cs" />
+    <Compile Include="JintParser.cs" />
     <Compile Include="KeyType.cs" />
     <Compile Include="Logging\BaseLogger.cs" />
     <Compile Include="Logging\IPipelineLogger.cs" />
@@ -90,6 +94,11 @@
     <Compile Include="NullMasterUpdater.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
+    <Compile Include="Transformers\JoinTransform.cs" />
+    <Compile Include="Transformers\ToLowerTransform.cs" />
+    <Compile Include="Transformers\MapTransform.cs" />
+    <Compile Include="Transformers\ToUpperTransform.cs" />
+    <Compile Include="Transformers\ToStringTransform.cs" />
     <Compile Include="Transformers\ConcatTransform.cs" />
     <Compile Include="Transformers\JintTransform.cs" />
     <Compile Include="Transformers\System\DefaultTransform.cs" />
@@ -108,7 +117,6 @@
     <Compile Include="Transformers\FromXmlTransform.cs" />
     <Compile Include="Transformers\HashcodeTransform.cs" />
     <Compile Include="Transformers\HtmlDecodeTransform.cs" />
-    <Compile Include="Transformers\XmlDecodeTransform.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="IField.cs" />

@@ -4,15 +4,18 @@ using System.Data;
 using System.Data.SqlClient;
 using Dapper;
 using Pipeline.Configuration;
+using Pipeline.Transformers;
 
 namespace Pipeline.Provider.SqlServer {
 
    public class SqlEntityReader : BaseEntityReader, IEntityReader {
 
       int _rowCount;
+      HashSet<int> _errors = new HashSet<int>();
 
       public SqlEntityReader(PipelineContext context)
           : base(context) {
+
       }
 
       public IEnumerable<Row> Read() {
@@ -49,8 +52,18 @@ namespace Pipeline.Provider.SqlServer {
                var row = new Row(RowCapacity, Context.Entity.IsMaster);
                for (var i = 0; i < reader.FieldCount; i++) {
                   var field = InputFields[i];
-                  var value = reader[i];
-                  row[field] = value == DBNull.Value ? null : value;
+                  if (field.Type == "string") {
+                     if (reader.GetFieldType(i) == typeof(string)) {
+                        row.SetString(field, reader.IsDBNull(i) ? null : reader.GetString(i));
+                     } else {
+                        TypeMismatch(field, reader, i);
+                        var value = reader[i];
+                        row[field] = value == DBNull.Value ? null : value;
+                     }
+                  } else {
+                     var value = reader[i];
+                     row[field] = value == DBNull.Value ? null : value;
+                  }
                }
 
                Increment();
@@ -58,6 +71,13 @@ namespace Pipeline.Provider.SqlServer {
             }
 
             Context.Info("{0} from {1}", _rowCount, Connection.Name);
+         }
+      }
+
+      public void TypeMismatch(Field field, SqlDataReader reader, int index) {
+         var key = HashcodeTransform.GetHashCode(field.Name, field.Type);
+         if (_errors.Add(key)) {
+            Context.Error("Type mismatch for {0}. Expected {1}, but read {2}.", field.Name, field.Type, reader.GetFieldType(index));
          }
       }
 

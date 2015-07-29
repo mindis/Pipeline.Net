@@ -7,7 +7,7 @@ namespace Pipeline.Configuration {
 
         [Cfg(value = "input", toLower = true)]
         public string Connection { get; set; }
-        [Cfg(required = true, unique = true)]
+        [Cfg(required = true, unique = true, toLower =true)]
         public string Name { get; set; }
         [Cfg(value = "")]
         public string Query { get; set; }

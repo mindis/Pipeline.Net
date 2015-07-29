@@ -2,8 +2,8 @@ using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
     public class SplitLengthTransform : BaseTransform, ITransform {
-        private readonly Field _input;
-        private readonly char[] _separator;
+        readonly Field _input;
+        readonly char[] _separator;
 
         public SplitLengthTransform(PipelineContext context)
             : base(context) {
@@ -12,7 +12,7 @@ namespace Pipeline.Transformers {
         }
 
         public Row Transform(Row row) {
-            row[Context.Field] = row[_input].ToString().Split(_separator).Length;
+            row[Context.Field] = row.GetString(_input).Split(_separator).Length;
             Increment();
             return row;
         }

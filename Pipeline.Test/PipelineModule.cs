@@ -20,7 +20,7 @@ namespace Pipeline.Test {
 
       public PipelineModule(string cfg, string shorthand, LogLevel level = LogLevel.Info) {
          _level = level;
-         Root = new Root(cfg, shorthand);
+         Root = new Root(cfg, shorthand, new JintParser());
       }
 
       protected override void Load(ContainerBuilder builder) {
@@ -31,9 +31,44 @@ namespace Pipeline.Test {
 
             var process = p;
 
+            //maps
+            foreach (var m in process.Maps) {
+               var map = m;
+               builder.Register<IMapReader>((ctx) => {
+                  var connection = process.Connections.FirstOrDefault(cn => cn.Name == map.Connection);
+                  var provider = connection == null ? string.Empty : connection.Provider;
+                  switch (provider) {
+                     case "sqlserver":
+                        return new SqlMapReader();
+                     default:
+                        return new DefaultMapReader();
+                  }
+               }).Named<IMapReader>(map.Name);
+            }
+
+            //transforms for calculated fields
+            foreach (var f in process.CalculatedFields.Where(f => f.Transforms.Any())) {
+
+               var field = f;
+
+               if (field.RequiresCompositeValidator()) {
+                  builder.Register<ITransform>((ctx) => new CompositeValidator(
+                      new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field),
+                      field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, t)))
+                  )).Named<ITransform>(field.Key);
+               } else {
+                  foreach (var t in field.Transforms) {
+                     var transform = t;
+                     builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, transform))).Named<ITransform>(transform.Key);
+                  }
+               }
+            }
+
+            // entities
             foreach (var e in process.Entities) {
 
                var entity = e;
+               var entityContext = new PipelineContext(new NullLogger(), process, entity);
 
                //controller
                builder.Register<IEntityController>((ctx) => {
@@ -80,6 +115,7 @@ namespace Pipeline.Test {
                   }
                }).Named<IEntityReader>(entity.Key);
 
+
                foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
 
                   var field = f;
@@ -87,12 +123,12 @@ namespace Pipeline.Test {
                   if (field.RequiresCompositeValidator()) {
                      builder.Register<ITransform>((ctx) => new CompositeValidator(
                          new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field),
-                         field.Transforms.Select(t => SwitchTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, t)))
+                         field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, t)))
                      )).Named<ITransform>(field.Key);
                   } else {
                      foreach (var t in field.Transforms) {
                         var transform = t;
-                        builder.Register((ctx) => SwitchTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, transform))).Named<ITransform>(transform.Key);
+                        builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, transform))).Named<ITransform>(transform.Key);
                      }
                   }
                }
@@ -124,7 +160,11 @@ namespace Pipeline.Test {
 
             }
 
+
             builder.Register((ctx) => {
+
+               //for now
+               new SqlInitializer(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process)).Initialize();
 
                var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
                var pipelines = new List<IEntityPipeline>();
@@ -138,10 +178,9 @@ namespace Pipeline.Test {
                   pipeline.Register(ctx.ResolveNamed<IEntityReader>(entity.Key));
 
                   //transform
-                  var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }));
-                  pipeline.Register(new DefaultTransform(context));
+                  pipeline.Register(new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
 
-                  foreach (var field in context.GetAllEntityFields().Where(f => f.Transforms.Any())) {
+                  foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
                      if (field.RequiresCompositeValidator()) {
                         pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
                      } else {
@@ -175,7 +214,7 @@ namespace Pipeline.Test {
 
       }
 
-      static ITransform SwitchTransform(PipelineContext context) {
+      static ITransform SwitchTransform(IComponentContext ctx, PipelineContext context) {
          switch (context.Transform.Method) {
             case "format": return new FormatTransform(context);
             case "left": return new LeftTransform(context);
@@ -185,7 +224,7 @@ namespace Pipeline.Test {
             case "fromxml": return new FromXmlTransform(context);
             case "fromsplit": return new FromSplitTransform(context);
             case "htmldecode": return new HtmlDecodeTransform(context);
-            case "xmldecode": return new XmlDecodeTransform(context);
+            case "xmldecode": return new HtmlDecodeTransform(context);
             case "hashcode": return new HashcodeTransform(context);
             case "padleft": return new PadLeftTransform(context);
             case "padright": return new PadRightTransform(context);
@@ -194,6 +233,11 @@ namespace Pipeline.Test {
             case "trimstart": return new TrimStartTransform(context);
             case "trimend": return new TrimEndTransform(context);
             case "javascript": return new JintTransform(context);
+            case "tostring": return new ToStringTransform(context);
+            case "toupper": return new ToUpperTransform(context);
+            case "tolower": return new ToLowerTransform(context);
+            case "join": return new JoinTransform(context);
+            case "map": return new MapTransform(context, ctx.ResolveNamed<IMapReader>(context.Transform.Map));
 
             case "contains": return new ContainsValidater(context);
             case "is": return new IsValidator(context);

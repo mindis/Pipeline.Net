@@ -29,14 +29,14 @@ namespace Pipeline.Transformers {
         /// A transformer's input can be entity fields, process fields, or the field the transform is in.
         /// </summary>
         /// <returns></returns>
-        private List<Field> ParametersToFields() {
+        List<Field> ParametersToFields() {
 
             var fields = Context.Transform.Parameters
                 .Where(p => p.Field != string.Empty)
                 .Select(p =>
                     Context.Entity == null ?
                     Context.Process.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field) :
-                    Context.Entity.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field)
+                    Context.GetAllEntityFields().First(f => f.Alias == p.Field || f.Name == p.Field)
                 ).ToList();
 
             if (!fields.Any()) {

@@ -1,22 +1,22 @@
 using Pipeline.Extensions;
 
 namespace Pipeline.Transformers {
-    public class LeftTransform : BaseTransform, ITransform {
+   public class LeftTransform : BaseTransform, ITransform {
 
-        private readonly int _length;
-        private readonly IField _input;
+      readonly int _length;
+      readonly IField _input;
 
-        public LeftTransform(PipelineContext context)
+      public LeftTransform(PipelineContext context)
             : base(context) {
-            _length = context.Transform.Length;
-            _input = SingleInput();
-        }
+         _length = context.Transform.Length;
+         _input = SingleInput();
+      }
 
-        public Row Transform(Row row) {
-            row[Context.Field] = row[_input].ToString().Left(_length);
-            Increment();
-            return row;
-        }
+      public Row Transform(Row row) {
+         row.SetString(Context.Field, row.GetString(_input).Left(_length));
+         Increment();
+         return row;
+      }
 
-    }
+   }
 }

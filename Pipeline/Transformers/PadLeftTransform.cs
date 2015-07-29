@@ -10,7 +10,7 @@ namespace Pipeline.Transformers {
         }
 
         public Row Transform(Row row) {
-            row[Context.Field] = row[_input].ToString().PadLeft(Context.Transform.TotalWidth, Context.Transform.PaddingChar);
+            row.SetString(Context.Field, row.GetString(_input).PadLeft(Context.Transform.TotalWidth, Context.Transform.PaddingChar));
             Increment();
             return row;
         }

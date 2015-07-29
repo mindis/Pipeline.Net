@@ -51,6 +51,7 @@
     <Compile Include="SqlEntityController.cs" />
     <Compile Include="SqlEntityInitializer.cs" />
     <Compile Include="SqlEntityReader.cs" />
+    <Compile Include="SqlMapReader.cs" />
     <Compile Include="SqlMasterUpdater.cs" />
     <Compile Include="SqlEntityWriter.cs" />
     <Compile Include="SqlExtensions.cs" />

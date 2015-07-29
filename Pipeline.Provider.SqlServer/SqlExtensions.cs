@@ -74,19 +74,19 @@ namespace Pipeline.Provider.SqlServer {
       }
 
       public static string SqlDropOutput(this PipelineContext c) {
-         var sql = string.Format("DROP TABLE {0};", c.Entity.OutputTableName(c.Process.Name));
+         var sql = string.Format("DROP TABLE [{0}];", c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
       public static string SqlDropOutputView(this PipelineContext c) {
-         var sql = string.Format("DROP VIEW {0};", c.Entity.OutputViewName(c.Process.Name));
+         var sql = string.Format("DROP VIEW [{0}];", c.Entity.OutputViewName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
       public static string SqlDropControl(this PipelineContext c) {
-         var sql = string.Format("DROP TABLE {0};", SqlControlTableName(c));
+         var sql = string.Format("DROP TABLE [{0}];", SqlControlTableName(c));
          c.Debug(sql);
          return sql;
       }
@@ -193,23 +193,16 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      //TODO: denormalized fields must be like e1f0, e1f1, e2f1, etc.
-      //TODO: add index to Entity, pre-populate when populating field indexes
-      //TODO: use in names for denormalized keys and fields
       public static string SqlCreateOutput(this PipelineContext c) {
          var columnsAndDefinitions = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
-         var sql = string.Format("CREATE TABLE {0}({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", c.Entity.OutputTableName(c.Process.Name), columnsAndDefinitions);
+         var sql = string.Format("CREATE TABLE [{0}]({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", c.Entity.OutputTableName(c.Process.Name), columnsAndDefinitions);
          c.Debug(sql);
          return sql;
       }
 
       public static string SqlCreateOutputView(this PipelineContext c) {
          var columnNames = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] AS [" + f.Alias + "]"));
-         var sql = string.Format(@"
-                CREATE VIEW {0} 
-                AS 
-                SELECT {1},TflBatchId,TflKey
-                FROM {2} WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
+         var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
@@ -229,10 +222,7 @@ namespace Pipeline.Provider.SqlServer {
          var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
          var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
 
-         var sql = string.Format(@"
-SELECT {0} 
-FROM {1}[{2}] {3}
-WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
+         var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
          c.Debug(sql);
          return sql;
       }
@@ -241,12 +231,7 @@ WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock,
          var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
          var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
          var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
-
-         var sql = string.Format(@"
-SELECT {0} 
-FROM {1}[{2}] {3}
-WHERE [{4}] >= @MinVersion
-AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
+         var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] >= @MinVersion AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
          c.Debug(sql);
          return sql;
       }

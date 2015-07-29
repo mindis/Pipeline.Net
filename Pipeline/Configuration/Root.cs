@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using Transformalize.Libs.Cfg.Net;
-using Transformalize.Libs.Cfg.Net.Loggers;
 
 namespace Pipeline.Configuration {
     public class Root : CfgNode {
+      IScriptParser _javascriptParser;
 
-        [Cfg(sharedProperty = "default", sharedValue = "")]
+      [Cfg(sharedProperty = "default", sharedValue = "")]
         public List<Environment> Environments { get; set; }
         [Cfg(required = true)]
         public List<Process> Processes { get; set; }
@@ -15,14 +16,33 @@ namespace Pipeline.Configuration {
         public Root(
                 string xml,
                 string shorthand,
-                Dictionary<string, string> parameters = null,
-                ILogger logger = null)
-            : base(null, logger) {
+                IScriptParser javaScriptParser = null,
+                Dictionary<string, string> parameters = null)
+            : base(null, null) {
+         _javascriptParser = javaScriptParser;
             LoadShorthand(shorthand);
             Load(xml, parameters);
         }
 
         public Root() {
         }
-    }
+
+      protected override void Validate() {
+         ValidateJavascript();
+      }
+
+      void ValidateJavascript() {
+         if(_javascriptParser != null) {
+            foreach (var process in Processes) {
+               foreach (var field in process.GetAllFields()) {
+                  foreach (var transform in field.Transforms.Where(t => t.Method == "javascript")) {
+                     foreach (var error in _javascriptParser.Parse(transform)) {
+                        Error(error);
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
 }

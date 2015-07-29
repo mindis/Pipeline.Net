@@ -59,6 +59,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MapTransform.cs" />
+    <Compile Include="NorthWind.cs" />
+    <Compile Include="ToStringTransform.cs" />
     <Compile Include="TraceLogger.cs" />
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="DataSets.cs" />
@@ -100,6 +103,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Files\NorthWind.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Files\PersonAndPet.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

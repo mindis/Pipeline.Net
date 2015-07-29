@@ -2,20 +2,20 @@ using System.Linq;
 using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
-    public class FormatTransform : BaseTransform, ITransform {
+   public class FormatTransform : BaseTransform, ITransform {
 
-        private readonly Field[] _input;
+      readonly Field[] _input;
 
-        public FormatTransform(PipelineContext context)
-            : base(context) {
-            _input = MultipleInput();
-        }
+      public FormatTransform(PipelineContext context)
+          : base(context) {
+         _input = MultipleInput();
+      }
 
-        public Row Transform(Row row) {
-            row[Context.Field] = string.Format(Context.Transform.Format, _input.Select(f => row[f]).ToArray());
-            Increment();
-            return row;
-        }
+      public Row Transform(Row row) {
+         row.SetString(Context.Field, string.Format(Context.Transform.Format, _input.Select(f => row.GetString(f)).ToArray()));
+         Increment();
+         return row;
+      }
 
-    }
+   }
 }

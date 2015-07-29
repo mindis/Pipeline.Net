@@ -2,8 +2,8 @@ using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
     public class TrimTransform : BaseTransform, ITransform {
-        private readonly Field _input;
-        private readonly char[] _trimChars;
+        readonly Field _input;
+        readonly char[] _trimChars;
 
         public TrimTransform(PipelineContext context)
             : base(context) {
@@ -12,7 +12,7 @@ namespace Pipeline.Transformers {
         }
 
         public Row Transform(Row row) {
-            row[Context.Field] = row[_input].ToString().Trim(_trimChars);
+            row.SetString(Context.Field, row.GetString(_input).Trim(_trimChars));
             Increment();
             return row;
         }

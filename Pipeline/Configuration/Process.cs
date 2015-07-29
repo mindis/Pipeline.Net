@@ -248,7 +248,6 @@ namespace Pipeline.Configuration {
          }
 
          ModifyMergeParameters();
-         ModifyMapParameters();
       }
 
       void ModifyPrimaryKeyTypes() {
@@ -274,15 +273,24 @@ namespace Pipeline.Configuration {
       }
 
       void ModifyKeys() {
+         var counter = 0;
          Key = Name;
+         // entities, fields, and transforms
          foreach (var entity in Entities) {
-            entity.Key = Name + entity.Alias;
-            var counter = 0;
+            entity.Key = Key + entity.Alias;
             foreach (var field in entity.GetAllFields()) {
                field.Key = entity.Key + field.Alias;
                foreach (var transform in field.Transforms) {
                   transform.Key = field.Key + transform.Method + counter++;
                }
+            }
+         }
+
+         //calculated fields, and transforms
+         foreach (var field in CalculatedFields) {
+            field.Key = Key + field.Alias;
+            foreach (var transform in field.Transforms) {
+               transform.Key = field.Key + transform.Method + counter++;
             }
          }
       }
@@ -364,34 +372,6 @@ namespace Pipeline.Configuration {
          });
       }
 
-      /// <summary>
-      /// Map transforms require the map's parameters.
-      /// </summary>
-      void ModifyMapParameters() {
-
-         if (Maps.Count == 0)
-            return;
-
-         foreach (var transform in GetAllTransforms().Where(t => t.Method == "map" && Maps.Any(m => m.Name == t.Map))) {
-
-            var parameters = Maps
-                .First(m => m.Name == transform.Map)
-                .Items
-                .Where(i => i.Parameter != string.Empty)
-                .Select(p => p.Parameter)
-                .Distinct();
-
-            foreach (var parameter in parameters) {
-               if (parameter.IndexOf('.') > 0) {
-                  var split = parameter.Split(new[] { '.' });
-                  transform.Parameters.Add(GetParameter(split[0], split[1]));
-               } else {
-                  transform.Parameters.Add(GetParameter(parameter));
-               }
-            }
-         }
-      }
-
       void ModifyDefaultSearchTypes() {
 
          if (SearchTypes.All(st => st.Name != "none"))
@@ -429,6 +409,7 @@ namespace Pipeline.Configuration {
          ValidateTemplateActionConnections();
          ValidateTransformConnections();
          ValidateMapConnections();
+         ValidateMapTransforms();
          ValidateDataSets();
 
          if (Errors().Length == 0) {
@@ -438,6 +419,14 @@ namespace Pipeline.Configuration {
             ModifyPrimaryKeyTypes();
             ModifyRelationshipToMaster();
             ModifyIndexes();
+         }
+      }
+
+      void ValidateMapTransforms() {
+         foreach (var transform in GetAllTransforms().Where(t => t.Method == "map")) {
+            if (Maps.All(m => m.Name != transform.Map)) {
+               Error("A map transform returns in an invalid map: {0}.", transform.Map);
+            }
          }
       }
 

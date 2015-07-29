@@ -7,10 +7,12 @@ using System;
 namespace Pipeline {
    public class Row : IRow {
       readonly object[] _storage;
+      readonly string[] _stringStorage;
       readonly Func<IField,short> _index;
 
       public Row(int capacity, bool isMaster) {
          _storage = new object[capacity];
+         _stringStorage = new string[capacity];
          if (isMaster) {
             _index = (f) => { return f.MasterIndex; };
          } else {
@@ -21,6 +23,17 @@ namespace Pipeline {
       public object this[IField field] {
          get { return _storage[_index(field)]; }
          set { _storage[_index(field)] = value; }
+      }
+
+      public string GetString(IField field) {
+         var i = _index(field);
+         return _stringStorage[i] ?? _storage[i].ToString();
+      }
+
+      public void SetString(IField field, string value) {
+         var i = _index(field);
+         _stringStorage[i] = value;
+         _storage[i] = value;
       }
 
       public override string ToString() {

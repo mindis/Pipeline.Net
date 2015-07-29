@@ -1,69 +1,78 @@
 ﻿<cfg>
 
-  <signatures>
-    <add name="none" />
-    <add name="format">
-      <parameters>
-        <add name="format" />
-      </parameters>
-    </add>
-    <add name="length">
-      <parameters>
-        <add name="length" />
-      </parameters>
-    </add>
-    <add name="separator">
-      <parameters>
-        <add name="separator" />
-      </parameters>
-    </add>
-    <add name="padding">
-      <parameters>
-        <add name="total-width" />
-        <add name="padding-char" value="0" />
-      </parameters>
-    </add>
-    <add name="value">
-      <parameters>
-        <add name="value" />
-      </parameters>
-    </add>
-    <add name="type">
-      <parameters>
-        <add name="type" />
-      </parameters>
-    </add>
-    <add name="trim">
-      <parameters>
-        <add name="trim-chars" value=" " />
-      </parameters>
-    </add>
-    <add name="script">
-      <parameters>
-        <add name="script"  />
-      </parameters>
-    </add>
-  </signatures>
+   <signatures>
+      <add name="none" />
+      <add name="format">
+         <parameters>
+            <add name="format" />
+         </parameters>
+      </add>
+      <add name="length">
+         <parameters>
+            <add name="length" />
+         </parameters>
+      </add>
+      <add name="separator">
+         <parameters>
+            <add name="separator" />
+         </parameters>
+      </add>
+      <add name="padding">
+         <parameters>
+            <add name="total-width" />
+            <add name="padding-char" value="0" />
+         </parameters>
+      </add>
+      <add name="value">
+         <parameters>
+            <add name="value" />
+         </parameters>
+      </add>
+      <add name="type">
+         <parameters>
+            <add name="type" />
+         </parameters>
+      </add>
+      <add name="trim">
+         <parameters>
+            <add name="trim-chars" value=" " />
+         </parameters>
+      </add>
+      <add name="script">
+         <parameters>
+            <add name="script"  />
+         </parameters>
+      </add>
+      <add name="map">
+         <parameters>
+            <add name="map" />
+         </parameters>
+      </add>
+   </signatures>
 
-  <targets>
-    <add name="t" collection="transforms" property="method" />
-  </targets>
+   <targets>
+      <add name="t" collection="transforms" property="method" />
+   </targets>
 
-  <methods>
-    <add name="concat" signature="none" target="t" />
-    <add name="format" signature="format" target="t" />
-    <add name="htmldecode" signature="none" target="t" />
-    <add name="left" signature="length" target="t" />
-    <add name="padleft" signature="padding" target="t" />
-    <add name="padright" signature="padding" target="t" />
-    <add name="right" signature="length" target="t" />
-    <add name="xmldecode" signature="none" target="t" />
-    <add name="hashcode" signature="none" target="t" />
-    <add name="splitlength" signature="separator" target="t" />
-    <add name="contains" signature="value" target="t" />
-    <add name="is" signature="type" target="t" />
-    <add name="trim" signature="trim" target="t" />
-    <add name="javascript" signature="script" target="t" />
-  </methods>
+   <methods>
+      <add name="concat" signature="none" target="t" />
+      <add name="format" signature="format" target="t" />
+      <add name="htmldecode" signature="none" target="t" />
+      <add name="left" signature="length" target="t" />
+      <add name="padleft" signature="padding" target="t" />
+      <add name="padright" signature="padding" target="t" />
+      <add name="right" signature="length" target="t" />
+      <add name="xmldecode" signature="none" target="t" />
+      <add name="hashcode" signature="none" target="t" />
+      <add name="splitlength" signature="separator" target="t" />
+      <add name="contains" signature="value" target="t" />
+      <add name="is" signature="type" target="t" />
+      <add name="trim" signature="trim" target="t" />
+      <add name="javascript" signature="script" target="t" />
+      <add name="tolower" signature="none" target="t" />
+      <add name="toupper" signature="none" target="t" />
+      <add name="join" signature="separator" target="t" />
+      <add name="map" signature="map" target="t" />
+   </methods>
 
 </cfg>

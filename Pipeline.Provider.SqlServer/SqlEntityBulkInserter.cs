@@ -50,7 +50,7 @@ namespace Pipeline.Provider.SqlServer {
             var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
                BatchSize = Connection.BatchSize,
                BulkCopyTimeout = Connection.Timeout,
-               DestinationTableName = Context.Entity.OutputTableName(Context.Process.Name),
+               DestinationTableName = "[" + Context.Entity.OutputTableName(Context.Process.Name) + "]",
             };
 
             var counter = 0;

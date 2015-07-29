@@ -6,9 +6,6 @@ namespace Pipeline.Configuration {
         [Cfg(value = "", required = true, unique = true)]
         public string From { get; set; }
 
-        [Cfg(value = "equals")]
-        public string Operator { get; set; }
-
         [Cfg(value = "")]
         public string Parameter { get; set; }
 

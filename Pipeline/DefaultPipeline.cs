@@ -6,7 +6,7 @@ using Pipeline.Transformers;
 namespace Pipeline {
     public class DefaultPipeline : IEntityPipeline {
 
-        private readonly IEntityController _controller;
+        readonly IEntityController _controller;
 
         protected IEntityReader Reader { get; private set; }
         protected IEntityWriter Writer { get; private set; }

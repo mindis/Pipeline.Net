@@ -14,7 +14,7 @@ namespace Pipeline.Test {
         public void EntityPipeline() {
 
             var pipelines = new TemporaryProcessPipelineComposer().Compose();
-            var person = pipelines.First().Run().ToArray();
+            var person = pipelines.Last().Run().ToArray();
 
             Assert.AreEqual(3, person.Length);
 
@@ -22,7 +22,7 @@ namespace Pipeline.Test {
                 Console.WriteLine(row);
             }
 
-            var pet = pipelines.Last().Run().ToArray();
+            var pet = pipelines.First().Run().ToArray();
             Assert.AreEqual(2, pet.Count());
 
             foreach (var row in pet) {

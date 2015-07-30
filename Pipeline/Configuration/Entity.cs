@@ -17,6 +17,14 @@ namespace Pipeline.Configuration {
       [Cfg(value = false)]
       public bool Delete { get; set; }
 
+      public bool ShouldUpdateMaster() {
+         if (IsMaster)
+            return false;
+         if (IsFirstRun() && !Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize))
+            return false;
+         return true;
+      }
+
       [Cfg(value = false)]
       public bool Group { get; set; }
       [Cfg(value = "", required = true)]
@@ -95,6 +103,10 @@ namespace Pipeline.Configuration {
          }
          fields.AddRange(CalculatedFields);
          return fields;
+      }
+
+      public IEnumerable<Field> GetAllOutputFields() {
+         return GetAllFields().Where(f => f.Output);
       }
 
       protected override void Modify() {
@@ -287,6 +299,10 @@ namespace Pipeline.Configuration {
 
       public string OutputViewName(string processName) {
          return OutputName(processName);
+      }
+
+      public string GetExcelName() {
+         return Constants.GetExcelName(Index);
       }
 
    }

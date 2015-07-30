@@ -463,20 +463,12 @@ namespace Pipeline.Configuration {
       }
 
       public string FieldName() {
-         return GetExcelName(EntityIndex) + (Index + 1);
-      }
-
-      static string GetExcelName(int index) {
-         var name = System.Convert.ToString((char)('A' + (index % 26)));
-         while (index >= 26) {
-            index = (index / 26) - 1;
-            name = System.Convert.ToString((char)('A' + (index % 26))) + name;
-         }
-         return name;
+         return Constants.GetExcelName(EntityIndex) + (Index + 1);
       }
 
       public override string ToString() {
          return string.Format("{0}:{1}", Alias, Type);
       }
+
    }
 }

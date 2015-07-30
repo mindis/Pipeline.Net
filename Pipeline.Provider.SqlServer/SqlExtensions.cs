@@ -94,34 +94,40 @@ namespace Pipeline.Provider.SqlServer {
       static string Enclose(string name) {
          return "[" + name + "]";
       }
-
+      
       public static string SqlUpdateMaster(this PipelineContext c) {
          //note: TflBatchId is updated and next process depends it.
 
-         var master = Enclose(c.Process.Entities.First(e => e.IsMaster).OutputTableName(c.Process.Name));
+         var masterEntity = c.Process.Entities.First(e => e.IsMaster);
+         var masterTable = Enclose(masterEntity.OutputTableName(c.Process.Name));
+         var masterAlias = masterEntity.GetExcelName();
+
          var entity = Enclose(c.Entity.OutputTableName(c.Process.Name));
+         var entityAlias = c.Entity.GetExcelName();
          var builder = new StringBuilder();
 
          var sets = c.Entity.Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize) ?
              string.Join(",", c.Entity.Fields
                  .Where(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize)
-                 .Select(f => string.Concat(master, ".", f.FieldName(), " = ", entity, ".", f.FieldName())))
+                 .Select(f => string.Concat(masterAlias, ".", f.FieldName(), " = ", entityAlias, ".", f.FieldName())))
              :
              string.Empty;
 
-         builder.AppendFormat("UPDATE {0}\r\n", master);
-         builder.AppendFormat("SET {0}", sets);
+         builder.AppendFormat("UPDATE {0} SET {1}", masterAlias, sets);
          if (!c.Entity.IsFirstRun()) {
-            builder.AppendFormat(",{0}.TflBatchId = @TflBatchId", master);
+            builder.AppendFormat("{0}{1}.TflBatchId = @TflBatchId", sets == string.Empty ? string.Empty : ",", masterAlias);
          }
-         builder.AppendFormat("\r\nFROM {0}\r\n", entity);
+         builder.AppendFormat(" FROM {0} {1}", masterTable, masterAlias);
 
          foreach (var relationship in c.Entity.RelationshipToMaster) {
-            var left = Enclose(relationship.Summary.LeftEntity.OutputTableName(c.Process.Name));
-
-            builder.AppendFormat("INNER JOIN {0} ON (\r\n", left);
-
             var right = Enclose(relationship.Summary.RightEntity.OutputTableName(c.Process.Name));
+            var rightEntityAlias = relationship.Summary.RightEntity.GetExcelName();
+
+            builder.AppendFormat(" INNER JOIN {0} {1} ON ( ", right, rightEntityAlias);
+
+            var leftEntity = relationship.Summary.LeftEntity;
+            var leftEntityAlias = relationship.Summary.LeftEntity.GetExcelName();
+
             for (int i = 0; i < relationship.Summary.LeftFields.Count(); i++) {
                var leftAlias = relationship.Summary.LeftFields[i].FieldName();
                var rightAlias = relationship.Summary.RightFields[i].FieldName();
@@ -129,9 +135,9 @@ namespace Pipeline.Provider.SqlServer {
                builder.AppendFormat(
                    "{0}{1}.{2} = {3}.{4}",
                    conjunction,
-                   left,
+                   leftEntityAlias,
                    Enclose(leftAlias),
-                   right,
+                   rightEntityAlias,
                    Enclose(rightAlias)
                );
             }
@@ -139,7 +145,7 @@ namespace Pipeline.Provider.SqlServer {
          }
 
          //todo: consider whether or not entity or master changed first
-         builder.AppendFormat("WHERE {0}.TflBatchId = @TflBatchId OR {1}.TflBatchId = @MasterTflBatchId", entity, master);
+         builder.AppendFormat("WHERE {0}.TflBatchId = @TflBatchId OR {1}.TflBatchId = @MasterTflBatchId", entityAlias, masterAlias);
          var sql = builder.ToString();
          c.Debug(sql);
          return sql;

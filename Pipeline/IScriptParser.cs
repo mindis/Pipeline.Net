@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
 namespace Pipeline {
    public interface IScriptParser {
-      IEnumerable<string> Parse(IScript script);
+      void Parse(IScript script, Action<string,object[]> error);
    }
 
 }

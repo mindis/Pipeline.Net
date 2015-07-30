@@ -20,7 +20,7 @@
 
          <log rows="1000">
             <add name="console" provider="console" level="info" />
-            <add name="file" provider="file" level="info" file="logs/morthwind-tfl-.log" />
+            <add name="file" provider="file" level="info" file="logs/northwind-tfl-.log" />
          </log>
 
          <file-inspection>
@@ -61,10 +61,11 @@
                   <add name="UnitPrice" type="decimal" precision="19" scale="4"/>
                </fields>
                <calculated-fields>
-                  <add name="OrderDetailsExtendedPrice" type="decimal" precision="19" scale="4">
-                     <transforms>
-                        <add method="javascript" script="OrderDetailsQuantity * (OrderDetailsUnitPrice * (1-OrderDetailsDiscount))" parameter="*" />
-                     </transforms>
+                  <add name="OrderDetailsExtendedPrice" 
+                       type="decimal" 
+                       precision="19" 
+                       scale="4"
+                       t="copy(OrderDetailsQuantity,OrderDetailsUnitPrice,OrderDetailsDiscount).javascript(OrderDetailsQuantity * (OrderDetailsUnitPrice * (1-OrderDetailsDiscount)))">
                   </add>
                </calculated-fields>
             </add>
@@ -145,23 +146,11 @@
                   <add name="RowVersion" type="byte[]" length="8" ></add>
                   <add name="Title" length="30" ></add>
                   <add name="TitleOfCourtesy" length="25" ></add>
-                  <add name="ReportsTo" alias="EmployeesManager" type="string" length="64">
-                     <transforms>
-                        <add method="map" map="Managers"></add>
-                     </transforms>
-                  </add>
+                  <add name="ReportsTo" type="int" />
                </fields>
                <calculated-fields>
-                  <add name="Employee">
-                     <transforms>
-                        <add method="join" separator=" ">
-                           <parameters>
-                              <add field="FirstName"></add>
-                              <add field="LastName"></add>
-                           </parameters>
-                        </add>
-                     </transforms>
-                  </add>
+                  <add name="EmployeesManager" t="copy(ReportsTo).map(Managers)" default="" />
+                  <add name="Employee" t="copy(FirstName,LastName).join( )" default="" />
                </calculated-fields>
             </add>
 
@@ -231,18 +220,11 @@
          </relationships>
 
          <calculated-fields>
-            <add name="CountryExchange" length="128">
-               <transforms>
-                  <add method="format" format="Shipping from {0} to {1}">
-                     <parameters>
-                        <add field="SuppliersCountry"></add>
-                        <add field="OrdersShipCountry"></add>
-                     </parameters>
-                  </add>
-               </transforms>
-            </add>
+            <add name="CountryExchange" 
+                 length="128" 
+                 t="copy(SuppliersCountry,OrdersShipCountry).format(Shipping from {0} to {1})"/>
          </calculated-fields>
-
+ 
       </add>
 
    </processes>

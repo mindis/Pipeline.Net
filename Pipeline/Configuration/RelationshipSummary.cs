@@ -19,10 +19,5 @@ namespace Pipeline.Configuration {
             return LeftEntity != null && RightEntity != null && LeftFields.Any() && LeftFields.Count() == RightFields.Count();
         }
 
-        public void SetForeignKeys() {
-            foreach (var field in RightFields) {
-                field.KeyType |= KeyType.Foreign;
-            }
-        }
     }
 }

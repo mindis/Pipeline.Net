@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Logging;
 
 namespace Pipeline.Test {
 
@@ -24,6 +23,12 @@ namespace Pipeline.Test {
                Console.Error.WriteLine(error);
             }
             throw new Exception("Configuration Error(s)");
+         }
+
+         if (module.Root.Warnings().Any()) {
+            foreach (var warning in module.Root.Warnings()) {
+               Console.WriteLine(warning);
+            }
          }
 
          var builder = new ContainerBuilder();

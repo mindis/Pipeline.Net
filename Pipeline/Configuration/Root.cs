@@ -36,9 +36,7 @@ namespace Pipeline.Configuration {
             foreach (var process in Processes) {
                foreach (var field in process.GetAllFields()) {
                   foreach (var transform in field.Transforms.Where(t => t.Method == "javascript")) {
-                     foreach (var error in _javascriptParser.Parse(transform)) {
-                        Error(error);
-                     }
+                     _javascriptParser.Parse(transform, Error);
                   }
                }
             }

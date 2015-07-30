@@ -17,7 +17,27 @@
         </add>
       </data-sets>
       <entities>
-        <add name='Person'>
+         <add name='Pet'>
+            <fields>
+               <add name='Id' alias='PetId' type='int' primary-key='true' />
+               <add name='Type' />
+               <add name='Name' />
+               <add name='LicenseData'>
+                  <transforms>
+                     <add method='htmldecode' />
+                     <add method='fromxml' root='data'>
+                        <fields>
+                           <add name='Id' alias='LicenseId' />
+                           <add name='Phone' />
+                        </fields>
+                     </add>
+                  </transforms>
+               </add>
+               <add name='Owner' type='int' />
+            </fields>
+         </add>
+
+         <add name='Person'>
           <fields>
             <add name='Id' alias='PersonId' type='int' primary-key='true' />
             <add name='FirstName' />
@@ -25,31 +45,17 @@
             <add name='LastName' />
           </fields>
           <calculated-fields>
-            <add name='FullName' t='copy(FirstName,MiddleName,LastName).format({0} {1} {2})' />
+            <add name='FullName' 
+                 t='copy(FirstName,MiddleName,LastName).format({0} {1} {2})' />
           </calculated-fields>
         </add>
-        <add name='Pet'>
-          <fields>
-            <add name='Id' alias='PetId' type='int' primary-key='true' />
-            <add name='Type' />
-            <add name='Name' />
-            <add name='LicenseData'>
-              <transforms>
-                <add method='htmldecode' />
-                <add method='fromxml' root='data'>
-                  <fields>
-                    <add name='Id' alias='LicenseId' />
-                    <add name='Phone' />
-                  </fields>
-                </add>
-              </transforms>
-            </add>
-            <add name='Owner' type='int' />
-          </fields>
-        </add>
       </entities>
+       
       <relationships>
-        <add left-entity='Person' left-field='PersonId' right-entity='Pet' right-field='Owner' />
+        <add left-entity='Pet' 
+             left-field='Owner' 
+             right-entity='Person' 
+             right-field='PersonId' />
       </relationships>
     </add>
   </processes>

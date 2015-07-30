@@ -217,7 +217,7 @@ namespace Pipeline.Configuration {
       /// <summary>
       /// A collection of [Data Sets](/data-sets)
       /// </summary>
-      [Cfg()]
+      [Cfg]
       public List<DataSet> DataSets { get; set; }
 
       protected override void Modify() {
@@ -248,6 +248,7 @@ namespace Pipeline.Configuration {
          }
 
          ModifyMergeParameters();
+         ModifyPrimaryKeyTypes();
       }
 
       void ModifyPrimaryKeyTypes() {
@@ -416,7 +417,6 @@ namespace Pipeline.Configuration {
             Entities.First().IsMaster = true;
             ModifyKeys();
             ModifyLogLimits();
-            ModifyPrimaryKeyTypes();
             ModifyRelationshipToMaster();
             ModifyIndexes();
          }
@@ -575,16 +575,15 @@ namespace Pipeline.Configuration {
 
             //if everything is cool, set the foreign key flags
             if (!error && relationship.Summary.IsAligned()) {
-               relationship.Summary.SetForeignKeys();
-               foreach (var field in relationship.Summary.LeftFields) {
-                  if (!field.Output) {
-                     Warn("Foreign Keys must be output. Overriding output to true for {0}.", field.Alias);
-                     field.Output = true;
+               for (int i = 0; i < relationship.Summary.LeftFields.Count; i++) {
+                  var leftField = relationship.Summary.LeftFields[i];
+                  leftField.KeyType |= KeyType.Foreign;
+                  if (!leftField.Output) {
+                     Warn("Foreign key {0} on left side must be output. Overriding output to true.", leftField.Alias);
+                     leftField.Output = true;
                   }
                }
             }
-
-
 
          }
 

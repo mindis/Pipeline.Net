@@ -121,7 +121,6 @@ namespace Pipeline.Configuration {
                field.Alias = Prefix + field.Name;
             }
          }
-         ModifyMissingPrimaryKey();
 
          try {
             AdaptFieldsCreatedFromTransforms();
@@ -129,6 +128,24 @@ namespace Pipeline.Configuration {
             Error("Trouble adapting fields created from transforms. {0}", ex.Message);
          }
 
+         ModifyTflHashCode();
+         ModifyMissingPrimaryKey();
+
+      }
+
+      void ModifyTflHashCode() {
+         var parameters = Fields.Where(f => f.Input && !f.PrimaryKey).OrderBy(f=>f.Index).Select(f => GetDefaultOf<Parameter>(p=> { p.Entity = Alias; p.Field = f.Alias; }));
+         var hash = GetDefaultOf<Field>(f => {
+            f.Name = Constants.TflHashCode;
+            f.Alias = Constants.TflHashCode;
+            f.Type = "int";
+            f.Input = false;
+            f.Output = true;
+            f.Transforms = new List<Transform>() {
+               GetDefaultOf<Transform>(t => { t.Method = "hashcode"; t.Parameters = parameters.ToList(); })
+            };
+         });
+         CalculatedFields.Add(hash);
       }
 
 
@@ -146,20 +163,7 @@ namespace Pipeline.Configuration {
          if (CalculatedFields.Any(cf => cf.PrimaryKey))
             return;
 
-         if (!CalculatedFields.Any(cf => cf.Name.Equals("TflHashCode", StringComparison.OrdinalIgnoreCase))) {
-            var pk = GetDefaultOf<Field>(f => {
-               f.Name = "TflHashCode";
-               f.Type = "int";
-               f.PrimaryKey = true;
-               f.T = "copy(*).concat().hashcode()";
-            });
-
-            CalculatedFields.Add(pk);
-         }
-
-         if (string.IsNullOrEmpty(Version)) {
-            Version = "TflHashCode";
-         }
+         CalculatedFields.First(cf => cf.Name == Constants.TflHashCode).PrimaryKey = true;
       }
 
       protected override void Validate() {
@@ -304,6 +308,10 @@ namespace Pipeline.Configuration {
       public string GetExcelName() {
          return Constants.GetExcelName(Index);
       }
+
+      public int Inserts { get; set; }
+      public int Updates { get; set; }
+      public int Deletes { get; set; }
 
    }
 }

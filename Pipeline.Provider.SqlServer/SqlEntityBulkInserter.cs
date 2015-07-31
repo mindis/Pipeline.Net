@@ -36,11 +36,12 @@ namespace Pipeline.Provider.SqlServer {
             _bulkCopyOptions ^= option;
       }
 
-      public void Write(IEnumerable<Row> rows) {
+      public int Write(IEnumerable<Row> rows) {
+         var count = 0;
 
          using (var cn = new SqlConnection(Connection.GetConnectionString())) {
             cn.Open();
-            var count = 0;
+
             SqlDataAdapter adapter;
             var dt = new DataTable();
             using (adapter = new SqlDataAdapter(Context.SqlSelectOutputSchema(), cn)) {
@@ -80,6 +81,8 @@ namespace Pipeline.Provider.SqlServer {
             Context.Info("{0} to {1}", count, Connection.Name);
 
          }
+         return count;
+         Context.Entity.Inserts = count;
       }
 
       public void LoadVersion() {

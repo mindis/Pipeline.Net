@@ -75,7 +75,7 @@ namespace Pipeline.Provider.SqlServer {
       }
 
       public void TypeMismatch(Field field, SqlDataReader reader, int index) {
-         var key = HashcodeTransform.GetHashCode(field.Name, field.Type);
+         var key = HashcodeTransform.GetHashCode(new[] { field.Name, field.Type });
          if (_errors.Add(key)) {
             Context.Error("Type mismatch for {0}. Expected {1}, but read {2}.", field.Name, field.Type, reader.GetFieldType(index));
          }

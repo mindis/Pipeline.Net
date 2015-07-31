@@ -18,6 +18,8 @@ namespace Pipeline {
       public const string ComparisonDomain = "Equal,NotEqual,LessThan,GreaterThan,LessThanEqual,GreaterThanEqual";
       public const string ValidatorDomain = "contains";
 
+      public const string TflHashCode = "TflHashCode";
+
       public static HashSet<string> TypeSet() {
          return _types ?? (_types = new HashSet<string>(TypeDomain.Split(new[] { ',' })));
       }

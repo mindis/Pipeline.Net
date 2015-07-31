@@ -8,6 +8,8 @@ using Transformalize.Libs.Cfg.Net.Shorthand;
 namespace Pipeline.Configuration {
    public class Field : CfgNode, IField {
 
+      static readonly List<string> _invalidNames = new List<string>() { "tflhashcode", "tflbatchid", "tflkey" };
+
       static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
             {"string", (x => x)},
             {"int16", (x => System.Convert.ToInt16(x))},
@@ -178,6 +180,7 @@ namespace Pipeline.Configuration {
       /// </summary>
       [Cfg(value = "last", domain = "array,concat,count,first,group,join,last,max,maxlength,min,minlength,sum", toLower = true)]
       public string Aggregate { get; set; }
+      string alias;
 
       /// <summary>
       /// Optional
@@ -187,7 +190,19 @@ namespace Pipeline.Configuration {
       /// field is a primary key that is related to another entity's foreign key (of the same name).
       /// </summary>
       [Cfg(value = "", required = false, unique = true)]
-      public string Alias { get; set; }
+      public string Alias {
+         get {
+            return alias;
+         }
+         set {
+            if (value != null) {
+               if (value != string.Empty && _invalidNames.Contains(value.ToLower())) {
+                  Error("You may not alias fields TflHashCode, TflBatchId, or TflKey.  These are reserved words.  If you have fields named any of these, you must alias them to something different.");
+               }
+               alias = value;
+            }
+         }
+      }
 
       /// <summary>
       /// Optional. The default varies based on type.

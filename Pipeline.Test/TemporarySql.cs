@@ -145,7 +145,7 @@ namespace Pipeline.Test {
     </processes>
 </cfg>";
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand, LogLevel.Debug);
+            var module = new PipelineModule(xml, shorthand, LogLevel.Info);
 
             if (module.Root.Errors().Any()){ 
                 foreach (var error in module.Root.Errors()) {

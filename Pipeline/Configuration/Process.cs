@@ -611,7 +611,7 @@ namespace Pipeline.Configuration {
       void ValidateDuplicateFields() {
          var fieldDuplicates = Entities
              .SelectMany(e => e.GetAllFields())
-             .Where(f => !f.PrimaryKey)
+             .Where(f => !f.PrimaryKey && f.Alias != "TflHashCode")
              .Union(CalculatedFields)
              .GroupBy(f => f.Alias)
              .Where(group => @group.Count() > 1)

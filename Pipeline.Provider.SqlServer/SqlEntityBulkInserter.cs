@@ -1,102 +1,103 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Dapper;
 using Pipeline.Configuration;
 using Pipeline.Extensions;
-using System.Linq;
 
 namespace Pipeline.Provider.SqlServer {
 
-   public class SqlEntityBulkInserter : BaseEntityWriter, IEntityWriter {
-      SqlBulkCopyOptions _bulkCopyOptions;
+    public class SqlEntityBulkInserter : IWrite {
 
-      public SqlEntityBulkInserter(PipelineContext context)
-            : base(context) {
-         _bulkCopyOptions = SqlBulkCopyOptions.Default;
+        SqlBulkCopyOptions _bulkCopyOptions;
+        EntityOutput _output;
 
-         TurnOptionOn(SqlBulkCopyOptions.TableLock);
-         TurnOptionOn(SqlBulkCopyOptions.UseInternalTransaction);
-         TurnOptionOff(SqlBulkCopyOptions.CheckConstraints);
-         TurnOptionOff(SqlBulkCopyOptions.FireTriggers);
-         TurnOptionOn(SqlBulkCopyOptions.KeepNulls);
+        public SqlEntityBulkInserter(EntityOutput output) {
+            _output = output;
+            _bulkCopyOptions = SqlBulkCopyOptions.Default;
 
-      }
+            TurnOptionOn(SqlBulkCopyOptions.TableLock);
+            TurnOptionOn(SqlBulkCopyOptions.UseInternalTransaction);
+            TurnOptionOff(SqlBulkCopyOptions.CheckConstraints);
+            TurnOptionOff(SqlBulkCopyOptions.FireTriggers);
+            TurnOptionOn(SqlBulkCopyOptions.KeepNulls);
 
-      void TurnOptionOn(SqlBulkCopyOptions option) {
-         _bulkCopyOptions |= option;
-      }
-      bool IsOptionOn(SqlBulkCopyOptions option) {
-         return (_bulkCopyOptions & option) == option;
-      }
+        }
 
-      void TurnOptionOff(SqlBulkCopyOptions option) {
-         if (IsOptionOn(option))
-            _bulkCopyOptions ^= option;
-      }
+        void TurnOptionOn(SqlBulkCopyOptions option) {
+            _bulkCopyOptions |= option;
+        }
+        bool IsOptionOn(SqlBulkCopyOptions option) {
+            return (_bulkCopyOptions & option) == option;
+        }
 
-      public int Write(IEnumerable<Row> rows) {
-         var count = 0;
+        void TurnOptionOff(SqlBulkCopyOptions option) {
+            if (IsOptionOn(option))
+                _bulkCopyOptions ^= option;
+        }
 
-         using (var cn = new SqlConnection(Connection.GetConnectionString())) {
-            cn.Open();
+        public int Write(IEnumerable<Row> rows) {
+            var count = 0;
 
-            SqlDataAdapter adapter;
-            var dt = new DataTable();
-            using (adapter = new SqlDataAdapter(Context.SqlSelectOutputSchema(), cn)) {
-               adapter.Fill(dt);
+            using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
+                cn.Open();
+
+                SqlDataAdapter adapter;
+                var dt = new DataTable();
+                using (adapter = new SqlDataAdapter(_output.Context.SqlSelectOutputSchema(), cn)) {
+                    adapter.Fill(dt);
+                }
+
+                var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
+                    BatchSize = _output.Connection.BatchSize,
+                    BulkCopyTimeout = _output.Connection.Timeout,
+                    DestinationTableName = "[" + _output.Context.Entity.OutputTableName(_output.Context.Process.Name) + "]",
+                };
+
+                var counter = 0;
+                for (int i = 0; i < _output.OutputFields.Length; i++) {
+                    bulkCopy.ColumnMappings.Add(i, i);
+                    counter++;
+                }
+                bulkCopy.ColumnMappings.Add(counter, counter); //TflBatchId
+
+                foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
+
+                    var dataRows = new List<DataRow>(_output.Connection.BatchSize);
+                    var batchCount = 0;
+                    foreach (var row in batch) {
+                        var dr = dt.NewRow();
+                        var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Context.Entity.BatchId };
+                        dr.ItemArray = values.ToArray();
+                        dataRows.Add(dr);
+                        batchCount++;
+                    }
+
+                    bulkCopy.WriteToServer(dataRows.ToArray());
+
+                    _output.Increment(batchCount);
+                    count += batchCount;
+                }
+                _output.Context.Info("{0} to {1}", count, _output.Connection.Name);
+
             }
+            return count;
+            _output.Context.Entity.Inserts = count;
+        }
 
-            var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
-               BatchSize = Connection.BatchSize,
-               BulkCopyTimeout = Connection.Timeout,
-               DestinationTableName = "[" + Context.Entity.OutputTableName(Context.Process.Name) + "]",
-            };
+        public void LoadVersion() {
+            if (_output.Context.Entity.Version == string.Empty)
+                return;
 
-            var counter = 0;
-            for (int i = 0; i < OutputFields.Length; i++) {
-               bulkCopy.ColumnMappings.Add(i, i);
-               counter++;
+            var field = _output.Context.Entity.GetVersionField();
+
+            if (field == null)
+                return;
+
+            using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
+                _output.Context.Entity.MinVersion = cn.ExecuteScalar(_output.Context.SqlGetOutputMaxVersion(field));
             }
-            bulkCopy.ColumnMappings.Add(counter, counter); //TflBatchId
+        }
 
-            foreach (var batch in rows.Partition(Connection.BatchSize)) {
-
-               var dataRows = new List<DataRow>(Connection.BatchSize);
-               var batchCount = 0;
-               foreach (var row in batch) {
-                  var dr = dt.NewRow();
-                  var values = new List<object>(row.ToEnumerable(OutputFields)) { Context.Entity.BatchId };
-                  dr.ItemArray = values.ToArray();
-                  dataRows.Add(dr);
-                  batchCount++;
-               }
-
-               bulkCopy.WriteToServer(dataRows.ToArray());
-
-               Increment(batchCount);
-               count += batchCount;
-            }
-            Context.Info("{0} to {1}", count, Connection.Name);
-
-         }
-         return count;
-         Context.Entity.Inserts = count;
-      }
-
-      public void LoadVersion() {
-         if (Context.Entity.Version == string.Empty)
-            return;
-
-         var field = Context.Entity.GetVersionField();
-
-         if (field == null)
-            return;
-
-         using (var cn = new SqlConnection(Connection.GetConnectionString())) {
-            Context.Entity.MinVersion = cn.ExecuteScalar(Context.SqlGetOutputMaxVersion(field));
-         }
-      }
-   }
+    }
 }

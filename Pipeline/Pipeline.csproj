@@ -34,9 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="BaseEntity.cs" />
-    <Compile Include="BaseEntityReader.cs" />
-    <Compile Include="BaseEntityWriter.cs" />
+    <Compile Include="EntityInput.cs" />
+    <Compile Include="EntityOutput.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Branch.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -48,7 +47,9 @@
     <Compile Include="Configuration\FileInspection.cs" />
     <Compile Include="Configuration\Filter.cs" />
     <Compile Include="Configuration\InputOutput.cs" />
+    <Compile Include="IIncrement.cs" />
     <Compile Include="IMapReader.cs" />
+    <Compile Include="Incrementer.cs" />
     <Compile Include="IScript.cs" />
     <Compile Include="IScriptParser.cs" />
     <Compile Include="Configuration\Join.cs" />

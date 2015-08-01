@@ -1,17 +1,42 @@
 using System.Collections.Generic;
 using Nessos.Streams.CSharp;
-using Pipeline.Logging;
+using Pipeline.Transformers;
 
 namespace Pipeline.Streams {
 
-    public class Parallel : DefaultPipeline {
+    public class Parallel : IEntityPipeline {
 
-        public Parallel(IEntityController controller)
-            : base(controller) {
+        IEntityPipeline _pipeline;
+
+        public Parallel(IEntityPipeline pipeline) {
+            _pipeline = pipeline;
+        }
+        public void Execute() {
+            _pipeline.Execute();
         }
 
-        public override IEnumerable<Row> Run() {
-            return base.Run().AsParStream().Stream().ToEnumerable();
+        public void Initialize() {
+            _pipeline.Initialize();
+        }
+
+        public void Register(IUpdate updater) {
+            _pipeline.Register(updater);
+        }
+
+        public void Register(IWrite writer) {
+            _pipeline.Register(writer);
+        }
+
+        public void Register(ITransform transformer) {
+            _pipeline.Register(transformer);
+        }
+
+        public void Register(IRead reader) {
+            _pipeline.Register(reader);
+        }
+
+        public IEnumerable<Row> Run() {
+            return _pipeline.Run().AsParStream().Stream().ToEnumerable();
         }
     }
 }

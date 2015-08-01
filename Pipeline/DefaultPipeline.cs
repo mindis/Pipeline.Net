@@ -8,9 +8,9 @@ namespace Pipeline {
 
         readonly IEntityController _controller;
 
-        protected IEntityReader Reader { get; private set; }
-        protected IEntityWriter Writer { get; private set; }
-        protected IMasterUpdater MasterUpdater { get; private set; }
+        protected IRead Reader { get; private set; }
+        protected IWrite Writer { get; private set; }
+        protected IUpdate MasterUpdater { get; private set; }
         protected List<ITransform> Transformers { get; private set; }
 
         public DefaultPipeline(IEntityController controller) {
@@ -22,8 +22,7 @@ namespace Pipeline {
             _controller.Initialize();
         }
 
-        public void Register(IEntityReader reader) {
-            reader.Context.Activity = PipelineActivity.Extract;
+        public void Register(IRead reader) {
             Reader = reader;
         }
 
@@ -32,13 +31,11 @@ namespace Pipeline {
             Transformers.Add(transformer);
         }
 
-        public void Register(IEntityWriter writer) {
-            writer.Context.Activity = PipelineActivity.Load;
+        public void Register(IWrite writer) {
             Writer = writer;
         }
 
-        public void Register(IMasterUpdater updater) {
-            updater.Context.Activity = PipelineActivity.Load;
+        public void Register(IUpdate updater) {
             MasterUpdater = updater;
         }
 

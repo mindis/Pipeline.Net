@@ -1,6 +1,5 @@
 ﻿namespace Pipeline {
-    public interface IMasterUpdater {
-        PipelineContext Context { get; }
+    public interface IUpdate {
         void Update();
     }
 }

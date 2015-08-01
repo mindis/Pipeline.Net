@@ -23,7 +23,8 @@ namespace Pipeline.Test {
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
             var process = new Root(cfg, shorthand).Processes.First();
             var personContext = new PipelineContext(new DebugLogger(), process, process.Entities.Last());
-            var rows = new DataSetEntityReader(personContext).Read().ToArray();
+            var entityInput = new EntityInput(personContext, new Incrementer(personContext));
+            var rows = new DataSetEntityReader(entityInput).Read().ToArray();
             
             Assert.IsInstanceOf<IEnumerable<Row>>(rows);
             Assert.AreEqual(3, rows.Length);

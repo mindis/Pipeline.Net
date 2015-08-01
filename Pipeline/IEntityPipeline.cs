@@ -4,10 +4,10 @@ using Pipeline.Transformers;
 namespace Pipeline {
     public interface IEntityPipeline {
         void Initialize();
-        void Register(IEntityReader reader);
+        void Register(IRead reader);
         void Register(ITransform transformer);
-        void Register(IEntityWriter writer);
-        void Register(IMasterUpdater updater);
+        void Register(IWrite writer);
+        void Register(IUpdate updater);
         IEnumerable<Row> Run();
         void Execute();
     }

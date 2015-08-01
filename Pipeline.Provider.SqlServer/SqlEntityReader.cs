@@ -12,9 +12,9 @@ namespace Pipeline.Provider.SqlServer {
 
         int _rowCount;
         HashSet<int> _errors = new HashSet<int>();
-        EntityInput _input;
+        InputContext _input;
 
-        public SqlEntityReader(EntityInput input) {
+        public SqlEntityReader(InputContext input) {
             _input = input;
         }
 
@@ -27,19 +27,19 @@ namespace Pipeline.Provider.SqlServer {
 
                 LoadVersion(cn);
 
-                if (_input.Context.Entity.MaxVersion == null) {
-                    cmd.CommandText = _input.Context.SqlSelectInput();
+                if (_input.Entity.MaxVersion == null) {
+                    cmd.CommandText = _input.SqlSelectInput();
                 } else {
-                    if (_input.Context.Entity.MinVersion == null) {
-                        cmd.CommandText = _input.Context.SqlSelectInputWithMaxVersion();
-                        cmd.Parameters.AddWithValue("@Version", _input.Context.Entity.MaxVersion);
+                    if (_input.Entity.MinVersion == null) {
+                        cmd.CommandText = _input.SqlSelectInputWithMaxVersion();
+                        cmd.Parameters.AddWithValue("@Version", _input.Entity.MaxVersion);
                     } else {
-                        if (_input.Context.Entity.MinVersion == _input.Context.Entity.MaxVersion) {
+                        if (_input.Entity.MinVersion == _input.Entity.MaxVersion) {
                             yield break;
                         }
-                        cmd.CommandText = _input.Context.SqlSelectInputWithMinAndMaxVersion();
-                        cmd.Parameters.AddWithValue("@MinVersion", _input.Context.Entity.MinVersion);
-                        cmd.Parameters.AddWithValue("@MaxVersion", _input.Context.Entity.MaxVersion);
+                        cmd.CommandText = _input.SqlSelectInputWithMinAndMaxVersion();
+                        cmd.Parameters.AddWithValue("@MinVersion", _input.Entity.MinVersion);
+                        cmd.Parameters.AddWithValue("@MaxVersion", _input.Entity.MaxVersion);
                     }
                 }
 
@@ -50,7 +50,7 @@ namespace Pipeline.Provider.SqlServer {
 
                 while (reader.Read()) {
                     _rowCount++;
-                    var row = new Row(_input.RowCapacity, _input.Context.Entity.IsMaster);
+                    var row = new Row(_input.RowCapacity, _input.Entity.IsMaster);
                     for (var i = 0; i < reader.FieldCount; i++) {
                         var field = _input.InputFields[i];
                         if (field.Type == "string") {
@@ -71,19 +71,19 @@ namespace Pipeline.Provider.SqlServer {
                     yield return row;
                 }
 
-                _input.Context.Info("{0} from {1}", _rowCount, _input.Connection.Name);
+                _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
             }
         }
 
         public void TypeMismatch(Field field, SqlDataReader reader, int index) {
             var key = HashcodeTransform.GetHashCode(new[] { field.Name, field.Type });
             if (_errors.Add(key)) {
-                _input.Context.Error("Type mismatch for {0}. Expected {1}, but read {2}.", field.Name, field.Type, reader.GetFieldType(index));
+                _input.Error("Type mismatch for {0}. Expected {1}, but read {2}.", field.Name, field.Type, reader.GetFieldType(index));
             }
         }
 
         void LoadVersion(IDbConnection cn) {
-            _input.Context.Entity.MaxVersion = _input.Context.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.Context.SqlGetInputMaxVersion());
+            _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Pipeline {
-   public class PipelineContext {
+   public class PipelineContext : IContext {
       PipelineActivity _activity;
 
       public Process Process { get; set; }

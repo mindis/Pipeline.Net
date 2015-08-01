@@ -8,10 +8,10 @@ namespace Pipeline.Provider.SqlServer {
 
     public class SqlEntityInitializer : IInitializer {
 
-        readonly PipelineContext _context;
+        readonly OutputContext _context;
         readonly string _connectionString;
 
-        public SqlEntityInitializer(PipelineContext context) {
+        public SqlEntityInitializer(OutputContext context) {
             _context = context;
             _connectionString = _context.Process.Connections.First(c => c.Name == "output").GetConnectionString();
         }

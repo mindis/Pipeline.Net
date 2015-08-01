@@ -7,20 +7,20 @@ using Pipeline.Extensions;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityWriter : IWrite {
-        EntityOutput _output;
+        OutputContext _output;
 
-        public SqlEntityWriter(EntityOutput output) {
+        public SqlEntityWriter(OutputContext output) {
             _output = output;
         }
 
-        public int Write(IEnumerable<Row> rows) {
+        public void Write(IEnumerable<Row> rows) {
             var count = 0;
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
                 cn.Open();
                 foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
                     var trans = cn.BeginTransaction();
                     var batchCount = cn.Execute(
-                        _output.Context.SqlInsertIntoOutput(_output.Context.Entity.BatchId),
+                        _output.SqlInsertIntoOutput(_output.Entity.BatchId),
                         batch.Select(r => r.ToExpandoObject(_output.OutputFields)),
                         trans,
                         _output.Connection.Timeout,
@@ -30,22 +30,22 @@ namespace Pipeline.Provider.SqlServer {
                     count += batchCount;
                     _output.Increment(batchCount);
                 }
-                _output.Context.Info("{0} to {1}", count, _output.Connection.Name);
+                _output.Info("{0} to {1}", count, _output.Connection.Name);
             }
-            return count;
+            _output.Entity.Inserts = count;
         }
 
         public void LoadVersion() {
-            if (_output.Context.Entity.Version == string.Empty)
+            if (_output.Entity.Version == string.Empty)
                 return;
 
-            var field = _output.Context.Entity.GetVersionField();
+            var field = _output.Entity.GetVersionField();
 
             if (field == null)
                 return;
 
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
-                _output.Context.Entity.MinVersion = cn.ExecuteScalar(_output.Context.SqlGetOutputMaxVersion(field));
+                _output.Entity.MinVersion = cn.ExecuteScalar(_output.SqlGetOutputMaxVersion(field));
             }
         }
     }

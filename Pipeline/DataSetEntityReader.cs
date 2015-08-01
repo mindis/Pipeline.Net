@@ -4,14 +4,14 @@ using System.Linq;
 namespace Pipeline {
 
     public class DataSetEntityReader : IRead {
-        EntityInput _input;
+        InputContext _input;
 
-        public DataSetEntityReader(EntityInput input) {
+        public DataSetEntityReader(InputContext input) {
             _input = input;
         }
 
         public IEnumerable<Row> Read() {
-            return GetTypedDataSet(_input.Context.Entity.Name);
+            return GetTypedDataSet(_input.Entity.Name);
         }
 
         public object GetVersion() {
@@ -20,14 +20,14 @@ namespace Pipeline {
 
         public IEnumerable<Row> GetTypedDataSet(string name) {
             var rows = new List<Row>();
-            var dataSet = _input.Context.Process.DataSets.FirstOrDefault(ds => ds.Name == name);
+            var dataSet = _input.Process.DataSets.FirstOrDefault(ds => ds.Name == name);
 
             if (dataSet == null)
                 return rows;
 
-            var lookup = _input.Context.Entity.Fields.ToDictionary(k => k.Name, v => v);
+            var lookup = _input.Entity.Fields.ToDictionary(k => k.Name, v => v);
             foreach (var row in dataSet.Rows) {
-                var pipelineRow = new Row(_input.RowCapacity, _input.Context.Entity.IsMaster);
+                var pipelineRow = new Row(_input.RowCapacity, _input.Entity.IsMaster);
                 foreach (var pair in row) {
                     if (!lookup.ContainsKey(pair.Key))
                         continue;

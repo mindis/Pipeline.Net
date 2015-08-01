@@ -10,9 +10,9 @@ namespace Pipeline.Provider.SqlServer {
     public class SqlEntityBulkInserter : IWrite {
 
         SqlBulkCopyOptions _bulkCopyOptions;
-        EntityOutput _output;
+        OutputContext _output;
 
-        public SqlEntityBulkInserter(EntityOutput output) {
+        public SqlEntityBulkInserter(OutputContext output) {
             _output = output;
             _bulkCopyOptions = SqlBulkCopyOptions.Default;
 
@@ -36,7 +36,7 @@ namespace Pipeline.Provider.SqlServer {
                 _bulkCopyOptions ^= option;
         }
 
-        public int Write(IEnumerable<Row> rows) {
+        public void Write(IEnumerable<Row> rows) {
             var count = 0;
 
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
@@ -44,14 +44,14 @@ namespace Pipeline.Provider.SqlServer {
 
                 SqlDataAdapter adapter;
                 var dt = new DataTable();
-                using (adapter = new SqlDataAdapter(_output.Context.SqlSelectOutputSchema(), cn)) {
+                using (adapter = new SqlDataAdapter(_output.SqlSelectOutputSchema(), cn)) {
                     adapter.Fill(dt);
                 }
 
                 var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
                     BatchSize = _output.Connection.BatchSize,
                     BulkCopyTimeout = _output.Connection.Timeout,
-                    DestinationTableName = "[" + _output.Context.Entity.OutputTableName(_output.Context.Process.Name) + "]",
+                    DestinationTableName = "[" + _output.Entity.OutputTableName(_output.Process.Name) + "]",
                 };
 
                 var counter = 0;
@@ -67,7 +67,7 @@ namespace Pipeline.Provider.SqlServer {
                     var batchCount = 0;
                     foreach (var row in batch) {
                         var dr = dt.NewRow();
-                        var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Context.Entity.BatchId };
+                        var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Entity.BatchId };
                         dr.ItemArray = values.ToArray();
                         dataRows.Add(dr);
                         batchCount++;
@@ -78,24 +78,23 @@ namespace Pipeline.Provider.SqlServer {
                     _output.Increment(batchCount);
                     count += batchCount;
                 }
-                _output.Context.Info("{0} to {1}", count, _output.Connection.Name);
+                _output.Info("{0} to {1}", count, _output.Connection.Name);
 
             }
-            return count;
-            _output.Context.Entity.Inserts = count;
+            _output.Entity.Inserts = count;
         }
 
         public void LoadVersion() {
-            if (_output.Context.Entity.Version == string.Empty)
+            if (_output.Entity.Version == string.Empty)
                 return;
 
-            var field = _output.Context.Entity.GetVersionField();
+            var field = _output.Entity.GetVersionField();
 
             if (field == null)
                 return;
 
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
-                _output.Context.Entity.MinVersion = cn.ExecuteScalar(_output.Context.SqlGetOutputMaxVersion(field));
+                _output.Entity.MinVersion = cn.ExecuteScalar(_output.SqlGetOutputMaxVersion(field));
             }
         }
 

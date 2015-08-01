@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlInitializer : IInitializer {
-        PipelineContext _context;
+        OutputContext _context;
         string _connectionString;
 
-        public SqlInitializer(PipelineContext context) {
+        public SqlInitializer(OutputContext context) {
             _context = context;
             _connectionString = _context.Process.Connections.First(c => c.Name == "output").GetConnectionString();
         }

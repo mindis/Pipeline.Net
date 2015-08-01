@@ -74,9 +74,10 @@ namespace Pipeline.Test {
                     builder.Register<IEntityController>((ctx) => {
                         var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                        var output = new OutputContext(context, new Incrementer(context));
                         switch (provider) {
                             case "sqlserver":
-                                return new SqlEntityController(context, new SqlEntityInitializer(context));
+                                return new SqlEntityController(output, new SqlEntityInitializer(output));
                             default:
                                 return new NullEntityController();
                         }
@@ -107,7 +108,7 @@ namespace Pipeline.Test {
                         var connection = process.Connections.First(cn => cn.Name == entity.Connection);
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         var incrementer = new Incrementer(context);
-                        var entityInput = new EntityInput(context, incrementer);
+                        var entityInput = new InputContext(context, incrementer);
                         switch (connection.Provider) {
                             case "internal":
                                 return new DataSetEntityReader(entityInput);
@@ -141,7 +142,7 @@ namespace Pipeline.Test {
                         var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         var incrementer = new Incrementer(context);
-                        var entityOutput = new EntityOutput(context, incrementer);
+                        var entityOutput = new OutputContext(context, incrementer);
                         switch (provider) {
                             case "sqlserver":
                                 return new SqlEntityBulkInserter(entityOutput);
@@ -156,7 +157,7 @@ namespace Pipeline.Test {
                         var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                         var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                         var incrementer = new Incrementer(context);
-                        var entityOutput = new EntityOutput(context, incrementer);
+                        var entityOutput = new OutputContext(context, incrementer);
                         switch (provider) {
                             case "sqlserver":
                                 return new SqlMasterUpdater(entityOutput);
@@ -167,11 +168,12 @@ namespace Pipeline.Test {
 
                 }
 
-
-                builder.Register((ctx) => {
+                builder.Register<IEnumerable<IEntityPipeline>>((ctx) => {
 
                     //for now
-                    new SqlInitializer(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process)).Initialize();
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
+                    var output = new OutputContext(context, new Incrementer(context));
+                    new SqlInitializer(output).Initialize();
 
                     var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
                     var pipelines = new List<IEntityPipeline>();

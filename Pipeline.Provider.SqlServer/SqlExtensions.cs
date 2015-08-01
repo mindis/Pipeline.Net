@@ -57,35 +57,35 @@ namespace Pipeline.Provider.SqlServer {
          return string.Concat(sqlDataType, length, dimensions);
       }
 
-      static string SqlSchemaPrefix(this PipelineContext c) {
+      static string SqlSchemaPrefix(this InputContext c) {
          return c.Entity.Schema == string.Empty ? string.Empty : "[" + c.Entity.Schema + "].";
       }
 
-      public static string SqlControlTableName(this PipelineContext c) {
+      public static string SqlControlTableName(this OutputContext c) {
          return SqlIdentifier(c.Process.Name) + "Control";
       }
 
-      public static string SqlInsertIntoOutput(this PipelineContext c, int batchId) {
+      public static string SqlInsertIntoOutput(this OutputContext c, int batchId) {
          var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
          var parameters = string.Join(",", fields.Select(f => "@f" + f.Index));
-         var sql = string.Format("INSERT {0}{1} VALUES({2},{3});", SqlSchemaPrefix(c), c.Entity.OutputTableName(c.Process.Name), parameters, batchId);
+         var sql = string.Format("INSERT {0} VALUES({1},{2});", c.Entity.OutputTableName(c.Process.Name), parameters, batchId);
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlDropOutput(this PipelineContext c) {
+      public static string SqlDropOutput(this OutputContext c) {
          var sql = string.Format("DROP TABLE [{0}];", c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlDropOutputView(this PipelineContext c) {
+      public static string SqlDropOutputView(this OutputContext c) {
          var sql = string.Format("DROP VIEW [{0}];", c.Entity.OutputViewName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlDropControl(this PipelineContext c) {
+      public static string SqlDropControl(this OutputContext c) {
          var sql = string.Format("DROP TABLE [{0}];", SqlControlTableName(c));
          c.Debug(sql);
          return sql;
@@ -95,7 +95,7 @@ namespace Pipeline.Provider.SqlServer {
          return "[" + name + "]";
       }
       
-      public static string SqlUpdateMaster(this PipelineContext c) {
+      public static string SqlUpdateMaster(this OutputContext c) {
          //note: TflBatchId is updated and next process depends it.
 
          var masterEntity = c.Process.Entities.First(e => e.IsMaster);
@@ -151,7 +151,7 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlControlLastBatchId(this PipelineContext c) {
+      public static string SqlControlLastBatchId(this OutputContext c) {
          var sql = string.Format(@"
                 SELECT ISNULL(MAX([BatchId]),0) FROM {0};
             ", SqlControlTableName(c));
@@ -159,7 +159,7 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlControlStartBatch(this PipelineContext c) {
+      public static string SqlControlStartBatch(this OutputContext c) {
          var sql = string.Format(@"
                 INSERT {0}([BatchId],[Entity],[Inserts],[Updates],[Deletes],[Start],[End]) 
                 VALUES(@BatchId,@Entity,0,0,0,GETUTCDATE(),NULL);", SqlControlTableName(c));
@@ -167,7 +167,7 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlControlEndBatch(this PipelineContext c) {
+      public static string SqlControlEndBatch(this OutputContext c) {
          var sql = string.Format(@"
                 UPDATE {0}
                 SET [Inserts] = @Inserts,
@@ -179,7 +179,7 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlCreateControl(this PipelineContext c) {
+      public static string SqlCreateControl(this OutputContext c) {
          var sql = string.Format(@"
                 CREATE TABLE {0}(
                     [BatchId] INT NOT NULL,
@@ -199,21 +199,21 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlCreateOutput(this PipelineContext c) {
+      public static string SqlCreateOutput(this OutputContext c) {
          var columnsAndDefinitions = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
          var sql = string.Format("CREATE TABLE [{0}]({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", c.Entity.OutputTableName(c.Process.Name), columnsAndDefinitions);
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlCreateOutputView(this PipelineContext c) {
+      public static string SqlCreateOutputView(this OutputContext c) {
          var columnNames = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] AS [" + f.Alias + "]"));
          var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlSelectInput(this PipelineContext c) {
+      public static string SqlSelectInput(this InputContext c) {
          var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
          var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
          var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
@@ -223,9 +223,8 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlSelectInputWithMaxVersion(this PipelineContext c) {
-         var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
-         var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
+      public static string SqlSelectInputWithMaxVersion(this InputContext c) {
+         var fieldList = string.Join(",", c.InputFields.Select(f => "[" + f.Name + "]"));
          var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
 
          var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
@@ -233,7 +232,7 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlSelectInputWithMinAndMaxVersion(this PipelineContext c) {
+      public static string SqlSelectInputWithMinAndMaxVersion(this InputContext c) {
          var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
          var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
          var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
@@ -242,19 +241,19 @@ namespace Pipeline.Provider.SqlServer {
          return sql;
       }
 
-      public static string SqlGetInputMaxVersion(this PipelineContext c) {
+      public static string SqlGetInputMaxVersion(this InputContext c) {
          var sql = string.Format("SELECT MAX([{0}]) FROM {1}[{2}];", c.Entity.GetVersionField().Name, SqlSchemaPrefix(c), c.Entity.Name);
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlGetOutputMaxVersion(this PipelineContext c, Field version) {
+      public static string SqlGetOutputMaxVersion(this OutputContext c, Field version) {
          var sql = string.Format("SELECT MAX([{0}]) FROM [{1}] WITH (NOLOCK);", version.Alias, c.Entity.OutputViewName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlSelectOutputSchema(this PipelineContext c) {
+      public static string SqlSelectOutputSchema(this OutputContext c) {
          var sql = string.Format("SELECT TOP 0 * FROM [{0}] WITH (NOLOCK);", c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
@@ -264,13 +263,13 @@ namespace Pipeline.Provider.SqlServer {
          return Regex.Replace(name, @"[\s\[\]\`]+", "_").Trim("_".ToCharArray()).Left(128);
       }
 
-      public static string SqlCreateOutputUniqueClusteredIndex(this PipelineContext c) {
+      public static string SqlCreateOutputUniqueClusteredIndex(this OutputContext c) {
          var sql = string.Format("CREATE UNIQUE CLUSTERED INDEX [UX_{0}_TflKey] ON [{1}] (TflKey ASC);", SqlIdentifier(c.Entity.OutputTableName(c.Process.Name)), c.Entity.OutputTableName(c.Process.Name));
          c.Debug(sql);
          return sql;
       }
 
-      public static string SqlCreateOutputPrimaryKey(this PipelineContext c) {
+      public static string SqlCreateOutputPrimaryKey(this OutputContext c) {
          var pk = c.Entity.GetAllFields().Where(f => f.PrimaryKey).Select(f => f.FieldName()).ToArray();
          var keyList = string.Join(", ", pk);
          var sql = string.Format(

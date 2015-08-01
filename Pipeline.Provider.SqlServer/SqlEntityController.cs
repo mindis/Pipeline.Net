@@ -7,20 +7,20 @@ using Pipeline.Configuration;
 namespace Pipeline.Provider.SqlServer {
 
     public class SqlEntityController : IEntityController {
-        private readonly PipelineContext _context;
-        private readonly IInitializer _initializer;
-        private readonly Connection _output;
+        readonly OutputContext _context;
+        readonly IInitializer _initializer;
+        readonly Connection _output;
 
         public object StartVersion { get; private set; }
 
-        public SqlEntityController(PipelineContext context, IInitializer initializer) {
+        public SqlEntityController(OutputContext context, IInitializer initializer) {
             _context = context;
             _initializer = initializer;
             _output = context.Process.Connections.First(c => c.Name == "output");
             StartVersion = null;
         }
 
-        private int GetBatchId(IDbConnection cn) {
+        int GetBatchId(IDbConnection cn) {
             var batchId = cn.Query<int>(_context.SqlControlLastBatchId()).FirstOrDefault() + 1;
             _context.Info("Batch " + batchId);
             return batchId;

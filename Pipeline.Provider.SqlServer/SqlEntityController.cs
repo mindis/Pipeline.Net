@@ -37,7 +37,12 @@ namespace Pipeline.Provider.SqlServer {
         public void End() {
             using (var cn = new SqlConnection(_output.GetConnectionString())) {
                 cn.Open();
-                cn.Execute(_context.SqlControlEndBatch(), new { Inserts = 0, Updates = 0, Deletes = 0, _context.Entity.BatchId });
+                cn.Execute(_context.SqlControlEndBatch(), new {
+                    _context.Entity.Inserts,
+                    _context.Entity.Updates,
+                    _context.Entity.Deletes,
+                    _context.Entity.BatchId
+                });
             }
         }
 

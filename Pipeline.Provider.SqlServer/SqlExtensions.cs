@@ -119,7 +119,7 @@ namespace Pipeline.Provider.SqlServer {
          }
          builder.AppendFormat(" FROM {0} {1}", masterTable, masterAlias);
 
-         foreach (var relationship in c.Entity.RelationshipToMaster) {
+         foreach (var relationship in c.Entity.RelationshipToMaster.Reverse()) {
             var right = Enclose(relationship.Summary.RightEntity.OutputTableName(c.Process.Name));
             var rightEntityAlias = relationship.Summary.RightEntity.GetExcelName();
 

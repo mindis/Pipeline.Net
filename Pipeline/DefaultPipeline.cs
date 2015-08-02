@@ -31,6 +31,12 @@ namespace Pipeline {
             Transformers.Add(transformer);
         }
 
+        public void Register(IEnumerable<ITransform> transforms) {
+            foreach (var transform in transforms) {
+                Register(transform);
+            }
+        }
+
         public void Register(IWrite writer) {
             Writer = writer;
         }

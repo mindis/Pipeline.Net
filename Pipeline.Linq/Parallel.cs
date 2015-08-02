@@ -19,6 +19,10 @@ namespace Pipeline.Linq {
             _pipeline.Initialize();
         }
 
+        public void Register(IEnumerable<ITransform> transforms) {
+            _pipeline.Register(transforms);
+        }
+
         public void Register(IUpdate updater) {
             _pipeline.Register(updater);
         }

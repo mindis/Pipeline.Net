@@ -14,6 +14,9 @@ namespace Pipeline.Test {
 
     public class PipelineModule : Module {
 
+        const string DefaultTransform = "default";
+        const string SqlMinDateTransform = "sqlmindate";
+        const string TruncateTransform = "truncate";
         readonly LogLevel _level;
 
         public Root Root { get; set; }
@@ -27,200 +30,223 @@ namespace Pipeline.Test {
 
             builder.Register<IPipelineLogger>((ctx) => new TraceLogger(_level)).SingleInstance();
 
-            foreach (var p in Root.Processes) {
+            foreach (var process in Root.Processes) {
+                RegisterMaps(builder, process);
+                RegisterCalculatedFieldTransforms(builder, process);
+                RegisterEntities(builder, process);
+                RegisterProcess(builder, process);
+            }
 
-                var process = p;
+        }
 
-                //maps
-                foreach (var m in process.Maps) {
-                    var map = m;
-                    builder.Register<IMapReader>((ctx) => {
-                        var connection = process.Connections.FirstOrDefault(cn => cn.Name == map.Connection);
-                        var provider = connection == null ? string.Empty : connection.Provider;
-                        switch (provider) {
-                            case "sqlserver":
-                                return new SqlMapReader();
-                            default:
-                                return new DefaultMapReader();
-                        }
-                    }).Named<IMapReader>(map.Name);
+        static void RegisterProcess(ContainerBuilder builder, Process process) {
+            builder.Register((ctx) => {
+                var pipelines = new List<IEntityPipeline>();
+                foreach (var entity in process.Entities) {
+                    var pipeline = ctx.ResolveNamed<IEntityPipeline>(entity.Key);
+                    pipelines.Add(ResolveEntityPipeline(ctx, pipeline, process, entity));
                 }
+                return pipelines;
+            }).Named<IEnumerable<IEntityPipeline>>(process.Key);
+        }
 
-                //transforms for calculated fields
-                foreach (var f in process.CalculatedFields.Where(f => f.Transforms.Any())) {
+        static IEntityPipeline ResolveEntityPipeline(
+            IComponentContext ctx,
+            IEntityPipeline pipeline,
+            Process process,
+            Entity entity
+        ) {
+            var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
+
+            // extract
+            pipeline.Register(ctx.ResolveNamed<IRead>(entity.Key));
+
+            // transforms
+            pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + DefaultTransform));
+
+            foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
+                if (field.RequiresCompositeValidator()) {
+                    pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
+                } else {
+                    pipeline.Register(field.Transforms.Select(t => ctx.ResolveNamed<ITransform>(t.Key)));
+                }
+            }
+
+            // output specific transforms
+            if (outputProvider == "sqlserver")
+                pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + SqlMinDateTransform));
+            if (outputProvider != "internal")
+                pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + TruncateTransform));
+
+            //load
+            pipeline.Register(ctx.ResolveNamed<IWrite>(entity.Key));
+            pipeline.Register(ctx.ResolveNamed<IUpdate>(entity.Key));
+            return pipeline;
+        }
+
+        static void RegisterEntities(ContainerBuilder builder, Process process) {
+            foreach (var e in process.Entities) {
+
+                var entity = e;
+                var entityContext = new PipelineContext(new NullLogger(), process, entity);
+
+                //controller
+                builder.Register<IEntityController>((ctx) => {
+                    var provider = process.Connections.First(cn => cn.Name == "output").Provider;
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                    var output = new OutputContext(context, new Incrementer(context));
+                    switch (provider) {
+                        case "sqlserver":
+                            return new SqlEntityController(output, new SqlEntityInitializer(output));
+                        default:
+                            return new NullEntityController();
+                    }
+                }).Named<IEntityController>(entity.Key);
+
+                var type = process.Pipeline == "defer" ? entity.Pipeline : process.Pipeline;
+
+                builder.Register<IEntityPipeline>((ctx) => {
+                    var pipeline = new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key));
+                    switch (type) {
+                        case "parallel.linq":
+                            return new Parallel(pipeline);
+                        case "streams":
+                            return new Streams.Serial(pipeline);
+                        case "parallel.streams":
+                            return new Streams.Parallel(pipeline);
+                        case "linq.optimizer":
+                            return new Linq.Optimizer.Serial(pipeline);
+                        case "parallel.linq.optimizer":
+                            return new Linq.Optimizer.Parallel(pipeline);
+                        default:
+                            return pipeline;
+                    }
+                }).Named<IEntityPipeline>(entity.Key);
+
+                //input
+                builder.Register<IRead>((ctx) => {
+                    var connection = process.Connections.First(cn => cn.Name == entity.Connection);
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                    var entityInput = new InputContext(context, new Incrementer(context));
+                    switch (connection.Provider) {
+                        case "internal":
+                            return new DataSetEntityReader(entityInput);
+                        case "sqlserver":
+                            return new SqlEntityReader(entityInput);
+                        default:
+                            return new NullEntityReader();
+                    }
+                }).Named<IRead>(entity.Key);
+
+                RegisterDefaultTransform(builder, process, entity);
+
+                foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
 
                     var field = f;
 
                     if (field.RequiresCompositeValidator()) {
                         builder.Register<ITransform>((ctx) => new CompositeValidator(
-                            new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field),
-                            field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, t)))
+                            new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field),
+                            field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, t)))
                         )).Named<ITransform>(field.Key);
                     } else {
                         foreach (var t in field.Transforms) {
                             var transform = t;
-                            builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, transform))).Named<ITransform>(transform.Key);
+                            builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, transform))).Named<ITransform>(transform.Key);
                         }
                     }
                 }
 
-                // entities
-                foreach (var e in process.Entities) {
+                RegisterSqlMinDateTransform(builder, process, entity);
+                RegisterTruncateTransform(builder, process, entity);
 
-                    var entity = e;
-                    var entityContext = new PipelineContext(new NullLogger(), process, entity);
-
-                    //controller
-                    builder.Register<IEntityController>((ctx) => {
-                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
-                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
-                        var output = new OutputContext(context, new Incrementer(context));
-                        switch (provider) {
-                            case "sqlserver":
-                                return new SqlEntityController(output, new SqlEntityInitializer(output));
-                            default:
-                                return new NullEntityController();
-                        }
-                    }).Named<IEntityController>(entity.Key);
-
-                    var type = process.Pipeline == "defer" ? entity.Pipeline : process.Pipeline;
-
-                    builder.Register<IEntityPipeline>((ctx) => {
-                        var pipeline = new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key));
-                        switch (type) {
-                            case "parallel.linq":
-                                return new Parallel(pipeline);
-                            case "streams":
-                                return new Streams.Serial(pipeline);
-                            case "parallel.streams":
-                                return new Streams.Parallel(pipeline);
-                            case "linq.optimizer":
-                                return new Linq.Optimizer.Serial(pipeline);
-                            case "parallel.linq.optimizer":
-                                return new Linq.Optimizer.Parallel(pipeline);
-                            default:
-                                return pipeline;
-                        }
-                    }).Named<IEntityPipeline>(entity.Key);
-
-                    //input
-                    builder.Register<IRead>((ctx) => {
-                        var connection = process.Connections.First(cn => cn.Name == entity.Connection);
-                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
-                        var incrementer = new Incrementer(context);
-                        var entityInput = new InputContext(context, incrementer);
-                        switch (connection.Provider) {
-                            case "internal":
-                                return new DataSetEntityReader(entityInput);
-                            case "sqlserver":
-                                return new SqlEntityReader(entityInput);
-                            default:
-                                return new NullEntityReader();
-                        }
-                    }).Named<IRead>(entity.Key);
-
-
-                    foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
-
-                        var field = f;
-
-                        if (field.RequiresCompositeValidator()) {
-                            builder.Register<ITransform>((ctx) => new CompositeValidator(
-                                new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field),
-                                field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, t)))
-                            )).Named<ITransform>(field.Key);
-                        } else {
-                            foreach (var t in field.Transforms) {
-                                var transform = t;
-                                builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, field, transform))).Named<ITransform>(transform.Key);
-                            }
-                        }
+                //output
+                builder.Register<IWrite>((ctx) => {
+                    var provider = process.Connections.First(cn => cn.Name == "output").Provider;
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                    var incrementer = new Incrementer(context);
+                    var entityOutput = new OutputContext(context, incrementer);
+                    switch (provider) {
+                        case "sqlserver":
+                            return new SqlEntityBulkInserter(entityOutput);
+                        //return new SqlEntityWriter(entityOutput);
+                        default:
+                            return new NullEntityWriter();
                     }
+                }).Named<IWrite>(entity.Key);
 
-                    //output
-                    builder.Register<IWrite>((ctx) => {
-                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
-                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
-                        var incrementer = new Incrementer(context);
-                        var entityOutput = new OutputContext(context, incrementer);
-                        switch (provider) {
-                            case "sqlserver":
-                                return new SqlEntityBulkInserter(entityOutput);
-                            //return new SqlEntityWriter(entityOutput);
-                            default:
-                                return new NullEntityWriter();
-                        }
-                    }).Named<IWrite>(entity.Key);
-
-                    //master updater
-                    builder.Register<IUpdate>((ctx) => {
-                        var provider = process.Connections.First(cn => cn.Name == "output").Provider;
-                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
-                        var incrementer = new Incrementer(context);
-                        var entityOutput = new OutputContext(context, incrementer);
-                        switch (provider) {
-                            case "sqlserver":
-                                return new SqlMasterUpdater(entityOutput);
-                            default:
-                                return new NullMasterUpdater();
-                        }
-                    }).Named<IUpdate>(entity.Key);
-
-                }
-
-                builder.Register<IEnumerable<IEntityPipeline>>((ctx) => {
-
-                    //for now
-                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
-                    var output = new OutputContext(context, new Incrementer(context));
-                    new SqlInitializer(output).Initialize();
-
-                    var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
-                    var pipelines = new List<IEntityPipeline>();
-
-                    foreach (var entity in process.Entities) {
-
-                        var pipeline = ctx.ResolveNamed<IEntityPipeline>(entity.Key);
-                        pipeline.Initialize();
-
-                        //extract
-                        pipeline.Register(ctx.ResolveNamed<IRead>(entity.Key));
-
-                        //transform
-                        pipeline.Register(new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "defaultnulls"; }))));
-
-                        foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
-                            if (field.RequiresCompositeValidator()) {
-                                pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
-                            } else {
-                                foreach (var transform in field.Transforms) {
-                                    pipeline.Register(ctx.ResolveNamed<ITransform>(transform.Key));
-                                }
-                            }
-                        }
-
-                        //provider specific transforms
-                        if (outputProvider == "sqlserver") {
-                            var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "sqldates"; }));
-                            pipeline.Register(new MinDateTransform(sqlDatesContext, new DateTime(1753, 1, 1)));
-                        }
-
-                        if (outputProvider != "internal") {
-                            var stringTruncateContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = "truncate"; }));
-                            pipeline.Register(new StringTruncateTransfom(stringTruncateContext));
-                        }
-
-                        //load
-                        pipeline.Register(ctx.ResolveNamed<IWrite>(entity.Key));
-                        pipeline.Register(ctx.ResolveNamed<IUpdate>(entity.Key));
-
-                        pipelines.Add(pipeline);
+                //master updater
+                builder.Register<IUpdate>((ctx) => {
+                    var provider = process.Connections.First(cn => cn.Name == "output").Provider;
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                    var incrementer = new Incrementer(context);
+                    var entityOutput = new OutputContext(context, incrementer);
+                    switch (provider) {
+                        case "sqlserver":
+                            return new SqlMasterUpdater(entityOutput);
+                        default:
+                            return new NullMasterUpdater();
                     }
-                    return pipelines;
-                }).Named<IEnumerable<IEntityPipeline>>(process.Key);
+                }).Named<IUpdate>(entity.Key);
 
             }
+        }
 
+        static void RegisterSqlMinDateTransform(ContainerBuilder builder, Process process, Entity entity) {
+            if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
+                builder.Register<ITransform>((ctx) => {
+                    var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + SqlMinDateTransform; }));
+                    return new MinDateTransform(sqlDatesContext, new DateTime(1753, 1, 1));
+                }).Named<ITransform>(entity.Key + SqlMinDateTransform);
+            }
+        }
+
+        static void RegisterDefaultTransform(ContainerBuilder builder, Process process, Entity entity) {
+            builder.Register<ITransform>((ctx) => {
+                return new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + DefaultTransform; })));
+            }).Named<ITransform>(entity.Key + DefaultTransform);
+        }
+
+        static void RegisterTruncateTransform(ContainerBuilder builder, Process process, Entity entity) {
+            if (process.Connections.First(c => c.Name == "output").Provider != "internal") {
+                builder.Register<ITransform>((ctx) => {
+                    var stringTruncateContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + TruncateTransform; }));
+                    return new StringTruncateTransfom(stringTruncateContext);
+                }).Named<ITransform>(entity.Key + TruncateTransform);
+            }
+        }
+
+        static void RegisterCalculatedFieldTransforms(ContainerBuilder builder, Process process) {
+            foreach (var f in process.CalculatedFields.Where(f => f.Transforms.Any())) {
+                var field = f;
+                if (field.RequiresCompositeValidator()) {
+                    builder.Register<ITransform>((ctx) => new CompositeValidator(
+                        new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field),
+                        field.Transforms.Select(t => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, t)))
+                    )).Named<ITransform>(field.Key);
+                } else {
+                    foreach (var t in field.Transforms) {
+                        var transform = t;
+                        builder.Register((ctx) => SwitchTransform(ctx, new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, null, field, transform))).Named<ITransform>(transform.Key);
+                    }
+                }
+            }
+        }
+
+        static void RegisterMaps(ContainerBuilder builder, Process process) {
+            foreach (var m in process.Maps) {
+                var map = m;
+                builder.Register<IMapReader>((ctx) => {
+                    var connection = process.Connections.FirstOrDefault(cn => cn.Name == map.Connection);
+                    var provider = connection == null ? string.Empty : connection.Provider;
+                    switch (provider) {
+                        case "sqlserver":
+                            return new SqlMapReader();
+                        default:
+                            return new DefaultMapReader();
+                    }
+                }).Named<IMapReader>(map.Name);
+            }
         }
 
         static ITransform SwitchTransform(IComponentContext ctx, PipelineContext context) {

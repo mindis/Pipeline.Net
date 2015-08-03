@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Dapper;
-using Pipeline.Configuration;
-using Pipeline.Transformers;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -13,9 +10,11 @@ namespace Pipeline.Provider.SqlServer {
         int _rowCount;
         HashSet<int> _errors = new HashSet<int>();
         InputContext _input;
+        readonly SqlRowCreator _rowCreator;
 
         public SqlEntityReader(InputContext input) {
             _input = input;
+            _rowCreator = new SqlRowCreator(input);
         }
 
         public IEnumerable<Row> Read() {
@@ -50,40 +49,17 @@ namespace Pipeline.Provider.SqlServer {
 
                 while (reader.Read()) {
                     _rowCount++;
-                    var row = new Row(_input.RowCapacity, _input.Entity.IsMaster);
-                    for (var i = 0; i < reader.FieldCount; i++) {
-                        var field = _input.InputFields[i];
-                        if (field.Type == "string") {
-                            if (reader.GetFieldType(i) == typeof(string)) {
-                                row.SetString(field, reader.IsDBNull(i) ? null : reader.GetString(i));
-                            } else {
-                                TypeMismatch(field, reader, i);
-                                var value = reader[i];
-                                row[field] = value == DBNull.Value ? null : value;
-                            }
-                        } else {
-                            var value = reader[i];
-                            row[field] = value == DBNull.Value ? null : value;
-                        }
-                    }
-
                     _input.Increment();
-                    yield return row;
+                    yield return _rowCreator.Create(reader, _input, _input.RowCapacity, _input.InputFields);
                 }
 
                 _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
             }
         }
 
-        public void TypeMismatch(Field field, SqlDataReader reader, int index) {
-            var key = HashcodeTransform.GetHashCode(new[] { field.Name, field.Type });
-            if (_errors.Add(key)) {
-                _input.Error("Type mismatch for {0}. Expected {1}, but read {2}.", field.Name, field.Type, reader.GetFieldType(index));
-            }
-        }
-
         void LoadVersion(IDbConnection cn) {
             _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
         }
+
     }
 }

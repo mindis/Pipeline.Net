@@ -2,15 +2,20 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Dapper;
-using Pipeline.Configuration;
 using Pipeline.Extensions;
+using System.Linq;
+using Pipeline.Configuration;
+using System;
 
 namespace Pipeline.Provider.SqlServer {
 
     public class SqlEntityBulkInserter : IWrite {
 
         SqlBulkCopyOptions _bulkCopyOptions;
-        OutputContext _output;
+        readonly OutputContext _output;
+        readonly SqlEntityOutputKeysReader _outputKeysReader;
+        readonly Field _hashCode;
+        readonly SqlEntityUpdater _sqlUpdater;
 
         public SqlEntityBulkInserter(OutputContext output) {
             _output = output;
@@ -22,6 +27,9 @@ namespace Pipeline.Provider.SqlServer {
             TurnOptionOff(SqlBulkCopyOptions.FireTriggers);
             TurnOptionOn(SqlBulkCopyOptions.KeepNulls);
 
+            _outputKeysReader = new SqlEntityOutputKeysReader(output);
+            _hashCode = output.Entity.CalculatedFields.First(f => f.Name == Constants.TflHashCode);
+            _sqlUpdater = new SqlEntityUpdater(output);
         }
 
         void TurnOptionOn(SqlBulkCopyOptions option) {
@@ -37,6 +45,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public void Write(IEnumerable<Row> rows) {
+            var firstRun = _output.Entity.IsFirstRun();
             var count = 0;
 
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
@@ -63,17 +72,38 @@ namespace Pipeline.Provider.SqlServer {
 
                 foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
 
-                    var dataRows = new List<DataRow>(_output.Connection.BatchSize);
+                    var inserts = new List<DataRow>(_output.Connection.BatchSize);
+                    var updates = new List<Row>();
                     var batchCount = 0;
-                    foreach (var row in batch) {
-                        var dr = dt.NewRow();
-                        var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Entity.BatchId };
-                        dr.ItemArray = values.ToArray();
-                        dataRows.Add(dr);
-                        batchCount++;
+
+                    if (firstRun) {
+                        foreach (var row in batch) {
+                            inserts.Add(GetDataRow(dt, row));
+                            batchCount++;
+                        }
+                    } else {
+                        var output = _outputKeysReader.Read(batch);
+                        foreach (var row in batch) {
+                            var existing = output[batchCount][_hashCode];
+                            if (existing.Equals(0)) {  // insert
+                                inserts.Add(GetDataRow(dt, row));
+                            } else {
+                                if (!existing.Equals(row[_hashCode])) { //update
+                                    updates.Add(row);
+                                }
+                            }
+                            batchCount++;
+                        }
                     }
 
-                    bulkCopy.WriteToServer(dataRows.ToArray());
+                    if (inserts.Any()) {
+                        bulkCopy.WriteToServer(inserts.ToArray());
+                        _output.Entity.Inserts += inserts.Count;
+                    }
+
+                    if (updates.Any()) {
+                        _sqlUpdater.Write(updates);
+                    }
 
                     _output.Increment(batchCount);
                     count += batchCount;
@@ -81,7 +111,14 @@ namespace Pipeline.Provider.SqlServer {
                 _output.Info("{0} to {1}", count, _output.Connection.Name);
 
             }
-            _output.Entity.Inserts = count;
+
+        }
+
+        DataRow GetDataRow(DataTable dataTable, Row row) {
+            var dr = dataTable.NewRow();
+            var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Entity.BatchId };
+            dr.ItemArray = values.ToArray();
+            return dr;
         }
 
         public void LoadVersion() {

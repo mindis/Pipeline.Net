@@ -6,21 +6,22 @@ using Dapper;
 using Pipeline.Extensions;
 
 namespace Pipeline.Provider.SqlServer {
-    public class SqlEntityWriter : IWrite {
+    public class SqlEntityUpdater : IWrite {
         OutputContext _output;
 
-        public SqlEntityWriter(OutputContext output) {
+        public SqlEntityUpdater(OutputContext output) {
             _output = output;
         }
 
         public void Write(IEnumerable<Row> rows) {
+            var query = _output.SqlUpdateOutput(_output.Entity.BatchId);
             var count = 0;
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
                 cn.Open();
                 foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
                     var trans = cn.BeginTransaction();
                     var batchCount = cn.Execute(
-                        _output.SqlInsertIntoOutput(_output.Entity.BatchId),
+                        query,
                         batch.Select(r => r.ToExpandoObject(_output.OutputFields)),
                         trans,
                         _output.Connection.Timeout,
@@ -32,7 +33,7 @@ namespace Pipeline.Provider.SqlServer {
                 }
                 _output.Info("{0} to {1}", count, _output.Connection.Name);
             }
-            _output.Entity.Inserts = count;
+            _output.Entity.Updates += count;
         }
 
         public void LoadVersion() {

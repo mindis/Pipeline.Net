@@ -123,7 +123,7 @@ namespace Pipeline.Test {
                             </add>
                           </transforms>
                         </add>
-                        <add name='SS_RowVersion' type='byte[]' length='8' label='S S Row Version'/>
+                        <add name='SS_RowVersion' type='byte[]' length='8' variable-length='false' label='S S Row Version'/>
                     </fields>
                 </add>
 
@@ -131,7 +131,7 @@ namespace Pipeline.Test {
                     <fields>
                         <add name='Id' alias='OrderStatusId' type='int' primary-key='true' />
                         <add name='Name' alias='OrderStatus' length='255' denormalize='true' />
-                        <add name='SS_RowVersion' alias='OrderStatusVersion' type='byte[]' length='8' search-type='none' />
+                        <add name='SS_RowVersion' alias='OrderStatusVersion' type='byte[]' length='8' variable-length='false' search-type='none' />
                     </fields>
                 </add>
 
@@ -145,7 +145,7 @@ namespace Pipeline.Test {
     </processes>
 </cfg>";
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand, LogLevel.Info);
+            var module = new PipelineModule(xml, shorthand, LogLevel.Debug);
 
             if (module.Root.Errors().Any()){ 
                 foreach (var error in module.Root.Errors()) {
@@ -160,6 +160,7 @@ namespace Pipeline.Test {
             var process = module.Root.Processes.First();
 
             foreach(var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
+                //pipeline.Initialize();
                 pipeline.Execute();
             }
 

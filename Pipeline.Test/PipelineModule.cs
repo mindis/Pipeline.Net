@@ -169,7 +169,7 @@ namespace Pipeline.Test {
                     switch (provider) {
                         case "sqlserver":
                             return new SqlEntityBulkInserter(entityOutput);
-                        //return new SqlEntityWriter(entityOutput);
+                        //return new SqlEntityWriter(entityOutput, entityOutput.SqlInsertIntoOutput);
                         default:
                             return new NullEntityWriter();
                     }

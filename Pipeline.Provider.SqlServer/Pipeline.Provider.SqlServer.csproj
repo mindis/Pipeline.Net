@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SqlEntityOutputKeysReader.cs" />
     <Compile Include="SqlInitializer.cs" />
     <Compile Include="SqlEntityBulkInserter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,8 +54,9 @@
     <Compile Include="SqlEntityReader.cs" />
     <Compile Include="SqlMapReader.cs" />
     <Compile Include="SqlMasterUpdater.cs" />
-    <Compile Include="SqlEntityWriter.cs" />
+    <Compile Include="SqlEntityUpdater.cs" />
     <Compile Include="SqlExtensions.cs" />
+    <Compile Include="SqlRowCreator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">

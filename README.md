@@ -1,6 +1,6 @@
 ## Pipeline.Net
-A configurable extract, transform, and load 
-framework specializing in the denormalization of 
-relational data.
+A configurable [ETL](https://en.wikipedia.org/wiki/Extract,_transform,_load) framework 
+specializing in incremental 
+[denormalization](https://en.wikipedia.org/wiki/Denormalization) of [relational databases](https://en.wikipedia.org/wiki/Relational_database).
 
-Released under Apache 2 license.
+Released under [Apache 2](https://www.apache.org/licenses/LICENSE-2.0) license.

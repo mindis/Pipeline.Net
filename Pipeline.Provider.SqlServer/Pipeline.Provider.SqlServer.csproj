@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.1.7\lib\CfgNet.dll</HintPath>
+    <Reference Include="CfgNet, Version=0.1.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.1.8\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -45,7 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SqlEntityOutputKeysReader.cs" />
+    <Compile Include="SqlEntityKeysReader.cs" />
     <Compile Include="SqlInitializer.cs" />
     <Compile Include="SqlEntityBulkInserter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

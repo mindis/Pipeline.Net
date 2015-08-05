@@ -50,7 +50,7 @@ namespace Pipeline.Provider.SqlServer {
                 while (reader.Read()) {
                     _rowCount++;
                     _input.Increment();
-                    yield return _rowCreator.Create(reader, _input, _input.RowCapacity, _input.InputFields);
+                    yield return _rowCreator.Create(reader, _input.RowCapacity, _input.InputFields);
                 }
 
                 _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);

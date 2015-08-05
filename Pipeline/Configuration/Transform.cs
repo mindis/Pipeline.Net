@@ -167,15 +167,14 @@ namespace Pipeline.Configuration {
       [Cfg(value = "")]
       public string Xpath { get; set; }
 
-      [Cfg()]
+      [Cfg]
       public List<Parameter> Parameters { get; set; }
-      [Cfg()]
+      [Cfg]
       public List<NameReference> Scripts { get; set; }
-      [Cfg()]
+      [Cfg]
       public List<NameReference> Templates { get; set; }
-      [Cfg()]
-      public List<Branch> Branches { get; set; }
-      [Cfg()]
+
+      [Cfg]
       public List<Field> Fields { get; set; }
 
       public bool IsShortHand { get; set; }
@@ -190,7 +189,7 @@ namespace Pipeline.Configuration {
       [Cfg(value = "sunday", domain = "friday,monday,saturday,sunday,tuesday,thursday,wednesday", toLower = true)]
       public string DayOfWeek { get; set; }
 
-      [Cfg()]
+      [Cfg]
       public DateTime Date { get; set; }
 
       /// <summary>

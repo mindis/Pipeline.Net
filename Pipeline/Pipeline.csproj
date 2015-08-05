@@ -36,9 +36,9 @@
   <ItemGroup>
     <Compile Include="IEntityOutputKeysReader.cs" />
     <Compile Include="InputContext.cs" />
+    <Compile Include="IConnectionContext.cs" />
     <Compile Include="OutputContext.cs" />
     <Compile Include="Configuration\Action.cs" />
-    <Compile Include="Configuration\Branch.cs" />
     <Compile Include="Configuration\Connection.cs" />
     <Compile Include="Configuration\Delimiter.cs" />
     <Compile Include="Configuration\Empty.cs" />
@@ -51,7 +51,7 @@
     <Compile Include="IIncrement.cs" />
     <Compile Include="IMapReader.cs" />
     <Compile Include="Incrementer.cs" />
-    <Compile Include="IPipelineContext.cs" />
+    <Compile Include="IContext.cs" />
     <Compile Include="IScript.cs" />
     <Compile Include="IScriptParser.cs" />
     <Compile Include="Configuration\Join.cs" />
@@ -140,8 +140,8 @@
     <Compile Include="Validators\IsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="CfgNet, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.1.7\lib\CfgNet.dll</HintPath>
+    <Reference Include="CfgNet, Version=0.1.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.1.8\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Jint, Version=2.5.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">

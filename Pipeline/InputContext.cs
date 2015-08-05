@@ -4,7 +4,7 @@ using System.Linq;
 using Pipeline.Configuration;
 
 namespace Pipeline {
-    public class InputContext : IIncrement, IContext {
+    public class InputContext : IConnectionContext {
         PipelineContext _context;
         IIncrement _incrementer;
 

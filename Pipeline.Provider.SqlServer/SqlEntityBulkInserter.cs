@@ -5,7 +5,6 @@ using Dapper;
 using Pipeline.Extensions;
 using System.Linq;
 using Pipeline.Configuration;
-using System;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -13,9 +12,10 @@ namespace Pipeline.Provider.SqlServer {
 
         SqlBulkCopyOptions _bulkCopyOptions;
         readonly OutputContext _output;
-        readonly SqlEntityOutputKeysReader _outputKeysReader;
+        readonly SqlEntityMatchingKeysReader _outputKeysReader;
         readonly Field _hashCode;
         readonly SqlEntityUpdater _sqlUpdater;
+        readonly Field[] _keys;
 
         public SqlEntityBulkInserter(OutputContext output) {
             _output = output;
@@ -27,7 +27,8 @@ namespace Pipeline.Provider.SqlServer {
             TurnOptionOff(SqlBulkCopyOptions.FireTriggers);
             TurnOptionOn(SqlBulkCopyOptions.KeepNulls);
 
-            _outputKeysReader = new SqlEntityOutputKeysReader(output);
+            _keys = output.Entity.GetPrimaryKey();
+            _outputKeysReader = new SqlEntityMatchingKeysReader(output, _keys);
             _hashCode = output.Entity.CalculatedFields.First(f => f.Name == Constants.TflHashCode);
             _sqlUpdater = new SqlEntityUpdater(output);
         }
@@ -70,30 +71,45 @@ namespace Pipeline.Provider.SqlServer {
                 }
                 bulkCopy.ColumnMappings.Add(counter, counter); //TflBatchId
 
-                foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
+                foreach (var part in rows.Partition(_output.Connection.BatchSize)) {
 
                     var inserts = new List<DataRow>(_output.Connection.BatchSize);
                     var updates = new List<Row>();
                     var batchCount = 0;
 
                     if (firstRun) {
-                        foreach (var row in batch) {
+                        foreach (var row in part) {
                             inserts.Add(GetDataRow(dt, row));
                             batchCount++;
                         }
                     } else {
-                        var output = _outputKeysReader.Read(batch);
-                        foreach (var row in batch) {
-                            var existing = output[batchCount][_hashCode];
-                            if (existing.Equals(0)) {  // insert
+                        var matching = _outputKeysReader.Read(part);
+
+                        var batch = part.ToArray();
+                        for (int i = 0, batchLength = batch.Length; i < batchLength; i++) {
+                            var row = batch[i];
+                            var match = matching.FirstOrDefault(f => f.Match(_keys, row));
+                            if (match == null) {
                                 inserts.Add(GetDataRow(dt, row));
                             } else {
-                                if (!existing.Equals(row[_hashCode])) { //update
+                                if (!match[_hashCode].Equals(row[_hashCode])) { //update
                                     updates.Add(row);
                                 }
                             }
                             batchCount++;
                         }
+
+                        //var query =
+                        //    from item in part
+                        //    from match in matching
+                        //        .Where(m => m.Match(_keys, item))
+                        //        .DefaultIfEmpty()
+                        //    select new Row(item, match != null, match != null && !item[_hashCode].Equals(match[_hashCode]));
+
+                        //var queried = query.ToArray();
+
+                        //inserts.AddRange(queried.Where(r => !r.Exists).Select(r=>GetDataRow(dt,r)));
+                        //updates.AddRange(queried.Where(r => r.Exists && r.Delta));
                     }
 
                     if (inserts.Any()) {

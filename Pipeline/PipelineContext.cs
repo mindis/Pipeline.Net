@@ -8,7 +8,6 @@ using System.Linq;
 namespace Pipeline {
    public class PipelineContext : IContext {
       PipelineActivity _activity;
-
       public Process Process { get; set; }
       public Entity Entity { get; set; }
       public Field Field { get; set; }

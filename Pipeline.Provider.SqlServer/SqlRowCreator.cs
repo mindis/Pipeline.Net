@@ -14,8 +14,8 @@ namespace Pipeline.Provider.SqlServer {
             _context = context;  
         }
 
-        public Row Create(IDataReader reader, IContext context, int rowCapacity, Field[] fields) {
-            var row = new Row(rowCapacity, context.Entity.IsMaster);
+        public Row Create(IDataReader reader, int rowCapacity, Field[] fields) {
+            var row = new Row(rowCapacity, _context.Entity.IsMaster);
             for (var i = 0; i < reader.FieldCount; i++) {
                 var field = fields[i];
                 if (field.Type == "string") {
@@ -27,7 +27,7 @@ namespace Pipeline.Provider.SqlServer {
                         row[field] = value == DBNull.Value ? null : value;
                     }
                 } else {
-                    var value = reader[i];
+                    var value = reader.GetValue(i);
                     row[field] = value == DBNull.Value ? null : value;
                 }
             }

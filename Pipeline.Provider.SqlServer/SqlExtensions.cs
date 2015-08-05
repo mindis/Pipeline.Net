@@ -303,13 +303,6 @@ namespace Pipeline.Provider.SqlServer {
             );
         }
 
-        public static string SqlCreateKeysTable(this OutputContext c, string name) {
-            var columnsAndDefinitions = string.Join(",", c.Entity.GetAllFields().Where(f=>f.PrimaryKey).Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
-            var sql = string.Format(@"CREATE TABLE #{0}({1})", name, columnsAndDefinitions);
-            c.Debug(sql);
-            return sql; 
-        }
-
         public static string GetConnectionString(this Connection c) {
             if (c.ConnectionString != string.Empty) {
                 return c.ConnectionString;

@@ -5,7 +5,7 @@ using Pipeline.Configuration;
 
 namespace Pipeline {
 
-    public class OutputContext : IContext, IIncrement {
+    public class OutputContext : IConnectionContext {
         IIncrement _incrementer;
         IContext _context;
 

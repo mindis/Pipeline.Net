@@ -5,53 +5,76 @@ using Pipeline.Configuration;
 using System;
 
 namespace Pipeline {
-   public class Row : IRow {
-      readonly object[] _storage;
-      readonly string[] _stringStorage;
-      readonly Func<IField,short> _index;
+    public class Row : IRow {
+        readonly object[] _storage;
+        readonly string[] _stringStorage;
+        readonly bool _isMaster;
+        readonly Func<IField, short> _index;
 
-      public Row(int capacity, bool isMaster) {
-         _storage = new object[capacity];
-         _stringStorage = new string[capacity];
-         if (isMaster) {
-            _index = (f) => { return f.MasterIndex; };
-         } else {
-            _index = (f) => { return f.Index; };
-         }
-      }
+        public bool Exists { get; set; }
+        public bool Delta { get; set; }
 
-      public object this[IField field] {
-         get { return _storage[_index(field)]; }
-         set { _storage[_index(field)] = value; }
-      }
+        public Row(Row row, bool exists, bool delta) {
+            _storage = row._storage;
+            _stringStorage = row._stringStorage;
+            Exists = exists;
+            Delta = delta;
+            if (_isMaster) {
+                _index = (f) => { return f.MasterIndex; };
+            } else {
+                _index = (f) => { return f.Index; };
+            }
+        }
 
-      public string GetString(IField field) {
-         var i = _index(field);
-         return _stringStorage[i] ?? _storage[i].ToString();
-      }
+        public Row(int capacity, bool isMaster) {
+            _isMaster = isMaster;
+            _storage = new object[capacity];
+            _stringStorage = new string[capacity];
+            if (_isMaster) {
+                _index = (f) => { return f.MasterIndex; };
+            } else {
+                _index = (f) => { return f.Index; };
+            }
+        }
 
-      public void SetString(IField field, string value) {
-         var i = _index(field);
-         _stringStorage[i] = value;
-         _storage[i] = value;
-      }
+        public object this[IField field] {
+            get { return _storage[_index(field)]; }
+            set { _storage[_index(field)] = value; }
+        }
 
-      public override string ToString() {
-         return string.Join("|", _storage);
-      }
+        public string GetString(IField field) {
+            var i = _index(field);
+            return _stringStorage[i] ?? _storage[i].ToString();
+        }
 
-      public ExpandoObject ToExpandoObject(Field[] fields) {
-         var parameters = new ExpandoObject();
-         var dict = ((IDictionary<string, object>)parameters);
-         foreach (var field in fields) {
-            dict.Add(field.FieldName(), _storage[_index(field)]);
-         }
-         return parameters;
-      }
+        public void SetString(IField field, string value) {
+            var i = _index(field);
+            _stringStorage[i] = value;
+            _storage[i] = value;
+        }
 
-      public IEnumerable<object> ToEnumerable(Field[] fields) {
-         return fields.Select(f => _storage[_index(f)]);
-      }
+        public override string ToString() {
+            return string.Join("|", _storage);
+        }
 
-   }
+        public ExpandoObject ToExpandoObject(Field[] fields) {
+            var parameters = new ExpandoObject();
+            var dict = ((IDictionary<string, object>)parameters);
+            foreach (var field in fields) {
+                dict.Add(field.FieldName(), _storage[_index(field)]);
+            }
+            return parameters;
+        }
+
+        public IEnumerable<object> ToEnumerable(Field[] fields) {
+            return fields.Select(f => _storage[_index(f)]);
+        }
+
+        public bool Match(Field[] fields, Row other) {
+            if (fields.Length > 1)
+                return Enumerable.SequenceEqual(fields.Select(f => this[f]), fields.Select(f => other[f]));
+            return this[fields[0]].Equals(other[fields[0]]);
+        }
+
+    }
 }

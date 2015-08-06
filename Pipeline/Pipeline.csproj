@@ -97,6 +97,7 @@
     <Compile Include="NullMasterUpdater.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
+    <Compile Include="Transformers\System\TflHashCodeTransform.cs" />
     <Compile Include="Transformers\JoinTransform.cs" />
     <Compile Include="Transformers\ToLowerTransform.cs" />
     <Compile Include="Transformers\MapTransform.cs" />

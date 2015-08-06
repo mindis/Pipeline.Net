@@ -23,7 +23,7 @@ namespace Pipeline.Provider.SqlServer {
                         row.SetString(field, reader.IsDBNull(i) ? null : reader.GetString(i));
                     } else {
                         TypeMismatch(field, reader, i);
-                        var value = reader[i];
+                        var value = reader.GetValue(i);
                         row[field] = value == DBNull.Value ? null : value;
                     }
                 } else {

@@ -92,7 +92,7 @@ namespace Pipeline.Provider.SqlServer {
                             if (match == null) {
                                 inserts.Add(GetDataRow(dt, row));
                             } else {
-                                if (!match[_hashCode].Equals(row[_hashCode])) { //update
+                                if (!match.TflHashCode.Equals(row.TflHashCode)) {
                                     updates.Add(row);
                                 }
                             }

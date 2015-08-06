@@ -8,29 +8,30 @@ namespace Pipeline {
     public class Row : IRow {
         readonly object[] _storage;
         readonly string[] _stringStorage;
-        readonly bool _isMaster;
+        //readonly bool _isMaster;
         readonly Func<IField, short> _index;
 
-        public bool Exists { get; set; }
-        public bool Delta { get; set; }
+        //public bool Exists { get; set; }
+        //public bool Delta { get; set; }
+        public int TflHashCode { get; set; }
 
-        public Row(Row row, bool exists, bool delta) {
-            _storage = row._storage;
-            _stringStorage = row._stringStorage;
-            Exists = exists;
-            Delta = delta;
-            if (_isMaster) {
-                _index = (f) => { return f.MasterIndex; };
-            } else {
-                _index = (f) => { return f.Index; };
-            }
-        }
+        //public Row(Row row, bool exists, bool delta) {
+        //    _storage = row._storage;
+        //    _stringStorage = row._stringStorage;
+        //    Exists = exists;
+        //    Delta = delta;
+        //    if (_isMaster) {
+        //        _index = (f) => { return f.MasterIndex; };
+        //    } else {
+        //        _index = (f) => { return f.Index; };
+        //    }
+        //}
 
         public Row(int capacity, bool isMaster) {
-            _isMaster = isMaster;
+            //_isMaster = isMaster;
             _storage = new object[capacity];
             _stringStorage = new string[capacity];
-            if (_isMaster) {
+            if (isMaster) {
                 _index = (f) => { return f.MasterIndex; };
             } else {
                 _index = (f) => { return f.Index; };

@@ -143,16 +143,12 @@ namespace Pipeline.Configuration {
         }
 
         void ModifyTflHashCode() {
-            var parameters = Fields.Where(f => f.Input && !f.PrimaryKey).OrderBy(f => f.Index).Select(f => GetDefaultOf<Parameter>(p => { p.Entity = Alias; p.Field = f.Alias; }));
             var hash = GetDefaultOf<Field>(f => {
                 f.Name = Constants.TflHashCode;
                 f.Alias = Constants.TflHashCode;
                 f.Type = "int";
                 f.Input = false;
                 f.Output = true;
-                f.Transforms = new List<Transform>() {
-               GetDefaultOf<Transform>(t => { t.Method = "hashcode"; t.Parameters = parameters.ToList(); })
-            };
             });
             CalculatedFields.Add(hash);
         }

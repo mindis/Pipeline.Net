@@ -14,9 +14,10 @@ namespace Pipeline.Test {
 
     public class PipelineModule : Module {
 
-        const string DefaultTransform = "default";
-        const string SqlMinDateTransform = "sqlmindate";
-        const string TruncateTransform = "truncate";
+        const string DefaultTransform = "sys.default";
+        const string SqlMinDateTransform = "sys.sqlmindate";
+        const string TruncateTransform = "sys.truncate";
+        const string TflHashCodeTransform = "sys.hashcode";
         readonly LogLevel _level;
 
         public Root Root { get; set; }
@@ -61,9 +62,11 @@ namespace Pipeline.Test {
             // extract
             pipeline.Register(ctx.ResolveNamed<IRead>(entity.Key));
 
-            // transforms
+            // system transforms
             pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + DefaultTransform));
+            pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + TflHashCodeTransform));
 
+            // configured transforms
             foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
                 if (field.RequiresCompositeValidator()) {
                     pipeline.Register(ctx.ResolveNamed<ITransform>(field.Key));
@@ -139,6 +142,7 @@ namespace Pipeline.Test {
                 }).Named<IRead>(entity.Key);
 
                 RegisterDefaultTransform(builder, process, entity);
+                RegisterTflHashCodeTransform(builder, process, entity);
 
                 foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
 
@@ -195,7 +199,7 @@ namespace Pipeline.Test {
         static void RegisterSqlMinDateTransform(ContainerBuilder builder, Process process, Entity entity) {
             if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
                 builder.Register<ITransform>((ctx) => {
-                    var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + SqlMinDateTransform; }));
+                    var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = SqlMinDateTransform; }));
                     return new MinDateTransform(sqlDatesContext, new DateTime(1753, 1, 1));
                 }).Named<ITransform>(entity.Key + SqlMinDateTransform);
             }
@@ -203,14 +207,20 @@ namespace Pipeline.Test {
 
         static void RegisterDefaultTransform(ContainerBuilder builder, Process process, Entity entity) {
             builder.Register<ITransform>((ctx) => {
-                return new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + DefaultTransform; })));
+                return new DefaultTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = DefaultTransform; })));
             }).Named<ITransform>(entity.Key + DefaultTransform);
+        }
+
+        static void RegisterTflHashCodeTransform(ContainerBuilder builder, Process process, Entity entity) {
+            builder.Register<ITransform>((ctx) => {
+                return new TflHashCodeTransform(new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = TflHashCodeTransform; })));
+            }).Named<ITransform>(entity.Key + TflHashCodeTransform);
         }
 
         static void RegisterTruncateTransform(ContainerBuilder builder, Process process, Entity entity) {
             if (process.Connections.First(c => c.Name == "output").Provider != "internal") {
                 builder.Register<ITransform>((ctx) => {
-                    var stringTruncateContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = entity.Key + TruncateTransform; }));
+                    var stringTruncateContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = TruncateTransform; }));
                     return new StringTruncateTransfom(stringTruncateContext);
                 }).Named<ITransform>(entity.Key + TruncateTransform);
             }

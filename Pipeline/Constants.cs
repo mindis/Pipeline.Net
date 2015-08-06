@@ -3,30 +3,30 @@ using System.Collections.Generic;
 using System.Globalization;
 
 namespace Pipeline {
-   public static class Constants {
+    public static class Constants {
 
-      private static HashSet<string> _types;
-      private static Dictionary<string, object> _typeDefaults;
-      private static Dictionary<string, Type> _typeSystem;
-      private static Dictionary<string, Func<string, bool>> _canConvert;
+        static HashSet<string> _types;
+        static Dictionary<string, object> _typeDefaults;
+        static Dictionary<string, Type> _typeSystem;
+        static Dictionary<string, Func<string, bool>> _canConvert;
 
-      public const string ApplicationName = "Pipeline.Net";
-      public const string DefaultSetting = "[default]";
+        public const string ApplicationName = "Pipeline.Net";
+        public const string DefaultSetting = "[default]";
 
-      public const string TypeDomain = @"bool,boolean,byte,byte[],char,date,datetime,decimal,double,float,guid,int,int16,int32,int64,long,object,real,short,single,string,uint16,uint32,uint64";
+        public const string TypeDomain = @"bool,boolean,byte,byte[],char,date,datetime,decimal,double,float,guid,int,int16,int32,int64,long,object,real,short,single,string,uint16,uint32,uint64";
 
-      public const string ComparisonDomain = "Equal,NotEqual,LessThan,GreaterThan,LessThanEqual,GreaterThanEqual";
-      public const string ValidatorDomain = "contains";
+        public const string ComparisonDomain = "Equal,NotEqual,LessThan,GreaterThan,LessThanEqual,GreaterThanEqual";
+        public const string ValidatorDomain = "contains";
 
-      public const string TflHashCode = "TflHashCode";
+        public const string TflHashCode = "TflHashCode";
 
-      public static HashSet<string> TypeSet() {
-         return _types ?? (_types = new HashSet<string>(TypeDomain.Split(new[] { ',' })));
-      }
+        public static HashSet<string> TypeSet() {
+            return _types ?? (_types = new HashSet<string>(TypeDomain.Split(new[] { ',' })));
+        }
 
-      public static Dictionary<string, object> TypeDefaults() {
-         return _typeDefaults ?? (
-             _typeDefaults = new Dictionary<string, object> {
+        public static Dictionary<string, object> TypeDefaults() {
+            return _typeDefaults ?? (
+                _typeDefaults = new Dictionary<string, object> {
                     {"bool",false},
                     {"boolean",false},
                     {"byte",default(byte)},
@@ -51,28 +51,28 @@ namespace Pipeline {
                     {"uint16",default(UInt16)},
                     {"uint32",default(UInt32)},
                     {"uint64",default(UInt64)},
-             });
-      }
+                });
+        }
 
-      public static Dictionary<string, Func<string, bool>> CanConvert() {
-         bool boolOut;
-         byte byteOut;
-         char charOut;
-         decimal decOut;
-         DateTime dateOut;
-         double doubleOut;
-         float floatOut;
-         Single singleOut;
-         Guid guidOut;
-         int intOut;
-         Int16 int16Out;
-         long longOut;
-         UInt16 uInt16Out;
-         UInt32 uInt32Out;
-         UInt64 uInt64Out;
+        public static Dictionary<string, Func<string, bool>> CanConvert() {
+            bool boolOut;
+            byte byteOut;
+            char charOut;
+            decimal decOut;
+            DateTime dateOut;
+            double doubleOut;
+            float floatOut;
+            Single singleOut;
+            Guid guidOut;
+            int intOut;
+            Int16 int16Out;
+            long longOut;
+            UInt16 uInt16Out;
+            UInt32 uInt32Out;
+            UInt64 uInt64Out;
 
-         return _canConvert ?? (
-             _canConvert = new Dictionary<string, Func<string, bool>> {
+            return _canConvert ?? (
+                _canConvert = new Dictionary<string, Func<string, bool>> {
                     {"bool",s=> Boolean.TryParse(s, out boolOut)},
                     {"boolean",s=> Boolean.TryParse(s, out boolOut)},
                     {"byte",s=>byte.TryParse(s, out byteOut)},
@@ -97,12 +97,12 @@ namespace Pipeline {
                     {"uint16",s=>UInt16.TryParse(s, out uInt16Out)},
                     {"uint32",s=>UInt32.TryParse(s, out uInt32Out)},
                     {"uint64",s=>UInt64.TryParse(s, out uInt64Out)}
-             });
-      }
+                });
+        }
 
-      public static Dictionary<string, Type> TypeSystem() {
-         return _typeSystem ?? (
-             _typeSystem = new Dictionary<string, Type> {
+        public static Dictionary<string, Type> TypeSystem() {
+            return _typeSystem ?? (
+                _typeSystem = new Dictionary<string, Type> {
                     {"bool", typeof(Boolean)},
                     {"boolean",typeof(Boolean)},
                     {"byte",typeof(byte)},
@@ -127,17 +127,17 @@ namespace Pipeline {
                     {"uint16",typeof(UInt16)},
                     {"uint32",typeof(UInt32)},
                     {"uint64",typeof(UInt64)},
-             });
-      }
+                });
+        }
 
-      public static string GetExcelName(int index) {
-         var name = Convert.ToString((char)('A' + (index % 26)));
-         while (index >= 26) {
-            index = (index / 26) - 1;
-            name = System.Convert.ToString((char)('A' + (index % 26))) + name;
-         }
-         return name;
-      }
+        public static string GetExcelName(int index) {
+            var name = Convert.ToString((char)('A' + (index % 26)));
+            while (index >= 26) {
+                index = (index / 26) - 1;
+                name = System.Convert.ToString((char)('A' + (index % 26))) + name;
+            }
+            return name;
+        }
 
-   }
+    }
 }

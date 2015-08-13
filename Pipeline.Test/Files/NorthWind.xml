@@ -39,8 +39,8 @@
          </file-inspection>
 
          <connections>
-            <add name="input" connection-string="Server=@(SqlServer);Database=NorthWind;Trusted_Connection=True;" />
-            <add name="output" database="NorthWindStar" port="1433" />
+            <add name="input" connection-string="Server=@(SqlServer);Database=NorthWind;Trusted_Connection=True;" batch-size="100" />
+            <add name="output" database="NorthWindStar" port="1433" batch-size="500" />
          </connections>
 
          <maps>

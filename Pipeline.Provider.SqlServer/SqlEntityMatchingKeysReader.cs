@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Pipeline.Configuration;
-using System;
 
 namespace Pipeline.Provider.SqlServer {
-    public class SqlEntityMatchingKeysReader : IEntityOutputKeysReader {
+    public class SqlEntityMatchingKeysReader : IEntityMatchingReader {
 
         readonly IConnectionContext _context;
         readonly Field[] _keys;
@@ -14,7 +13,6 @@ namespace Pipeline.Provider.SqlServer {
         readonly string _insert;
         readonly string _query;
         readonly SqlRowCreator _rowCreator;
-        readonly string _tempTable;
         readonly int _rowCapacity;
         readonly Field _hashCode;
         readonly string _create;
@@ -43,7 +41,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         static string SqlCreateKeysTable(IConnectionContext context, string tempTable) {
-            var columnsAndDefinitions = string.Join(",", context.Entity.GetAllFields().Where(f => f.PrimaryKey).Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
+            var columnsAndDefinitions = string.Join(",", context.Entity.GetPrimaryKey().Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
             var sql = string.Format(@"CREATE TABLE #{0}({1})", tempTable, columnsAndDefinitions);
             context.Debug(sql);
             return sql;
@@ -53,7 +51,7 @@ namespace Pipeline.Provider.SqlServer {
             var names = string.Join(",", keys.Select(f => "k.[" + f.FieldName() + "]"));
             var table = context.Entity.OutputTableName(context.Process.Name);
             var joins = string.Join(" AND ", keys.Select(f => "o.[" + f.FieldName() + "] = k.[" + f.FieldName() + "]"));
-            var sql = string.Format("SELECT {0},ISNULL(o.[{1}],0) AS [{1}] FROM #{2} k WITH (NOLOCK) INNER JOIN [{3}] o WITH (NOLOCK) ON ({4})", names, hashCode.FieldName(), tempTable, table, joins);
+            var sql = string.Format("SELECT {0},o.[{1}] FROM #{2} k WITH (NOLOCK) INNER JOIN [{3}] o WITH (NOLOCK) ON ({4})", names, hashCode.FieldName(), tempTable, table, joins);
             context.Debug(sql);
             return sql;
         }

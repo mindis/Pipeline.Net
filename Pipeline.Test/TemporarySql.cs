@@ -20,7 +20,7 @@ namespace Pipeline.Test {
     <processes>
         <add name='test'>
             <connections>
-                <add name='input' provider='sqlserver' server='localhost' database='ClevestAclara' />
+                <add name='input' provider='sqlserver' server='localhost' database='ClevestAclara' batch-size='0' />
                 <add name='output' provider='sqlserver' server='localhost' database='TflAclara' />
             </connections>
             <entities>  
@@ -160,7 +160,7 @@ namespace Pipeline.Test {
             var process = module.Root.Processes.First();
 
             foreach(var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
-                //pipeline.Initialize();
+                pipeline.Initialize();
                 pipeline.Execute();
             }
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Pipeline {
-    public interface IEntityOutputKeysReader {
+    public interface IEntityMatchingReader {
         Row[] Read(IEnumerable<Row> input);
     }
 

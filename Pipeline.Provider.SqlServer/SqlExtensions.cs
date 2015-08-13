@@ -57,7 +57,7 @@ namespace Pipeline.Provider.SqlServer {
             return string.Concat(sqlDataType, length, dimensions);
         }
 
-        static string SqlSchemaPrefix(this InputContext c) {
+        public static string SqlSchemaPrefix(this InputContext c) {
             return c.Entity.Schema == string.Empty ? string.Empty : "[" + c.Entity.Schema + "].";
         }
 
@@ -227,8 +227,7 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlSelectInput(this InputContext c) {
-            var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
+        public static string SqlSelectInput(this InputContext c, Field[] fields) {
             var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
 
@@ -237,8 +236,8 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlSelectInputWithMaxVersion(this InputContext c) {
-            var fieldList = string.Join(",", c.InputFields.Select(f => "[" + f.Name + "]"));
+        public static string SqlSelectInputWithMaxVersion(this InputContext c, Field[] fields) {
+            var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
 
             var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
@@ -246,8 +245,7 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlSelectInputWithMinAndMaxVersion(this InputContext c) {
-            var fields = c.Entity.GetAllFields().Where(f => f.Input).ToArray();
+        public static string SqlSelectInputWithMinAndMaxVersion(this InputContext c, Field[] fields) {
             var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
             var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] >= @MinVersion AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);

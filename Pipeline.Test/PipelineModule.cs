@@ -135,7 +135,15 @@ namespace Pipeline.Test {
                         case "internal":
                             return new DataSetEntityReader(entityInput);
                         case "sqlserver":
-                            return new SqlEntityReader(entityInput);
+                            if(entityInput.Connection.BatchSize == 0) {
+                                return new SqlEntityReader(entityInput, entityInput.InputFields);
+                            }
+                            return new SqlEntityBatchReader(
+                                entityInput, 
+                                new SqlEntityReader(entityInput,
+                                    entityInput.Entity.GetPrimaryKey()
+                                )
+                            );
                         default:
                             return new NullEntityReader();
                     }
@@ -173,7 +181,6 @@ namespace Pipeline.Test {
                     switch (provider) {
                         case "sqlserver":
                             return new SqlEntityBulkInserter(entityOutput);
-                        //return new SqlEntityWriter(entityOutput, entityOutput.SqlInsertIntoOutput);
                         default:
                             return new NullEntityWriter();
                     }

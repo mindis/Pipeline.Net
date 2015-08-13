@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="IEntityOutputKeysReader.cs" />
+    <Compile Include="IEntityMatchingKeysReader.cs" />
     <Compile Include="InputContext.cs" />
     <Compile Include="IConnectionContext.cs" />
     <Compile Include="OutputContext.cs" />

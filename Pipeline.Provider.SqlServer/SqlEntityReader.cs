@@ -2,18 +2,24 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Dapper;
+using Pipeline.Configuration;
 
 namespace Pipeline.Provider.SqlServer {
 
+    /// <summary>
+    /// Writes one query to read all the data.
+    /// </summary>
     public class SqlEntityReader : IRead {
 
         int _rowCount;
         HashSet<int> _errors = new HashSet<int>();
         InputContext _input;
         readonly SqlRowCreator _rowCreator;
+        readonly Field[] _fields;
 
-        public SqlEntityReader(InputContext input) {
+        public SqlEntityReader(InputContext input, Field[] fields) {
             _input = input;
+            _fields = fields;
             _rowCreator = new SqlRowCreator(input);
         }
 
@@ -27,16 +33,16 @@ namespace Pipeline.Provider.SqlServer {
                 LoadVersion(cn);
 
                 if (_input.Entity.MaxVersion == null) {
-                    cmd.CommandText = _input.SqlSelectInput();
+                    cmd.CommandText = _input.SqlSelectInput(_fields);
                 } else {
                     if (_input.Entity.MinVersion == null) {
-                        cmd.CommandText = _input.SqlSelectInputWithMaxVersion();
+                        cmd.CommandText = _input.SqlSelectInputWithMaxVersion(_fields);
                         cmd.Parameters.AddWithValue("@Version", _input.Entity.MaxVersion);
                     } else {
                         if (_input.Entity.MinVersion == _input.Entity.MaxVersion) {
                             yield break;
                         }
-                        cmd.CommandText = _input.SqlSelectInputWithMinAndMaxVersion();
+                        cmd.CommandText = _input.SqlSelectInputWithMinAndMaxVersion(_fields);
                         cmd.Parameters.AddWithValue("@MinVersion", _input.Entity.MinVersion);
                         cmd.Parameters.AddWithValue("@MaxVersion", _input.Entity.MaxVersion);
                     }
@@ -50,7 +56,7 @@ namespace Pipeline.Provider.SqlServer {
                 while (reader.Read()) {
                     _rowCount++;
                     _input.Increment();
-                    yield return _rowCreator.Create(reader, _input.RowCapacity, _input.InputFields);
+                    yield return _rowCreator.Create(reader, _input.RowCapacity, _fields);
                 }
 
                 _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);

@@ -16,7 +16,7 @@ namespace Pipeline.Test {
 
             var northwind = File.ReadAllText(@"Files\Northwind.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(northwind, shorthand);
+            var module = new PipelineModule(northwind, shorthand, Logging.LogLevel.Debug);
 
             if (module.Root.Errors().Any()) {
                 foreach (var error in module.Root.Errors()) {
@@ -37,7 +37,7 @@ namespace Pipeline.Test {
             var process = module.Root.Processes.First();
 
             foreach (var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
-                // pipeline.Initialize();
+                //pipeline.Initialize();
                 pipeline.Execute();
             }
 

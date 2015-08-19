@@ -20,7 +20,7 @@ namespace Pipeline.Provider.SqlServer {
                     cn.Open();
                     var sql = _output.SqlUpdateMaster();
                     var rowCount = cn.Execute(sql, new { TflBatchId = _output.Entity.BatchId, MasterTflBatchId = _master.BatchId }, null, _output.Connection.Timeout, System.Data.CommandType.Text);
-                    _output.Info(rowCount + " Updated in {0}", _master.Alias);
+                    _output.Info(rowCount + " updates to master");
                 }
             }
         }

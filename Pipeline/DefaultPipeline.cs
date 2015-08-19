@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Transformers;
+using Pipeline.Transformers.System;
 
 namespace Pipeline {
     public class DefaultPipeline : IEntityPipeline {
@@ -13,9 +14,14 @@ namespace Pipeline {
         protected IUpdate MasterUpdater { get; private set; }
         protected List<ITransform> Transformers { get; private set; }
 
-        public DefaultPipeline(IEntityController controller) {
+        readonly PipelineContext _context;
+
+        public DefaultPipeline(IEntityController controller, IContext context) {
+            _context = (PipelineContext)context;
             _controller = controller;
             Transformers = new List<ITransform>();
+            Transformers.Add(new DefaultTransform(_context));
+            Transformers.Add(new TflHashCodeTransform(_context));
         }
 
         public void Initialize() {
@@ -46,6 +52,7 @@ namespace Pipeline {
         }
 
         public virtual IEnumerable<Row> Run() {
+            Transformers.Add(new StringTruncateTransfom(_context));
             Writer.LoadVersion();
             return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
         }

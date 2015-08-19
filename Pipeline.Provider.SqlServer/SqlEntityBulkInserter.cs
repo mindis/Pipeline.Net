@@ -47,7 +47,6 @@ namespace Pipeline.Provider.SqlServer {
 
         public void Write(IEnumerable<Row> rows) {
             var firstRun = _output.Entity.IsFirstRun();
-            var count = 0;
 
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
                 cn.Open();
@@ -98,18 +97,6 @@ namespace Pipeline.Provider.SqlServer {
                             }
                             batchCount++;
                         }
-
-                        //var query =
-                        //    from item in part
-                        //    from match in matching
-                        //        .Where(m => m.Match(_keys, item))
-                        //        .DefaultIfEmpty()
-                        //    select new Row(item, match != null, match != null && !item[_hashCode].Equals(match[_hashCode]));
-
-                        //var queried = query.ToArray();
-
-                        //inserts.AddRange(queried.Where(r => !r.Exists).Select(r=>GetDataRow(dt,r)));
-                        //updates.AddRange(queried.Where(r => r.Exists && r.Delta));
                     }
 
                     if (inserts.Any()) {
@@ -119,13 +106,15 @@ namespace Pipeline.Provider.SqlServer {
 
                     if (updates.Any()) {
                         _sqlUpdater.Write(updates);
+                        _output.Entity.Updates += updates.Count;
                     }
 
                     _output.Increment(batchCount);
-                    count += batchCount;
                 }
-                _output.Info("{0} to {1}", count, _output.Connection.Name);
 
+                _output.Info("{0} inserts into {1}", _output.Entity.Inserts, _output.Connection.Name);
+
+                _output.Info("{0} updates to {1}", _output.Entity.Updates, _output.Connection.Name);
             }
 
         }

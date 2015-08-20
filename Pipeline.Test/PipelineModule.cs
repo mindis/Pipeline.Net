@@ -2,25 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autofac;
-using Pipeline.Configuration;
-using Pipeline.Linq;
 using Pipeline.Logging;
-using Pipeline.Provider.SqlServer;
+using Pipeline.Configuration;
 using Pipeline.Transformers;
+using Pipeline.Provider.SqlServer;
+using Pipeline.Linq;
 using Pipeline.Validators;
 using Pipeline.Transformers.System;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
     public class PipelineModule : Module {
 
         const string SqlMinDateTransform = "sys.sqlmindate";
-        const string TruncateTransform = "sys.truncate";
         readonly LogLevel _level;
 
         public Root Root { get; set; }
 
-        public PipelineModule(string cfg, string shorthand, LogLevel level = LogLevel.Info) {
+        public PipelineModule(
+            string cfg, 
+            string shorthand, 
+            LogLevel level = LogLevel.Info
+        ) {
             _level = level;
             Root = new Root(cfg, shorthand, new JintParser());
         }
@@ -39,14 +43,27 @@ namespace Pipeline.Test {
         }
 
         static void RegisterProcess(ContainerBuilder builder, Process process) {
-            builder.Register((ctx) => {
+            builder.Register<IProcessController>((ctx) => {
+
                 var pipelines = new List<IEntityPipeline>();
                 foreach (var entity in process.Entities) {
                     var pipeline = ctx.ResolveNamed<IEntityPipeline>(entity.Key);
                     pipelines.Add(ResolveEntityPipeline(ctx, pipeline, process, entity));
                 }
-                return pipelines;
-            }).Named<IEnumerable<IEntityPipeline>>(process.Key);
+
+                var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
+                var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
+                IInitializer initializer = new NullInitializer();
+
+                if(process.Mode == "init") {
+                    switch (outputProvider) {
+                        case "sqlserver":
+                            initializer = new SqlInitializer(new OutputContext(context, new Incrementer(context)));
+                            break;
+                    }
+                }
+                return new ProcessController(initializer, pipelines);
+            }).Named<IProcessController>(process.Key);
         }
 
         static IEntityPipeline ResolveEntityPipeline(
@@ -81,39 +98,54 @@ namespace Pipeline.Test {
 
         static void RegisterEntities(ContainerBuilder builder, Process process) {
             foreach (var e in process.Entities) {
-
+                
                 var entity = e;
-                var entityContext = new PipelineContext(new NullLogger(), process, entity);
 
                 //controller
                 builder.Register<IEntityController>((ctx) => {
                     var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                     var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                     var output = new OutputContext(context, new Incrementer(context));
+
+                    IEntityController controller = new NullEntityController();
+
                     switch (provider) {
                         case "sqlserver":
-                            return new SqlEntityController(output, new SqlEntityInitializer(output));
+                            context.Debug("Registering sql server controller");
+                            var initializer = entity.Mode == "init" ? (IInitializer) new SqlEntityInitializer(output) : new NullInitializer();
+                            controller = new SqlEntityController(output, initializer);
+                            break;
                         default:
-                            return new NullEntityController();
+                            context.Debug("Registering null controller");
+                            break;
                     }
+
+                    return controller;
                 }).Named<IEntityController>(entity.Key);
 
                 var type = process.Pipeline == "defer" ? entity.Pipeline : process.Pipeline;
 
                 builder.Register<IEntityPipeline>((ctx) => {
-                    var pipeline = new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key), entityContext);
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+                    var pipeline = new DefaultPipeline(ctx.ResolveNamed<IEntityController>(entity.Key), context);
                     switch (type) {
                         case "parallel.linq":
+                            context.Debug("Registering {0} pipeline.", type);
                             return new Parallel(pipeline);
                         case "streams":
+                            context.Debug("Registering {0} pipeline.", type);
                             return new Streams.Serial(pipeline);
                         case "parallel.streams":
+                            context.Debug("Registering {0} pipeline.", type);
                             return new Streams.Parallel(pipeline);
                         case "linq.optimizer":
+                            context.Debug("Registering {0} pipeline.", type);
                             return new Linq.Optimizer.Serial(pipeline);
                         case "parallel.linq.optimizer":
+                            context.Debug("Registering {0} pipeline.", type);
                             return new Linq.Optimizer.Parallel(pipeline);
                         default:
+                            context.Debug("Registering linq pipeline.");
                             return pipeline;
                     }
                 }).Named<IEntityPipeline>(entity.Key);
@@ -125,11 +157,14 @@ namespace Pipeline.Test {
                     var entityInput = new InputContext(context, new Incrementer(context));
                     switch (connection.Provider) {
                         case "internal":
+                            context.Debug("Registering {0} provider", connection.Provider);
                             return new DataSetEntityReader(entityInput);
                         case "sqlserver":
-                            if(entityInput.Connection.BatchSize == 0) {
+                            if (entityInput.Entity.ReadSize == 0) {
+                                context.Debug("Registering {0} reader", connection.Provider);
                                 return new SqlEntityReader(entityInput, entityInput.InputFields);
                             }
+                            context.Debug("Registering {0} batch reader", connection.Provider);
                             return new SqlEntityBatchReader(
                                 entityInput, 
                                 new SqlEntityReader(entityInput,
@@ -137,6 +172,7 @@ namespace Pipeline.Test {
                                 )
                             );
                         default:
+                            context.Warn("Registering null reader", connection.Provider);
                             return new NullEntityReader();
                     }
                 }).Named<IRead>(entity.Key);
@@ -168,8 +204,10 @@ namespace Pipeline.Test {
                     var entityOutput = new OutputContext(context, incrementer);
                     switch (provider) {
                         case "sqlserver":
+                            context.Debug("Registering {0} writer", provider);
                             return new SqlEntityBulkInserter(entityOutput);
                         default:
+                            context.Warn("Registering null writer", provider);
                             return new NullEntityWriter();
                     }
                 }).Named<IWrite>(entity.Key);
@@ -182,8 +220,10 @@ namespace Pipeline.Test {
                     var entityOutput = new OutputContext(context, incrementer);
                     switch (provider) {
                         case "sqlserver":
+                            context.Debug("Registering {0} master updater", provider);
                             return new SqlMasterUpdater(entityOutput);
                         default:
+                            context.Warn("Registering null updater");
                             return new NullMasterUpdater();
                     }
                 }).Named<IUpdate>(entity.Key);
@@ -257,6 +297,7 @@ namespace Pipeline.Test {
                 case "tolower": return new ToLowerTransform(context);
                 case "join": return new JoinTransform(context);
                 case "map": return new MapTransform(context, ctx.ResolveNamed<IMapReader>(context.Transform.Map));
+                case "decompress": return new DecompressTransform(context);
 
                 case "contains": return new ContainsValidater(context);
                 case "is": return new IsValidator(context);

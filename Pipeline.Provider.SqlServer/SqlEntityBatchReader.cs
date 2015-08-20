@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using Pipeline.Extensions;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -29,7 +30,7 @@ namespace Pipeline.Provider.SqlServer {
         public IEnumerable<Row> Read() {
             using (var cn = new SqlConnection(_input.Connection.GetConnectionString())) {
                 cn.Open();
-                foreach (var batch in _reader.Read().Partition(_input.Connection.BatchSize)) {
+                foreach (var batch in _reader.Read().Partition(_input.Entity.ReadSize)) {
                     foreach(var row in _fieldsReader.Read(batch)) {
                         _rowCount++;
                         _input.Increment();

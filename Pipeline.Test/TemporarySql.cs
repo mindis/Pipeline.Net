@@ -5,6 +5,7 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Logging;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -20,11 +21,17 @@ namespace Pipeline.Test {
     <processes>
         <add name='test'>
             <connections>
-                <add name='input' provider='sqlserver' server='localhost' database='ClevestAclara' batch-size='0' />
+                <add name='input' 
+                     provider='sqlserver' 
+                     server='localhost' 
+                     database='ClevestAclara' />
                 <add name='output' provider='sqlserver' server='localhost' database='TflAclara' />
             </connections>
             <entities>  
-                <add name='WorkOrder' log-interval='1000' pipeline='linq' version='SS_RowVersion'>
+                <add name='WorkOrder' 
+                     log-interval='1000' 
+                     pipeline='linq' 
+                     version='SS_RowVersion'>
                     <fields>
 
                         <add name='WorkOrderKey' type='guid' primary-key='true' label='Work Order Key'/>
@@ -157,12 +164,19 @@ namespace Pipeline.Test {
             var builder = new ContainerBuilder();
             builder.RegisterModule(module);
             var container = builder.Build();
-            var process = module.Root.Processes.First();
 
-            foreach(var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
-                pipeline.Initialize();
-                pipeline.Execute();
+            // resolve and run
+            foreach (var process in module.Root.Processes) {
+                var controller = container.ResolveNamed<IProcessController>(process.Key);
+                controller.Initialize();
+                foreach (var pipeline in controller.EntityPipelines) {
+                    pipeline.Initialize();
+                    pipeline.Execute();
+                }
             }
+
+            // release
+            container.Dispose();
 
             //Assert.AreEqual(20088, output.Count());
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Transformers;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Linq {
 

@@ -5,6 +5,7 @@ using Dapper;
 using Pipeline.Extensions;
 using System.Linq;
 using Pipeline.Configuration;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -58,7 +59,7 @@ namespace Pipeline.Provider.SqlServer {
                 }
 
                 var bulkCopy = new SqlBulkCopy(cn, _bulkCopyOptions, null) {
-                    BatchSize = _output.Connection.BatchSize,
+                    BatchSize = _output.Entity.InsertSize,
                     BulkCopyTimeout = _output.Connection.Timeout,
                     DestinationTableName = "[" + _output.Entity.OutputTableName(_output.Process.Name) + "]",
                 };
@@ -70,9 +71,9 @@ namespace Pipeline.Provider.SqlServer {
                 }
                 bulkCopy.ColumnMappings.Add(counter, counter); //TflBatchId
 
-                foreach (var part in rows.Partition(_output.Connection.BatchSize)) {
+                foreach (var part in rows.Partition(_output.Entity.InsertSize)) {
 
-                    var inserts = new List<DataRow>(_output.Connection.BatchSize);
+                    var inserts = new List<DataRow>(_output.Entity.InsertSize);
                     var updates = new List<Row>();
                     var batchCount = 0;
 

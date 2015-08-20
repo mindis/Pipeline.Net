@@ -34,9 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="IEntityMatchingKeysReader.cs" />
+    <Compile Include="Interfaces\IEntityMatchingKeysReader.cs" />
     <Compile Include="InputContext.cs" />
-    <Compile Include="IConnectionContext.cs" />
+    <Compile Include="Interfaces\IConnectionContext.cs" />
+    <Compile Include="Interfaces\IProcessController.cs" />
     <Compile Include="OutputContext.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -48,12 +49,12 @@
     <Compile Include="Configuration\FileInspection.cs" />
     <Compile Include="Configuration\Filter.cs" />
     <Compile Include="Configuration\InputOutput.cs" />
-    <Compile Include="IIncrement.cs" />
-    <Compile Include="IMapReader.cs" />
+    <Compile Include="Interfaces\IIncrement.cs" />
+    <Compile Include="Interfaces\IMapReader.cs" />
     <Compile Include="Incrementer.cs" />
-    <Compile Include="IContext.cs" />
-    <Compile Include="IScript.cs" />
-    <Compile Include="IScriptParser.cs" />
+    <Compile Include="Interfaces\IContext.cs" />
+    <Compile Include="Interfaces\IScript.cs" />
+    <Compile Include="Interfaces\IScriptParser.cs" />
     <Compile Include="Configuration\Join.cs" />
     <Compile Include="Configuration\Log.cs" />
     <Compile Include="Configuration\Map.cs" />
@@ -77,10 +78,10 @@
     <Compile Include="Configuration\TransformFieldsMoveAdapter.cs" />
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
-    <Compile Include="IEntityController.cs" />
-    <Compile Include="IEntityInitializer.cs" />
-    <Compile Include="IEntityWriter.cs" />
-    <Compile Include="IUpdate.cs" />
+    <Compile Include="Interfaces\IEntityController.cs" />
+    <Compile Include="Interfaces\IEntityInitializer.cs" />
+    <Compile Include="Interfaces\IEntityWriter.cs" />
+    <Compile Include="Interfaces\IUpdate.cs" />
     <Compile Include="JintParser.cs" />
     <Compile Include="KeyType.cs" />
     <Compile Include="Logging\BaseLogger.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="NullMasterUpdater.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
+    <Compile Include="ProcessController.cs" />
     <Compile Include="Transformers\System\TflHashCodeTransform.cs" />
     <Compile Include="Transformers\JoinTransform.cs" />
     <Compile Include="Transformers\ToLowerTransform.cs" />
@@ -123,13 +125,13 @@
     <Compile Include="Transformers\HtmlDecodeTransform.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="IField.cs" />
-    <Compile Include="IEntityReader.cs" />
+    <Compile Include="Interfaces\IField.cs" />
+    <Compile Include="Interfaces\IEntityReader.cs" />
     <Compile Include="Extensions\IntExtensions.cs" />
-    <Compile Include="IRow.cs" />
+    <Compile Include="Interfaces\IRow.cs" />
     <Compile Include="DataSetEntityReader.cs" />
     <Compile Include="DefaultPipeline.cs" />
-    <Compile Include="IEntityPipeline.cs" />
+    <Compile Include="Interfaces\IEntityPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

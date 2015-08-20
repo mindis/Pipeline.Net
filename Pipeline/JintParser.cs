@@ -2,6 +2,7 @@
 using Jint.Parser;
 using System;
 using Pipeline.Extensions;
+using Pipeline.Interfaces;
 
 namespace Pipeline {
    public class JintParser : IScriptParser {

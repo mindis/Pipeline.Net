@@ -20,9 +20,9 @@ namespace Pipeline.Configuration {
         public bool ShouldUpdateMaster() {
             if (IsMaster)
                 return false;
-            if (IsFirstRun() && !Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize))
+            if (IsFirstRun())
                 return false;
-            return true;
+            return Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize);
         }
 
         public Field[] GetPrimaryKey() {
@@ -317,6 +317,18 @@ namespace Pipeline.Configuration {
         public int Inserts { get; set; }
         public int Updates { get; set; }
         public int Deletes { get; set; }
+
+        [Cfg(value=0)]
+        public int ReadSize { get; set; }
+
+        [Cfg(value =250)]
+        public int InsertSize { get; set; }
+
+        [Cfg(value = 50)]
+        public int UpdateSize { get; set; }
+
+        [Cfg(value ="default", domain ="init,default", toLower = true)]
+        public string Mode { get; set; }
 
     }
 }

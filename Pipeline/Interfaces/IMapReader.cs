@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Pipeline {
+namespace Pipeline.Interfaces {
    public interface IMapReader {
       IEnumerable<MapItem> Read(PipelineContext context); 
    }

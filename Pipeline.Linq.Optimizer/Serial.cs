@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Nessos.LinqOptimizer.CSharp;
 using Pipeline.Transformers;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Linq.Optimizer {
 

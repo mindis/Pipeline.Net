@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -14,7 +15,7 @@ namespace Pipeline.Test {
         public void EntityPipeline() {
 
             var pipelines = new TemporaryProcessPipelineComposer().Compose();
-            var person = pipelines.Last().Run().ToArray();
+            var person = pipelines.EntityPipelines.Last().Run().ToArray();
 
             Assert.AreEqual(3, person.Length);
 
@@ -22,7 +23,7 @@ namespace Pipeline.Test {
                 Console.WriteLine(row);
             }
 
-            var pet = pipelines.First().Run().ToArray();
+            var pet = pipelines.EntityPipelines.First().Run().ToArray();
             Assert.AreEqual(2, pet.Count());
 
             foreach (var row in pet) {
@@ -33,7 +34,7 @@ namespace Pipeline.Test {
 
     public class TemporaryProcessPipelineComposer {
 
-        public IEntityPipeline[] Compose() {
+        public IProcessController Compose() {
             var builder = new ContainerBuilder();
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
@@ -48,12 +49,8 @@ namespace Pipeline.Test {
             builder.RegisterModule(module);
             var container = builder.Build();
 
-            var pipelines = new List<IEntityPipeline>();
-            foreach (var process in module.Root.Processes) {
-                pipelines.AddRange(container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key));
-            }
+            return container.ResolveNamed<IProcessController>(module.Root.Processes.First().Key);
 
-            return pipelines.ToArray();
         }
 
     }

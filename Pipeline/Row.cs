@@ -3,6 +3,7 @@ using System.Dynamic;
 using System.Linq;
 using Pipeline.Configuration;
 using System;
+using Pipeline.Interfaces;
 
 namespace Pipeline {
     public class Row : IRow {

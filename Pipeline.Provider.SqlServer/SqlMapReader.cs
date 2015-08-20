@@ -3,6 +3,7 @@ using System.Linq;
 using Pipeline.Configuration;
 using System.Data.SqlClient;
 using Dapper;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
    public class SqlMapReader : IMapReader {

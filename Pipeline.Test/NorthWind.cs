@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -34,12 +35,19 @@ namespace Pipeline.Test {
             var builder = new ContainerBuilder();
             builder.RegisterModule(module);
             var container = builder.Build();
-            var process = module.Root.Processes.First();
 
-            foreach (var pipeline in container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key)) {
-                //pipeline.Initialize();
-                pipeline.Execute();
+            // resolve and run
+            foreach (var process in module.Root.Processes) {
+                var controller = container.ResolveNamed<IProcessController>(process.Key);
+                controller.Initialize();
+                foreach (var pipeline in controller.EntityPipelines) {
+                    pipeline.Initialize();
+                    pipeline.Execute();
+                }
             }
+
+            // release
+            container.Dispose();
 
             //Assert.AreEqual(20088, output.Count());
 

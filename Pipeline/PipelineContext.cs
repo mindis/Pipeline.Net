@@ -4,6 +4,7 @@ using Pipeline.Extensions;
 using Pipeline.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using Pipeline.Interfaces;
 
 namespace Pipeline {
     public class PipelineContext : IContext {

@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Transformers;
 using Pipeline.Transformers.System;
+using Pipeline.Interfaces;
 
 namespace Pipeline {
     public class DefaultPipeline : IEntityPipeline {

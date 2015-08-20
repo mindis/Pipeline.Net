@@ -1,4 +1,5 @@
 using Pipeline.Extensions;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Transformers {
    public class LeftTransform : BaseTransform, ITransform {

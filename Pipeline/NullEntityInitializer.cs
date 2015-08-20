@@ -1,5 +1,7 @@
+using Pipeline.Interfaces;
+
 namespace Pipeline {
-    public class NullEntityInitializer : IInitializer {
+    public class NullInitializer : IInitializer {
         public void Initialize() {
         }
     }

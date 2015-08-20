@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using Dapper;
 using Pipeline.Configuration;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 

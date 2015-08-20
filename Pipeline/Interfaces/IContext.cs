@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Pipeline.Configuration;
 
-namespace Pipeline {
+namespace Pipeline.Interfaces {
     public interface IContext {
         Process Process { get; }
         Entity Entity { get; }

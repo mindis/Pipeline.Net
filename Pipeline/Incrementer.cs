@@ -1,4 +1,6 @@
-﻿namespace Pipeline {
+﻿using Pipeline.Interfaces;
+
+namespace Pipeline {
     public class Incrementer : IIncrement {
         PipelineContext _context;
         long _rowCount;

@@ -5,6 +5,7 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Configuration;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -12,8 +13,7 @@ namespace Pipeline.Test {
     public class TestTransform {
 
         [Test(Description = "Format Transformation")]
-        public void FormatTransformer()
-        {
+        public void FormatTransformer() {
 
             var xml = @"
 <cfg>
@@ -48,10 +48,8 @@ namespace Pipeline.Test {
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
             var module = new PipelineModule(xml, shorthand);
 
-            if (module.Root.Errors().Any())
-            {
-                foreach (var error in module.Root.Errors())
-                {
+            if (module.Root.Errors().Any()) {
+                foreach (var error in module.Root.Errors()) {
                     Console.WriteLine(error);
                 }
                 throw new Exception("Configuration Errors");
@@ -61,7 +59,8 @@ namespace Pipeline.Test {
             var container = builder.Build();
             var process = module.Root.Processes.First();
 
-            var output = container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key).First().Run().ToArray();
+            
+            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
 
             Assert.AreEqual("1-2+3", output[0][process.Entities.First().CalculatedFields.First()]);
 

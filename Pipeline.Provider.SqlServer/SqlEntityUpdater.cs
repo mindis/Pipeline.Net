@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using Pipeline.Extensions;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityUpdater : IWrite {
@@ -18,7 +19,7 @@ namespace Pipeline.Provider.SqlServer {
             var count = 0;
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
                 cn.Open();
-                foreach (var batch in rows.Partition(_output.Connection.BatchSize)) {
+                foreach (var batch in rows.Partition(_output.Entity.UpdateSize)) {
                     var trans = cn.BeginTransaction();
                     var batchCount = cn.Execute(
                         query,

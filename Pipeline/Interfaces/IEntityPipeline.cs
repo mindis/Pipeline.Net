@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Pipeline.Transformers;
 
-namespace Pipeline {
+namespace Pipeline.Interfaces {
     public interface IEntityPipeline {
         void Initialize();
         void Register(IRead reader);
@@ -12,4 +12,5 @@ namespace Pipeline {
         IEnumerable<Row> Run();
         void Execute();
     }
+
 }

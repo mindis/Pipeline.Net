@@ -63,7 +63,6 @@
     <Compile Include="NorthWind.cs" />
     <Compile Include="ToStringTransform.cs" />
     <Compile Include="TraceLogger.cs" />
-    <Compile Include="ConsoleLogger.cs" />
     <Compile Include="DataSets.cs" />
     <Compile Include="PipelineModule.cs" />
     <Compile Include="TemporarySql.cs" />
@@ -96,6 +95,10 @@
     <ProjectReference Include="..\Pipeline.Streams\Pipeline.Streams.csproj">
       <Project>{90c59514-c296-47f7-8b19-6758d8bf9e95}</Project>
       <Name>Pipeline.Streams</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pipeline.Transform.Compression\Pipeline.Transform.Compression.csproj">
+      <Project>{d2c12bac-53b2-43dc-a6e2-2085554e6877}</Project>
+      <Name>Pipeline.Transform.Compression</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">
       <Project>{0c47eb64-41f4-43fa-a948-6a066285934f}</Project>

@@ -1,3 +1,4 @@
+using Pipeline.Interfaces;
 using System.Collections.Generic;
 
 namespace Pipeline {

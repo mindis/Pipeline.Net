@@ -1,4 +1,5 @@
 ﻿using Pipeline.Configuration;
+using Pipeline.Interfaces;
 using Pipeline.Transformers;
 using System;
 using System.Collections.Generic;

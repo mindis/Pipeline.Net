@@ -5,6 +5,7 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Transformalize.Libs.Cfg.Net.Shorthand;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -62,7 +63,7 @@ namespace Pipeline.Test {
          var container = builder.Build();
          var process = module.Root.Processes.First();
 
-         var output = container.ResolveNamed<IEnumerable<IEntityPipeline>>(process.Key).First().Run().ToArray();
+         var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
 
          var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
          Assert.AreEqual(2, output[0][field]);

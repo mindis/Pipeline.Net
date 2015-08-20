@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Nessos.Streams.CSharp;
 using Pipeline.Transformers;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Streams {
 

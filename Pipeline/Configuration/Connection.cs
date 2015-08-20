@@ -4,13 +4,11 @@ using Transformalize.Libs.Cfg.Net;
 namespace Pipeline.Configuration {
     public class Connection : CfgNode {
 
-        private readonly char[] _slash = { '/' };
+        readonly char[] _slash = { '/' };
 
         [Cfg(value = "", required = true, unique = true, toLower = true)]
         public string Name { get; set; }
 
-        [Cfg(value = 500)]
-        public int BatchSize { get; set; }
         [Cfg(value = "")]
         public string ConnectionString { get; set; }
         [Cfg(value = "")]

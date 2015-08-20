@@ -20,6 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipeline.Command", "Pipeline.Command\Pipeline.Command.csproj", "{C0AD9D94-4126-4452-BD01-1118FB827F39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipeline.Transform.Compression", "Pipeline.Transform.Compression\Pipeline.Transform.Compression.csproj", "{D2C12BAC-53B2-43DC-A6E2-2085554E6877}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +54,14 @@ Global
 		{BCA826D4-686E-4030-863A-27DB352C551C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCA826D4-686E-4030-863A-27DB352C551C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCA826D4-686E-4030-863A-27DB352C551C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0AD9D94-4126-4452-BD01-1118FB827F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0AD9D94-4126-4452-BD01-1118FB827F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0AD9D94-4126-4452-BD01-1118FB827F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0AD9D94-4126-4452-BD01-1118FB827F39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2C12BAC-53B2-43DC-A6E2-2085554E6877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2C12BAC-53B2-43DC-A6E2-2085554E6877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2C12BAC-53B2-43DC-A6E2-2085554E6877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2C12BAC-53B2-43DC-A6E2-2085554E6877}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

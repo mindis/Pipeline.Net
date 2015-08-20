@@ -1,3 +1,5 @@
+using Pipeline.Interfaces;
+
 namespace Pipeline {
     public class NullEntityController : IEntityController {
         public int BatchId { get; private set; }

@@ -84,9 +84,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DukeCarolinaOrderHistory.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Shorthand.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

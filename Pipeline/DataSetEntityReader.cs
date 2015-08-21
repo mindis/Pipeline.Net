@@ -1,6 +1,7 @@
 using Pipeline.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Pipeline {
 
@@ -38,6 +39,10 @@ namespace Pipeline {
                 rows.Add(pipelineRow);
             }
             return rows;
+        }
+
+        public void LoadVersion() {
+            // not supported for this reader
         }
     }
 }

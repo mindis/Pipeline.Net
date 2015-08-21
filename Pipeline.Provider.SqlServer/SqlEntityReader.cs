@@ -31,8 +31,6 @@ namespace Pipeline.Provider.SqlServer {
                 cn.Open();
                 var cmd = cn.CreateCommand();
 
-                LoadVersion(cn);
-
                 if (_input.Entity.MaxVersion == null) {
                     cmd.CommandText = _input.SqlSelectInput(_fields);
                 } else {
@@ -40,9 +38,6 @@ namespace Pipeline.Provider.SqlServer {
                         cmd.CommandText = _input.SqlSelectInputWithMaxVersion(_fields);
                         cmd.Parameters.AddWithValue("@Version", _input.Entity.MaxVersion);
                     } else {
-                        if (_input.Entity.MinVersion == _input.Entity.MaxVersion) {
-                            yield break;
-                        }
                         cmd.CommandText = _input.SqlSelectInputWithMinAndMaxVersion(_fields);
                         cmd.Parameters.AddWithValue("@MinVersion", _input.Entity.MinVersion);
                         cmd.Parameters.AddWithValue("@MaxVersion", _input.Entity.MaxVersion);
@@ -59,13 +54,15 @@ namespace Pipeline.Provider.SqlServer {
                     _input.Increment();
                     yield return _rowCreator.Create(reader, _input.RowCapacity, _fields);
                 }
-
                 _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
             }
         }
 
-        void LoadVersion(IDbConnection cn) {
-            _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
+        public void LoadVersion() {
+            using (var cn = new SqlConnection(_input.Connection.GetConnectionString())) {
+                cn.Open();
+                _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
+            }
         }
 
     }

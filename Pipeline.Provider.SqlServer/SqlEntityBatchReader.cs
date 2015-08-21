@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using Pipeline.Extensions;
 using Pipeline.Interfaces;
+using Dapper;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -41,5 +42,11 @@ namespace Pipeline.Provider.SqlServer {
             _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
         }
 
+        public void LoadVersion() {
+            using (var cn = new SqlConnection(_input.Connection.GetConnectionString())) {
+                cn.Open();
+                _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
+            }
+        }
     }
 }

@@ -52,9 +52,16 @@ namespace Pipeline {
         }
 
         public virtual IEnumerable<Row> Run() {
-            Transformers.Add(new StringTruncateTransfom(_context));
+            Reader.LoadVersion();
             Writer.LoadVersion();
-            return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
+            if (_context.Entity.NeedsUpdate()) {
+                _context.Info("data change? Yes");
+                Transformers.Add(new StringTruncateTransfom(_context));
+                return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
+            } else {
+                _context.Info("data change? No");
+                return Enumerable.Empty<Row>();
+            }
         }
 
         public void Execute() {

@@ -102,6 +102,23 @@ namespace Pipeline.Configuration {
         public int BatchId { get; set; }
         public object MinVersion { get; set; }
         public object MaxVersion { get; set; }
+
+        public bool NeedsUpdate() {
+            if (MinVersion == null)
+                return true;
+            if (MaxVersion == null)
+                return true;
+
+            var field = GetVersionField();
+            if(field.Type == "byte[]") {
+                var beginBytes = (byte[])MinVersion;
+                var endBytes = (byte[])MaxVersion;
+                return !beginBytes.SequenceEqual(endBytes);
+            } else {
+                return !MinVersion.Equals(MaxVersion);
+            }
+        }
+
         public short Index { get; internal set; }
 
         public IEnumerable<Field> GetAllFields() {

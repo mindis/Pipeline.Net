@@ -21,7 +21,7 @@ namespace Pipeline.Test {
 
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var process = new Root(cfg, shorthand).Processes.First();
+            var process = new Root(cfg, shorthand, new JintParser()).Processes.First();
             var personContext = new PipelineContext(new DebugLogger(), process, process.Entities.Last());
             var entityInput = new InputContext(personContext, new Incrementer(personContext));
             var rows = new DataSetEntityReader(entityInput).Read().ToArray();

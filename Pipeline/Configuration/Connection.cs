@@ -74,11 +74,11 @@ namespace Pipeline.Configuration {
         [Cfg(value = 0)]
         public int Timeout { get; set; }
 
-        protected override void Modify() {
+        protected override void PreValidate() {
             ModifyProvider();
         }
 
-        private void ModifyProvider() {
+        void ModifyProvider() {
             //backwards compatibility, default provider used to be sqlserver
             if (Provider == "internal" &&
                 (Database != "" || ConnectionString != "")

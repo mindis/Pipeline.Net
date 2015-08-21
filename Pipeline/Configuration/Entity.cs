@@ -135,7 +135,7 @@ namespace Pipeline.Configuration {
             return GetAllFields().Where(f => f.Output);
         }
 
-        protected override void Modify() {
+        protected override void PreValidate() {
             if (string.IsNullOrEmpty(Alias)) {
                 Alias = Name;
             }

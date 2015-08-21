@@ -278,8 +278,7 @@ namespace Pipeline.Command {
                 case "right": return new RightTransform(context);
                 case "copy": return new CopyTransform(context);
                 case "concat": return new ConcatTransform(context);
-                case "fromxml":
-                    return new FromXmlTransform(context);
+                case "fromxml": return new FromXmlTransform(context);
                 case "fromsplit": return new FromSplitTransform(context);
                 case "htmldecode": return new HtmlDecodeTransform(context);
                 case "xmldecode": return new HtmlDecodeTransform(context);

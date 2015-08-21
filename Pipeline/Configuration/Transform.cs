@@ -33,9 +33,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = 0)]
         public int Count { get; set; }
         [Cfg(value = Constants.DefaultSetting)]
-        public string Data { get; set; }
-        [Cfg(value = false)]
-        public bool Decode { get; set; }
+        public string Data { get; set;}
         [Cfg(value = "")]
         public string Domain { get; set; }
         [Cfg(value = "...")]
@@ -198,7 +196,7 @@ namespace Pipeline.Configuration {
         /// </summary>
         public string Key { get; set; }
 
-        protected override void Modify() {
+        protected override void PreValidate() {
             switch (Method) {
                 case "trimstartappend":
                     if (Separator.Equals(Constants.DefaultSetting)) {

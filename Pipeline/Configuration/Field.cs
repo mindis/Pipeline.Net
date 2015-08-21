@@ -385,7 +385,7 @@ namespace Pipeline.Configuration {
       public short MasterIndex { get; set; }
 
       //custom
-      protected override void Modify() {
+      protected override void PreValidate() {
 
          if (string.IsNullOrEmpty(Alias)) { Alias = Name; }
 

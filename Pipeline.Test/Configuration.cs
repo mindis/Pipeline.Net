@@ -29,7 +29,7 @@ namespace Pipeline.Test {
 
          var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
          var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-         var root = new Root(cfg, shorthand);
+         var root = new Root(cfg, shorthand, new JintParser());
 
          var pet = root.Processes.First().Entities.First();
          var person = root.Processes.First().Entities.Last();
@@ -55,7 +55,7 @@ namespace Pipeline.Test {
 
          var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
          var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-         var root = new Root(cfg, shorthand);
+         var root = new Root(cfg, shorthand, new JintParser());
 
          foreach (var error in root.Errors()) {
             Console.WriteLine(error);
@@ -80,7 +80,7 @@ namespace Pipeline.Test {
       public void TestRelationshipToMaster() {
          var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
          var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-         var root = new Root(cfg, shorthand);
+         var root = new Root(cfg, shorthand, new JintParser());
          var rtm = root.Processes[0].Entities[1].RelationshipToMaster;
 
          Assert.AreEqual(1, rtm.Count());

@@ -8,7 +8,7 @@ using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlEntityUpdater : IWrite {
-        OutputContext _output;
+        readonly OutputContext _output;
 
         public SqlEntityUpdater(OutputContext output) {
             _output = output;

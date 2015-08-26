@@ -1,10 +1,10 @@
 ﻿using System;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
 
     public class Parameter : CfgNode {
-        private string _type;
+        string _type;
 
         [Cfg(value = "")]
         public string Entity { get; set; }

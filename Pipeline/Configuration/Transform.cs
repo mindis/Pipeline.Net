@@ -2,7 +2,7 @@ using Pipeline.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
 

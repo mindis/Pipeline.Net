@@ -7,8 +7,8 @@ using Pipeline.Interfaces;
 namespace Pipeline {
 
     public class OutputContext : IConnectionContext {
-        IIncrement _incrementer;
-        IContext _context;
+        readonly IIncrement _incrementer;
+        readonly IContext _context;
 
         public Connection Connection { get; set; }
         public Field[] OutputFields { get; set; }

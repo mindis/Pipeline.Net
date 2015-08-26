@@ -143,8 +143,8 @@
     <Compile Include="Validators\IsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="CfgNet, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.2.0\lib\CfgNet.dll</HintPath>
+    <Reference Include="CfgNet, Version=0.2.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.5\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Jint, Version=2.5.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">

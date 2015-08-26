@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
 
@@ -151,13 +151,13 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// A collection of [Actions](/action)
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<Action> Actions { get; set; }
 
         /// <summary>
         /// A collection of [Calculated Fields](/calculated-field)
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<Field> CalculatedFields { get; set; }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// Settings to control [file inspection](/file-inspection).
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<FileInspection> FileInspection { get; set; }
 
         /// <summary>
@@ -187,13 +187,13 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// A collection of [Maps](/map)
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<Map> Maps { get; set; }
 
         /// <summary>
         /// A collection of [Relationships](/relationship)
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<Relationship> Relationships { get; set; }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// A collection of [Search Types](/search-type)
         /// </summary>
-        [Cfg()]
+        [Cfg]
         public List<SearchType> SearchTypes { get; set; }
 
         /// <summary>

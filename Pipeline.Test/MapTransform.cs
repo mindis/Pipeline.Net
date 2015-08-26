@@ -5,16 +5,18 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Interfaces;
+using Pipeline.Logging;
+using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
-   [TestFixture]
-   public class MapTransformTester {
+    [TestFixture]
+    public class MapTransformTester {
 
-      [Test(Description = "Map Transform")]
-      public void MapTransformAdd(){
+        [Test(Description = "Map Transform")]
+        public void MapTransformAdd() {
 
-         var xml = @"
+            var xml = @"
 <cfg>
   <processes>
     <add name='TestProcess'>
@@ -53,31 +55,35 @@ namespace Pipeline.Test {
   </processes>
 </cfg>";
 
-         var builder = new ContainerBuilder();
-         var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-         var module = new PipelineModule(xml, shorthand);
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(new ConfigurationModule(xml, File.ReadAllText(@"Files\Shorthand.xml")));
+            var container = builder.Build();
 
-         if (module.Root.Errors().Any()) {
-            foreach (var error in module.Root.Errors()) {
-               Console.WriteLine(error);
+            var root = container.Resolve<Root>();
+
+            if (root.Errors().Any()) {
+                foreach (var error in root.Errors()) {
+                    Console.Error.WriteLine(error);
+                }
+                throw new Exception("Configuration Error(s)");
             }
-            throw new Exception("Configuration Errors");
-         }
 
-         builder.RegisterModule(module);
-         var container = builder.Build();
-         var process = module.Root.Processes.First();
+            builder = new ContainerBuilder();
+            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
+            container = builder.Build();
 
-         var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
+            var process = root.Processes.First();
 
-         var field = process.Entities.First().CalculatedFields.First();
+            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
 
-         Assert.AreEqual("One", output[0][field]);
-         Assert.AreEqual("Two", output[1][field]);
-         Assert.AreEqual("$THREE$", output[2][field]);
-         Assert.AreEqual("None", output[3][field]);
+            var field = process.Entities.First().CalculatedFields.First();
+
+            Assert.AreEqual("One", output[0][field]);
+            Assert.AreEqual("Two", output[1][field]);
+            Assert.AreEqual("$THREE$", output[2][field]);
+            Assert.AreEqual("None", output[3][field]);
 
 
-      }
-   }
+        }
+    }
 }

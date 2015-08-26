@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Pipeline.Logging {
     public class MemoryLogger : BaseLogger, IPipelineLogger {
-        private readonly List<LogEntry> _logEntries = new List<LogEntry>();
+        readonly List<LogEntry> _logEntries = new List<LogEntry>();
 
         public MemoryLogger(LogLevel level)
             : base(level) {

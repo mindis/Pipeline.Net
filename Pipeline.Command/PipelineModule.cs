@@ -17,23 +17,21 @@ namespace Pipeline.Command {
 
         const string SqlMinDateTransform = "sys.sqlmindate";
         readonly LogLevel _level;
-
-        public Root Root { get; set; }
+        readonly Root _root;
 
         public PipelineModule(
-            string cfg, 
-            string shorthand, 
+            Root root, 
             LogLevel level = LogLevel.Info
         ) {
+            _root = root;
             _level = level;
-            Root = new Root(cfg, shorthand, new JintParser());
         }
 
         protected override void Load(ContainerBuilder builder) {
 
             builder.Register<IPipelineLogger>((ctx) => new ConsoleLogger(_level)).SingleInstance();
 
-            foreach (var process in Root.Processes) {
+            foreach (var process in _root.Processes) {
                 RegisterMaps(builder, process);
                 RegisterCalculatedFieldTransforms(builder, process);
                 RegisterEntities(builder, process);

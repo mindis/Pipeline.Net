@@ -45,24 +45,11 @@ namespace Pipeline.Test {
 
 
             var builder = new ContainerBuilder();
-            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand);
+            var composer = new PipelineComposer();
+            var controller = composer.Compose(xml);
+            var output = controller.EntityPipelines.First().Run().ToArray();
 
-            if (module.Root.Errors().Any()) {
-                foreach (var error in module.Root.Errors()) {
-                    Console.WriteLine(error);
-                }
-                throw new Exception("Configuration Errors");
-            }
-
-            builder.RegisterModule(module);
-            var container = builder.Build();
-            var process = module.Root.Processes.First();
-
-            
-            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
-
-            Assert.AreEqual("1-2+3", output[0][process.Entities.First().CalculatedFields.First()]);
+            Assert.AreEqual("1-2+3", output[0][composer.Root.Processes.First().Entities.First().CalculatedFields.First()]);
 
         }
     }

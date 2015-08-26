@@ -6,7 +6,7 @@ using Pipeline.Interfaces;
 
 namespace Pipeline {
     public class InputContext : IConnectionContext {
-        PipelineContext _context;
+        readonly PipelineContext _context;
         IIncrement _incrementer;
 
         public Connection Connection { get; set; }

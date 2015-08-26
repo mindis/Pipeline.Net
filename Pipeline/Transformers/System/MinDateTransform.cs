@@ -5,12 +5,12 @@ using Pipeline.Configuration;
 namespace Pipeline.Transformers.System {
 
     public class MinDateTransform : BaseTransform, ITransform {
-        private readonly Field[] _dates;
-        private readonly DateTime _minDate;
+        readonly Field[] _dates;
+        readonly DateTime _minDate;
 
         public MinDateTransform(PipelineContext context, DateTime minDate)
             : base(context) {
-            _dates = context.Entity.GetAllFields().Where(f => f.Output && f.Type.StartsWith("date")).ToArray();
+            _dates = context.Entity.GetAllFields().Where(f => f.Output && f.Type.StartsWith("date", StringComparison.Ordinal)).ToArray();
             _minDate = minDate;
         }
 

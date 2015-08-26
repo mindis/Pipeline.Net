@@ -46,21 +46,11 @@ namespace Pipeline.Test {
             ".Replace('\'', '"');
 
             var builder = new ContainerBuilder();
-            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand);
+            var composer = new PipelineComposer();
+            var controller = composer.Compose(xml);
 
-            if (module.Root.Errors().Any()) {
-                foreach (var error in module.Root.Errors()) {
-                    Console.Error.WriteLine(error);
-                }
-                throw new Exception("Configuration Error(s)");
-            }
-
-            builder.RegisterModule(module);
-            var container = builder.Build();
-            var process = module.Root.Processes.First();
-
-            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
+            var output = controller.EntityPipelines.First().Run().ToArray();
+            var process = composer.Root.Processes.First();
 
             Assert.AreEqual(true, output[0][process.Entities.First().CalculatedFields.First(cf => cf.Name == "c1")]);
             Assert.AreEqual("Field1 does not contain 2.", output[0][process.Entities.First().CalculatedFields.First(cf=>cf.Name=="c2")]);

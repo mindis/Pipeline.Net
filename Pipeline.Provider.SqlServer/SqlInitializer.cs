@@ -7,7 +7,7 @@ using System.Linq;
 namespace Pipeline.Provider.SqlServer {
     public class SqlInitializer : IInitializer {
         OutputContext _context;
-        string _connectionString;
+        readonly string _connectionString;
 
         public SqlInitializer(OutputContext context) {
             _context = context;

@@ -1,6 +1,6 @@
-using Pipeline.Interfaces;
 using System.Collections.Generic;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
+using Cfg.Net.Contracts;
 
 namespace Pipeline.Configuration {
     public class Root : CfgNode {
@@ -13,13 +13,17 @@ namespace Pipeline.Configuration {
         public List<Response> Response { get; set; }
 
         public Root(
-                string xml,
+                string cfg,
                 string shorthand,
                 IValidator javascriptParser,
+                IReader configurationReader = null,
                 Dictionary<string, string> parameters = null)
-            : base(validators: new Dictionary<string, IValidator>() { { "js", javascriptParser } }) {
+            : base(
+                  reader: configurationReader,
+                  validators: new Dictionary<string, IValidator>() { { "js", javascriptParser } }
+            ) {
             LoadShorthand(shorthand);
-            Load(xml, parameters);
+            Load(cfg, parameters);
         }
 
         public Root() {

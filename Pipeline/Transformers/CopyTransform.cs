@@ -4,7 +4,7 @@ namespace Pipeline.Transformers {
 
     public class CopyTransform : BaseTransform, ITransform {
 
-        private readonly Field _input;
+        readonly Field _input;
         public CopyTransform(PipelineContext context)
             : base(context) {
             _input = SingleInput();

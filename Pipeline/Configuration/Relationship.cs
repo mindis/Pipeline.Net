@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Relationship : CfgNode {
@@ -27,7 +27,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = false)]
         public bool Index { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<Join> Join { get; set; }
 
         public IEnumerable<string> GetLeftJoinFields() {

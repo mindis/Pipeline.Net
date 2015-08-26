@@ -1,9 +1,9 @@
 namespace Pipeline.Logging {
     public class BaseLogger {
-        private readonly bool _infoEnabled;
-        private readonly bool _debugEnabled;
-        private readonly bool _warnEnabled;
-        private readonly bool _errorEnabled;
+        readonly bool _infoEnabled;
+        readonly bool _debugEnabled;
+        readonly bool _warnEnabled;
+        readonly bool _errorEnabled;
 
         public BaseLogger(LogLevel level) {
             var levels = GetLevels(level);
@@ -29,7 +29,7 @@ namespace Pipeline.Logging {
             get { return _errorEnabled; }
         }
 
-        private static bool[] GetLevels(LogLevel level) {
+        static bool[] GetLevels(LogLevel level) {
             switch (level) {
                 case LogLevel.Debug:
                     return new[] { true, true, true, true };

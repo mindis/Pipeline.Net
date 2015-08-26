@@ -74,7 +74,7 @@ namespace Pipeline {
 
         public bool Match(Field[] fields, Row other) {
             if (fields.Length > 1)
-                return Enumerable.SequenceEqual(fields.Select(f => this[f]), fields.Select(f => other[f]));
+                return fields.Select(f => this[f]).SequenceEqual(fields.Select(f => other[f]));
             return this[fields[0]].Equals(other[fields[0]]);
         }
 

@@ -2,7 +2,7 @@ using Pipeline.Configuration;
 
 namespace Pipeline.Transformers {
     public class PadLeftTransform : BaseTransform, ITransform {
-        private readonly Field _input;
+        readonly Field _input;
 
         public PadLeftTransform(PipelineContext context)
             : base(context) {

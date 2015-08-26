@@ -14,7 +14,7 @@ namespace Pipeline.Provider.SqlServer {
 
         int _rowCount;
         HashSet<int> _errors = new HashSet<int>();
-        InputContext _input;
+        readonly InputContext _input;
         readonly SqlRowCreator _rowCreator;
         readonly Field[] _fields;
 

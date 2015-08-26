@@ -5,6 +5,8 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Interfaces;
+using Pipeline.Configuration;
+using Pipeline.Logging;
 
 namespace Pipeline.Test {
 
@@ -14,7 +16,7 @@ namespace Pipeline.Test {
         [Test(Description = "Entity Pipeline")]
         public void EntityPipeline() {
 
-            var pipelines = new TemporaryProcessPipelineComposer().Compose();
+            var pipelines = new PipelineComposer().Compose(@"Files\PersonAndPet.xml");
             var person = pipelines.EntityPipelines.Last().Run().ToArray();
 
             Assert.AreEqual(3, person.Length);
@@ -29,28 +31,6 @@ namespace Pipeline.Test {
             foreach (var row in pet) {
                 Console.WriteLine(row);
             }
-        }
-    }
-
-    public class TemporaryProcessPipelineComposer {
-
-        public IProcessController Compose() {
-            var builder = new ContainerBuilder();
-            var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
-            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(cfg, shorthand);
-            if (module.Root.Errors().Any()) {
-                foreach (var error in module.Root.Errors()) {
-                    Console.WriteLine(error);
-                }
-                throw new Exception("Configuration Error(s)");
-            }
-
-            builder.RegisterModule(module);
-            var container = builder.Build();
-
-            return container.ResolveNamed<IProcessController>(module.Root.Processes.First().Key);
-
         }
 
     }

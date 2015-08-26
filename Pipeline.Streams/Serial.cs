@@ -6,7 +6,7 @@ using Pipeline.Interfaces;
 namespace Pipeline.Streams {
 
     public class Serial : IEntityPipeline {
-        IEntityPipeline _pipeline;
+        readonly IEntityPipeline _pipeline;
 
         public Serial(IEntityPipeline pipeline){
             _pipeline = pipeline;

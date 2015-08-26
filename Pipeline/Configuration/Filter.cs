@@ -1,8 +1,8 @@
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Filter : CfgNode {
-        private string _continuation;
+        string _continuation;
 
         /// <summary>
         /// Optional.  Default is `And`

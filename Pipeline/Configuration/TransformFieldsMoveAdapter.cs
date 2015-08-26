@@ -6,7 +6,7 @@ namespace Pipeline.Configuration {
 
     public class TransformFieldsMoveAdapter {
 
-        private readonly Entity _entity;
+        readonly Entity _entity;
 
         public TransformFieldsMoveAdapter(Entity entity) {
             _entity = entity;

@@ -5,7 +5,7 @@ using Pipeline.Configuration;
 namespace Pipeline.Transformers {
 
     public abstract class BaseTransform {
-        private long _rowCount;
+        long _rowCount;
 
         public PipelineContext Context { get; private set; }
 

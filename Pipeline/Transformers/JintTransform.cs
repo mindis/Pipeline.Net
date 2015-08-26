@@ -3,7 +3,7 @@ using Jint;
 
 namespace Pipeline.Transformers {
     public class JintTransform : BaseTransform, ITransform {
-        Field[] _input;
+        readonly Field[] _input;
         readonly Engine _jint = new Engine();
 
         public JintTransform(PipelineContext context) : base(context) {

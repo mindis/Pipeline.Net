@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Pipeline.Configuration {
 
     public class TransformFieldsToParametersAdapter {
-        private readonly Entity _entity;
+        readonly Entity _entity;
 
         public TransformFieldsToParametersAdapter(Entity entity) {
             _entity = entity;

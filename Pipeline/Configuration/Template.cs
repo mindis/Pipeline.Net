@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
 
@@ -18,12 +18,12 @@ namespace Pipeline.Configuration {
 
         [Cfg( value = "razor", domain = "razor,velocity", toLower = true)]
         public string Engine { get; set; }
-        [Cfg()]
+        [Cfg]
         public string Path { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<Parameter> Parameters { get; set; }
-        [Cfg()]
+        [Cfg]
         public List<Action> Actions { get; set; }
 
     }

@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using Jint.Parser;
 using Pipeline.Extensions;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
+using Cfg.Net.Contracts;
 
 namespace Pipeline {
     public class JintParser : IValidator {
@@ -12,8 +13,8 @@ namespace Pipeline {
             _options = new ParserOptions() { Tolerant = true };
         }
 
-        public CfgValidatorResult Validate(string parent, string name, object value) {
-            var result = new CfgValidatorResult(value);
+        public ValidatorResult Validate(string parent, string name, object value) {
+            var result = new ValidatorResult();
 
             if (value == null)
                 return result;

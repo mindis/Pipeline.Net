@@ -5,6 +5,7 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Interfaces;
+using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
@@ -15,29 +16,33 @@ namespace Pipeline.Test {
         //[Ignore("Integration testing")]
         public void NorthwindIntegrationTesting() {
 
-            var northwind = File.ReadAllText(@"Files\Northwind.xml");
-            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(northwind, shorthand, Logging.LogLevel.Debug);
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(new ConfigurationModule(@"Files\Northwind.xml", File.ReadAllText(@"Files\Shorthand.xml")));
+            var container = builder.Build();
 
-            if (module.Root.Errors().Any()) {
-                foreach (var error in module.Root.Errors()) {
+            var root = container.Resolve<Root>();
+
+            if (root.Errors().Any()) {
+                foreach (var error in root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
                 throw new Exception("Configuration Error(s)");
             }
 
-            if (module.Root.Warnings().Any()) {
-                foreach (var warning in module.Root.Warnings()) {
+            if (root.Warnings().Any()) {
+                foreach (var warning in root.Warnings()) {
                     Console.WriteLine(warning);
                 }
             }
 
-            var builder = new ContainerBuilder();
+            var module = new PipelineModule(root, Logging.LogLevel.Debug);
+
+            builder = new ContainerBuilder();
             builder.RegisterModule(module);
-            var container = builder.Build();
+            container = builder.Build();
 
             // resolve and run
-            foreach (var process in module.Root.Processes) {
+            foreach (var process in root.Processes) {
                 var controller = container.ResolveNamed<IProcessController>(process.Key);
                 controller.Initialize();
                 foreach (var pipeline in controller.EntityPipelines) {

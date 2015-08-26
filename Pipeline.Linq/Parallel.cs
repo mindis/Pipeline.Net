@@ -6,7 +6,7 @@ using Pipeline.Interfaces;
 namespace Pipeline.Linq {
 
     public class Parallel : IEntityPipeline {
-        IEntityPipeline _pipeline;
+        readonly IEntityPipeline _pipeline;
 
         public Parallel(IEntityPipeline pipeline) {
             _pipeline = pipeline;

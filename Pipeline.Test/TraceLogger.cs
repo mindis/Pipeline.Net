@@ -6,13 +6,13 @@ namespace Pipeline.Test {
 
     public class TraceLogger : BaseLogger, IPipelineLogger {
 
-        private const string FORMAT = "{0:u} | {1} | {2} | {3}";
-        private const string CONTEXT = "{0} | {1} | {2} | {3} | {4}";
+        const string FORMAT = "{0:u} | {1} | {2} | {3}";
+        const string CONTEXT = "{0} | {1} | {2} | {3} | {4}";
         public TraceLogger(LogLevel level = LogLevel.Info)
             : base(level) {
         }
 
-        private static string ForLog(PipelineContext context) {
+        static string ForLog(PipelineContext context) {
             return string.Format(CONTEXT, context.ForLog);
         }
 

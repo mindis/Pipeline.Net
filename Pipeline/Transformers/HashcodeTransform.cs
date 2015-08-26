@@ -26,7 +26,7 @@ namespace Pipeline.Transformers {
         // http://eternallyconfuzzled.com/tuts/algorithms/jsw_tut_hashing.aspx
         public static int GetHashCode(IEnumerable<object> values) {
             unchecked {
-                int hash = (int)2166136261;
+                var hash = (int)2166136261;
                 foreach (var value in values) {
                     hash = hash * 16777619 ^ value.GetHashCode();
                 }

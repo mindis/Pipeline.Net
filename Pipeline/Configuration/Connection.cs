@@ -1,5 +1,5 @@
 using System;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Connection : CfgNode {

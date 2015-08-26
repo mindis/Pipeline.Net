@@ -17,23 +17,21 @@ namespace Pipeline.Test {
 
         const string SqlMinDateTransform = "sys.sqlmindate";
         readonly LogLevel _level;
-
-        public Root Root { get; set; }
+        readonly Root _root;
 
         public PipelineModule(
-            string cfg, 
-            string shorthand, 
+            Root root, 
             LogLevel level = LogLevel.Info
         ) {
+            _root = root;
             _level = level;
-            Root = new Root(cfg, shorthand, new JintParser());
         }
 
         protected override void Load(ContainerBuilder builder) {
 
             builder.Register<IPipelineLogger>((ctx) => new TraceLogger(_level)).SingleInstance();
 
-            foreach (var process in Root.Processes) {
+            foreach (var process in _root.Processes) {
                 RegisterMaps(builder, process);
                 RegisterCalculatedFieldTransforms(builder, process);
                 RegisterEntities(builder, process);
@@ -98,7 +96,7 @@ namespace Pipeline.Test {
 
         static void RegisterEntities(ContainerBuilder builder, Process process) {
             foreach (var e in process.Entities) {
-                
+
                 var entity = e;
 
                 //controller
@@ -132,12 +130,10 @@ namespace Pipeline.Test {
                         case "parallel.linq":
                             context.Debug("Registering {0} pipeline.", type);
                             return new Parallel(pipeline);
-                        case "streams":
-                            context.Debug("Registering {0} pipeline.", type);
+                        /*case "streams":
                             return new Streams.Serial(pipeline);
                         case "parallel.streams":
-                            context.Debug("Registering {0} pipeline.", type);
-                            return new Streams.Parallel(pipeline);
+                            return new Streams.Parallel(pipeline); */
                         case "linq.optimizer":
                             context.Debug("Registering {0} pipeline.", type);
                             return new Linq.Optimizer.Serial(pipeline);
@@ -145,7 +141,7 @@ namespace Pipeline.Test {
                             context.Debug("Registering {0} pipeline.", type);
                             return new Linq.Optimizer.Parallel(pipeline);
                         default:
-                            context.Debug("Registering linq pipeline.");
+                            context.Debug("Registering linq pipeline.", type);
                             return pipeline;
                     }
                 }).Named<IEntityPipeline>(entity.Key);

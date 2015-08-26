@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Response : CfgNode {
@@ -16,13 +16,13 @@ namespace Pipeline.Configuration {
         [Cfg(value = (long)0)]
         public long Time { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<Empty> Content { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<Empty> Rows { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<Empty> Log { get; set; }
     }
 }

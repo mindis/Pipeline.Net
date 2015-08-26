@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Configuration;
-using Transformalize.Libs.Cfg.Net.Parsers.nanoXML;
+using Cfg.Net.Parsers.nanoXML;
 
 namespace Pipeline.Transformers {
     /// <summary>

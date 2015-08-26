@@ -2,7 +2,7 @@
 
 namespace Pipeline {
     public class Incrementer : IIncrement {
-        PipelineContext _context;
+        readonly PipelineContext _context;
         long _rowCount;
 
         public Incrementer(PipelineContext context) {

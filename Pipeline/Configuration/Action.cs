@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Action : CfgNode {
@@ -49,7 +49,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = "")]
         public string Url { get; set; }
 
-        [Cfg()]
+        [Cfg]
         public List<NameReference> Modes { get; set; }
 
         public string[] GetModes() {

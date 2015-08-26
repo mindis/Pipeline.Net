@@ -4,17 +4,19 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Transformalize.Libs.Cfg.Net.Shorthand;
+using Cfg.Net.Shorthand;
 using Pipeline.Interfaces;
+using Pipeline.Logging;
+using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
-   [TestFixture]
-   public class TestSignature {
+    [TestFixture]
+    public class TestSignature {
 
-      [Test(Description = "Validator")]
-      public void Validator() {
-         const string xml = @"
+        [Test(Description = "Validator")]
+        public void Validator() {
+            const string xml = @"
 <cfg>
   <processes>
     <add name='TestSignature'>
@@ -49,28 +51,33 @@ namespace Pipeline.Test {
   </processes>
 </cfg>";
 
-         var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-         var module = new PipelineModule(xml, shorthand);
-         if (module.Root.Errors().Any()) {
-            foreach (var error in module.Root.Errors()) {
-               Console.Error.WriteLine(error);
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(new ConfigurationModule(xml, File.ReadAllText(@"Files\Shorthand.xml")));
+            var container = builder.Build();
+
+            var root = container.Resolve<Root>();
+
+            if (root.Errors().Any()) {
+                foreach (var error in root.Errors()) {
+                    Console.Error.WriteLine(error);
+                }
+                throw new Exception("Configuration Error(s)");
             }
-            throw new Exception("Configuration Error(s)");
-         }
 
-         var builder = new ContainerBuilder();
-         builder.RegisterModule(module);
-         var container = builder.Build();
-         var process = module.Root.Processes.First();
+            builder = new ContainerBuilder();
+            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
+            container = builder.Build();
 
-         var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
+            var process = root.Processes.First();
 
-         var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
-         Assert.AreEqual(2, output[0][field]);
+            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
 
-         foreach (var row in output) {
-            Console.WriteLine(row);
-         }
-      }
-   }
+            var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
+            Assert.AreEqual(2, output[0][field]);
+
+            foreach (var row in output) {
+                Console.WriteLine(row);
+            }
+        }
+    }
 }

@@ -7,8 +7,8 @@ using Pipeline.Interfaces;
 namespace Pipeline.Provider.SqlServer {
 
     public class SqlMasterUpdater : IUpdate {
-        Entity _master;
-        OutputContext _output;
+        readonly Entity _master;
+        readonly OutputContext _output;
 
         public SqlMasterUpdater(OutputContext output) {
             _output = output;

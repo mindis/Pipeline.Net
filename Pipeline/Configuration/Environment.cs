@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Transformalize.Libs.Cfg.Net;
+using Cfg.Net;
 
 namespace Pipeline.Configuration {
     public class Environment : CfgNode {
@@ -7,7 +7,7 @@ namespace Pipeline.Configuration {
         public string Name { get; set; }
         [Cfg(required = true)]
         public List<Parameter> Parameters { get; set; }
-        [Cfg()]
+        [Cfg]
         public string Default { get; set; }
     }
 }

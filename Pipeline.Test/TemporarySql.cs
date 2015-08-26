@@ -6,6 +6,7 @@ using Autofac;
 using NUnit.Framework;
 using Pipeline.Logging;
 using Pipeline.Interfaces;
+using Pipeline.Configuration;
 
 namespace Pipeline.Test {
 
@@ -151,22 +152,26 @@ namespace Pipeline.Test {
         </add>
     </processes>
 </cfg>";
-            var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var module = new PipelineModule(xml, shorthand, LogLevel.Info);
+            var builder = new ContainerBuilder();
+            builder.RegisterModule(new ConfigurationModule(xml, File.ReadAllText(@"Files\Shorthand.xml")));
+            var container = builder.Build();
 
-            if (module.Root.Errors().Any()){ 
-                foreach (var error in module.Root.Errors()) {
+            var root = container.Resolve<Root>();
+
+
+            if (root.Errors().Any()){ 
+                foreach (var error in root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
                 throw new Exception("Configuration Error(s)");
             }
 
-            var builder = new ContainerBuilder();
-            builder.RegisterModule(module);
-            var container = builder.Build();
+            builder = new ContainerBuilder();
+            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
+            container = builder.Build();
 
             // resolve and run
-            foreach (var process in module.Root.Processes) {
+            foreach (var process in root.Processes) {
                 var controller = container.ResolveNamed<IProcessController>(process.Key);
                 controller.Initialize();
                 foreach (var pipeline in controller.EntityPipelines) {

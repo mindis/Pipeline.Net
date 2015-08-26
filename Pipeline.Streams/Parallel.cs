@@ -7,7 +7,7 @@ namespace Pipeline.Streams {
 
     public class Parallel : IEntityPipeline {
 
-        IEntityPipeline _pipeline;
+        readonly IEntityPipeline _pipeline;
 
         public Parallel(IEntityPipeline pipeline) {
             _pipeline = pipeline;

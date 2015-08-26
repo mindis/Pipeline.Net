@@ -34,8 +34,12 @@
       <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="CfgNet, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.2.0\lib\CfgNet.dll</HintPath>
+    <Reference Include="Cfg.Net.Reader, Version=0.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.Reader.0.0.3\lib\Cfg.Net.Reader.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CfgNet, Version=0.2.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.5\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
@@ -59,8 +63,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigurationModule.cs" />
     <Compile Include="MapTransform.cs" />
     <Compile Include="NorthWind.cs" />
+    <Compile Include="PipelineComposer.cs" />
     <Compile Include="ToStringTransform.cs" />
     <Compile Include="TraceLogger.cs" />
     <Compile Include="DataSets.cs" />
@@ -77,7 +83,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="ToDo.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pipeline.Linq.Optimizer\Pipeline.Linq.Optimizer.csproj">

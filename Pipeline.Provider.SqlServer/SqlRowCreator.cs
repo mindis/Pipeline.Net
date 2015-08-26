@@ -7,7 +7,7 @@ using System.Data;
 
 namespace Pipeline.Provider.SqlServer {
     public class SqlRowCreator {
-        IContext _context;
+        readonly IContext _context;
         readonly HashSet<int> _errors;
 
         public SqlRowCreator(IContext context) {

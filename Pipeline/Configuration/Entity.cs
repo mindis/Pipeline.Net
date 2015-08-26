@@ -18,11 +18,7 @@ namespace Pipeline.Configuration {
         public bool Delete { get; set; }
 
         public bool ShouldUpdateMaster() {
-            if (IsMaster)
-                return false;
-            if (IsFirstRun())
-                return false;
-            return Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize);
+            return !IsMaster && (Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || (Denormalize && f.Output && !f.KeyType.HasFlag(KeyType.Primary))));
         }
 
         public Field[] GetPrimaryKey() {
@@ -91,6 +87,14 @@ namespace Pipeline.Configuration {
         public List<InputOutput> Output { get; set; }
         [Cfg(value = (long)10000)]
         public long LogInterval { get; set; }
+
+        /// <summary>
+        /// Default is `false`.
+        /// 
+        /// If true, the output fields of this entity are copied into master.
+        /// </summary>
+        [Cfg]
+        public bool Denormalize { get; set; }
 
         /// <summary>
         /// Set by Process.ModifyKeys for keyed dependency injection

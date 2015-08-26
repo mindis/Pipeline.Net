@@ -16,10 +16,8 @@ namespace Pipeline.Command {
                 System.Environment.Exit(1);
             }
 
-            var shortHand = File.ReadAllText(new FileInfo("Shorthand.xml").FullName);
-
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new ConfigurationModule(args[0], shortHand));
+            builder.RegisterModule(new ConfigurationModule(args[0], "Shorthand.xml"));
             var container = builder.Build();
 
             var root = container.Resolve<Root>();

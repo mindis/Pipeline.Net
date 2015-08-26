@@ -112,7 +112,7 @@
                </calculated-fields>
             </add>
 
-            <add name="Customers" version="RowVersion" prefix="Customers">
+            <add name="Customers" version="RowVersion" prefix="Customers" denormalize="true">
                <fields>
                   <add name="Address" length="60" ></add>
                   <add name="City" length="15" ></add>

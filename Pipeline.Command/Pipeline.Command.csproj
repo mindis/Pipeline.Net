@@ -39,8 +39,8 @@
       <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Cfg.Net.Reader, Version=0.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.Reader.0.0.3\lib\Cfg.Net.Reader.dll</HintPath>
+    <Reference Include="Cfg.Net.Reader, Version=0.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.Reader.0.0.4\lib\Cfg.Net.Reader.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CfgNet, Version=0.2.5.0, Culture=neutral, processorArchitecture=MSIL">

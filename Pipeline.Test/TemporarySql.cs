@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
@@ -135,10 +134,10 @@ namespace Pipeline.Test {
                     </fields>
                 </add>
 
-                <add name='OrderStatus' version='SS_RowVersion'>
+                <add name='OrderStatus' version='SS_RowVersion' denormalize='true'>
                     <fields>
                         <add name='Id' alias='OrderStatusId' type='int' primary-key='true' />
-                        <add name='Name' alias='OrderStatus' length='255' denormalize='true' />
+                        <add name='Name' alias='OrderStatus' length='255' />
                         <add name='SS_RowVersion' alias='OrderStatusVersion' type='byte[]' length='8' variable-length='false' search-type='none' />
                     </fields>
                 </add>
@@ -158,16 +157,22 @@ namespace Pipeline.Test {
 
             var root = container.Resolve<Root>();
 
-
-            if (root.Errors().Any()){ 
+            if (root.Errors().Any()) {
                 foreach (var error in root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
                 throw new Exception("Configuration Error(s)");
             }
 
+            //foreach (var process in root.Processes) {
+            //    process.Mode = "init";
+            //    foreach (var entity in process.Entities) {
+            //        entity.Mode = "init";
+            //    }
+            //}
+
             builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
+            builder.RegisterModule(new PipelineModule(root, LogLevel.Debug));
             container = builder.Build();
 
             // resolve and run

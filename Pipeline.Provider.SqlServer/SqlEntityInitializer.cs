@@ -27,7 +27,7 @@ namespace Pipeline.Provider.SqlServer {
             } catch { }
         }
 
-        void Create(IDbConnection cn) {
+        void Create(IDbConnection cn){ 
             cn.Execute(_context.SqlCreateOutput());
             cn.Execute(_context.SqlCreateOutputUniqueClusteredIndex());
             cn.Execute(_context.SqlCreateOutputPrimaryKey());

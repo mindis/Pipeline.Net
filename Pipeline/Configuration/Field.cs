@@ -364,14 +364,6 @@ namespace Pipeline.Configuration {
         public List<string> Domain { get; set; }
 
         /// <summary>
-        /// Default is `false`.
-        /// 
-        /// If true, the contents of this field are copied into master.
-        /// </summary>
-        [Cfg(value = false)]
-        public bool Denormalize { get; set; }
-
-        /// <summary>
         /// Set by Process.ModifyKeys for keyed dependency injection
         /// </summary>
         public string Key { get; set; }
@@ -402,10 +394,6 @@ namespace Pipeline.Configuration {
                 Output = true;
             }
 
-            if (Denormalize && !Output) {
-                Warn("Denormailized fields must be output.  Overriding output to true for {0}.", Alias);
-                Output = true;
-            }
         }
 
         static byte[] HexStringToByteArray(string hex) {

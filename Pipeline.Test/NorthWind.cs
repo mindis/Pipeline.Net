@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Pipeline.Interfaces;
 using Pipeline.Configuration;
+using Pipeline.Provider.SqlServer;
 
 namespace Pipeline.Test {
 
@@ -35,7 +35,21 @@ namespace Pipeline.Test {
                 }
             }
 
-            var module = new PipelineModule(root, Logging.LogLevel.Debug);
+            var pipe = new PipelineContext(new TraceLogger(), root.Processes.First());
+            var context = new OutputContext(pipe, new Incrementer(pipe));
+            var sql = context.SqlCreateStarView();
+
+
+            Assert.IsNotNull(sql);
+
+            //foreach (var process in root.Processes) {
+            //    process.Mode = "init";
+            //    foreach (var entity in process.Entities) {
+            //        entity.Mode = "init";
+            //    }
+            //}
+
+            var module = new PipelineModule(root, Logging.LogLevel.Info);
 
             builder = new ContainerBuilder();
             builder.RegisterModule(module);

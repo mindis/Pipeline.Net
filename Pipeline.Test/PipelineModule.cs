@@ -20,7 +20,7 @@ namespace Pipeline.Test {
         readonly Root _root;
 
         public PipelineModule(
-            Root root, 
+            Root root,
             LogLevel level = LogLevel.Info
         ) {
             _root = root;
@@ -53,7 +53,7 @@ namespace Pipeline.Test {
                 var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
                 IInitializer initializer = new NullInitializer();
 
-                if(process.Mode == "init") {
+                if (process.Mode == "init") {
                     switch (outputProvider) {
                         case "sqlserver":
                             initializer = new SqlInitializer(new OutputContext(context, new Incrementer(context)));
@@ -110,7 +110,7 @@ namespace Pipeline.Test {
                     switch (provider) {
                         case "sqlserver":
                             context.Debug("Registering sql server controller");
-                            var initializer = entity.Mode == "init" ? (IInitializer) new SqlEntityInitializer(output) : new NullInitializer();
+                            var initializer = entity.Mode == "init" ? (IInitializer)new SqlEntityInitializer(output) : new NullInitializer();
                             controller = new SqlEntityController(output, initializer);
                             break;
                         default:
@@ -162,7 +162,7 @@ namespace Pipeline.Test {
                             }
                             context.Debug("Registering {0} batch reader", connection.Provider);
                             return new SqlEntityBatchReader(
-                                entityInput, 
+                                entityInput,
                                 new SqlEntityReader(entityInput,
                                     entityInput.Entity.GetPrimaryKey()
                                 )

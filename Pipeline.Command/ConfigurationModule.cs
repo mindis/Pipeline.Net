@@ -20,20 +20,18 @@ namespace Pipeline.Command {
             builder.RegisterType<FileReader>().Named<IReader>("file");
             builder.RegisterType<WebReader>().Named<IReader>("web");
 
-            builder.Register<IReader>((ctx) => new DefaultReader(
+            builder.Register<IReader>(ctx => new DefaultReader(
                 ctx.Resolve<ISourceDetector>(),
                 ctx.ResolveNamed<IReader>("file"),
                 ctx.ResolveNamed<IReader>("web")
             ));
 
-            builder.Register((ctx) => {
-                return new Root(
-                    _cfg, 
-                    _shortHand, 
-                    ctx.ResolveNamed<IValidator>("js"), 
-                    ctx.Resolve<IReader>()
-                );
-            }).As<Root>();
+            builder.Register(ctx => new Root(
+                _cfg,
+                _shortHand,
+                ctx.ResolveNamed<IValidator>("js"),
+                ctx.Resolve<IReader>()
+            )).As<Root>();
 
         }
     }

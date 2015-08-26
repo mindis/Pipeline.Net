@@ -678,14 +678,18 @@ namespace Pipeline.Configuration {
                             fields.Add(field);
                         }
                     }
-                    fields.AddRange(r.Summary.RightEntity.Fields.Where(f => f.Output && f.Denormalize));
+                    if (r.Summary.RightEntity.Denormalize) {
+                        fields.AddRange(r.Summary.RightEntity.GetAllOutputFields().Where(f=>f.Name != Constants.TflHashCode).Except(r.Summary.RightFields));
+                    }
                 } else {
                     if (r.Summary.LeftEntity.Alias != entity.Alias && r.Summary.RightEntity.Alias != entity.Alias) {
                         foreach (var field in r.Summary.RightFields) {
                             fields.Add(field);
                         }
                     }
-                    fields.AddRange(r.Summary.LeftEntity.Fields.Where(f => f.Output && f.Denormalize));
+                    if (r.Summary.LeftEntity.Denormalize) {
+                        fields.AddRange(r.Summary.LeftEntity.GetAllOutputFields().Where(f => f.Name != Constants.TflHashCode).Except(r.Summary.LeftFields));
+                    }
                 }
             }
 

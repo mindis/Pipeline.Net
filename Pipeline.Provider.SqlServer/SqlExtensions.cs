@@ -6,6 +6,7 @@ using Pipeline.Configuration;
 using Pipeline.Extensions;
 using System.Text;
 using System;
+using Pipeline.Logging;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -67,7 +68,7 @@ namespace Pipeline.Provider.SqlServer {
 
         public static string SqlInsertIntoOutput(this OutputContext c, int batchId) {
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
-            var parameters = string.Join(",", fields.Select(f => "@"+f.FieldName()));
+            var parameters = string.Join(",", fields.Select(f => "@" + f.FieldName()));
             var sql = string.Format("INSERT {0} VALUES({1},{2});", c.Entity.OutputTableName(c.Process.Name), parameters, batchId);
             c.Debug(sql);
             return sql;
@@ -75,11 +76,11 @@ namespace Pipeline.Provider.SqlServer {
 
         public static string SqlUpdateOutput(this OutputContext c, int batchId) {
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
-            var sets = string.Join(",", fields.Where(f=>!f.PrimaryKey).Select(f=>f.FieldName()).Select(n => "["+n+"] = @" + n));
+            var sets = string.Join(",", fields.Where(f => !f.PrimaryKey).Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
             var criteria = string.Join(" AND ", fields.Where(f => f.PrimaryKey).Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
-            var sql = string.Format("UPDATE [{0}] SET {1},TflBatchId={2} WHERE {3};", 
-                c.Entity.OutputTableName(c.Process.Name), 
-                sets, 
+            var sql = string.Format("UPDATE [{0}] SET {1},TflBatchId={2} WHERE {3};",
+                c.Entity.OutputTableName(c.Process.Name),
+                sets,
                 batchId,
                 criteria
             );
@@ -116,13 +117,12 @@ namespace Pipeline.Provider.SqlServer {
             var masterTable = Enclose(masterEntity.OutputTableName(c.Process.Name));
             var masterAlias = masterEntity.GetExcelName();
 
-            var entity = Enclose(c.Entity.OutputTableName(c.Process.Name));
             var entityAlias = c.Entity.GetExcelName();
             var builder = new StringBuilder();
 
-            var sets = c.Entity.Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize) ?
+            var sets = c.Entity.Fields.Any(f => f.KeyType.HasFlag(KeyType.Foreign) || (c.Entity.Denormalize && f.Output && !f.KeyType.HasFlag(KeyType.Primary))) ?
                 string.Join(",", c.Entity.Fields
-                    .Where(f => f.KeyType.HasFlag(KeyType.Foreign) || f.Denormalize)
+                    .Where(f => f.KeyType.HasFlag(KeyType.Foreign) || (c.Entity.Denormalize && f.Output && !f.KeyType.HasFlag(KeyType.Primary)))
                     .Select(f => string.Concat(masterAlias, ".", f.FieldName(), " = ", entityAlias, ".", f.FieldName())))
                 :
                 string.Empty;
@@ -139,7 +139,6 @@ namespace Pipeline.Provider.SqlServer {
 
                 builder.AppendFormat(" INNER JOIN {0} {1} ON ( ", right, rightEntityAlias);
 
-                var leftEntity = relationship.Summary.LeftEntity;
                 var leftEntityAlias = relationship.Summary.LeftEntity.GetExcelName();
 
                 for (int i = 0; i < relationship.Summary.LeftFields.Count(); i++) {
@@ -225,6 +224,36 @@ namespace Pipeline.Provider.SqlServer {
             var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
             c.Debug(sql);
             return sql;
+        }
+
+        public static string SqlCreateStarView(this OutputContext c) {
+            var starFields = GetStarFields(c.Process).ToArray();
+            var master = c.Process.Entities.First(e => e.IsMaster);
+            var masterAlias = Constants.GetExcelName(master.Index);
+            var masterNames = string.Join(",", starFields[0].Select(f => masterAlias + ".[" + f.FieldName() + "] AS [" + f.Alias + "]"));
+            var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] {3} WITH (NOLOCK);", c.Process.Star, masterNames, master.OutputTableName(c.Process.Name), masterAlias);
+            c.Debug(sql);
+            return sql;
+        }
+
+
+        private static IEnumerable<List<Field>> GetStarFields(Process process) {
+            const int master = 0;
+            const int other = 1;
+
+            var starFields = new List<Field>[2];
+
+            starFields[master] = new List<Field>();
+            starFields[other] = new List<Field>();
+
+            foreach (var entity in process.Entities.Where(e => e.IsMaster || !e.Denormalize)) {
+                if (entity.IsMaster) {
+                    starFields[master].AddRange(new PipelineContext(new NullLogger(), process, entity).GetAllEntityOutputFields());
+                } else {
+                    starFields[other].AddRange(entity.GetAllOutputFields().Where(f => !f.KeyType.HasFlag(KeyType.Primary) && f.Type != "byte[]"));
+                }
+            }
+            return starFields;
         }
 
         public static string SqlSelectInput(this InputContext c, Field[] fields) {

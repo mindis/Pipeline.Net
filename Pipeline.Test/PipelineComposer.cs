@@ -11,7 +11,8 @@ namespace Pipeline.Test {
         public Root Root { get; set; }
         public Process Process { get; set; }
 
-        public IProcessController Compose(string cfg) {
+        public IProcessController Compose(string cfg, string mode = "default") {
+
             var builder = new ContainerBuilder();
             builder.RegisterModule(new ConfigurationModule(cfg, @"Files\Shorthand.xml"));
             var container = builder.Build();

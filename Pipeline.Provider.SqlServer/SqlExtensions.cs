@@ -12,6 +12,8 @@ namespace Pipeline.Provider.SqlServer {
 
     public static class SqlExtensions {
 
+        static readonly string[] _stringTypes = { "string", "char", "datetime", "guid", "xml" };
+
         static Dictionary<string, string> _types;
         static Dictionary<string, string> Types {
             get {
@@ -40,6 +42,22 @@ namespace Pipeline.Provider.SqlServer {
                     {"xml", "XML"}
                 });
             }
+        }
+
+        private static string DefaultValue(Field field) {
+
+            if (field.Default == null)
+                return "NULL";
+
+            var d = field.Default == Constants.DefaultSetting ?
+                Constants.StringDefaults()[field.Type] :
+                field.Default;
+
+            if (_stringTypes.Any(t => t == field.Type)) {
+                return "'" + d + "'";
+            }
+
+            return d;
         }
 
         public static string SqlDataType(this Field f) {
@@ -231,7 +249,32 @@ namespace Pipeline.Provider.SqlServer {
             var master = c.Process.Entities.First(e => e.IsMaster);
             var masterAlias = Constants.GetExcelName(master.Index);
             var masterNames = string.Join(",", starFields[0].Select(f => masterAlias + ".[" + f.FieldName() + "] AS [" + f.Alias + "]"));
-            var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] {3} WITH (NOLOCK);", c.Process.Star, masterNames, master.OutputTableName(c.Process.Name), masterAlias);
+            var slaveNames = string.Join(",", starFields[1].Select(f => "ISNULL(" + Constants.GetExcelName(f.EntityIndex) + ".[" + f.FieldName() + "], " + DefaultValue(f) + ") AS [" + f.Alias + "]"));
+
+            var builder = new StringBuilder();
+
+            foreach (var entity in c.Process.Entities.Where(e => !e.IsMaster)) {
+                builder.AppendFormat("LEFT OUTER JOIN [{0}] {1} WITH (NOLOCK) ON (", entity.OutputTableName(c.Process.Name), Constants.GetExcelName(entity.Index));
+
+                var relationship = entity.RelationshipToMaster.First();
+
+                foreach (var join in relationship.Join.ToArray()) {
+                    var leftField = c.Process.GetEntity(relationship.LeftEntity).GetField(join.LeftField);
+                    var rightField = entity.GetField(join.RightField);
+                    builder.AppendFormat(
+                        "{0}.{1} = {2}.{3} AND ",
+                        masterAlias,
+                        leftField.FieldName(),
+                        Constants.GetExcelName(entity.Index),
+                        rightField.FieldName()
+                    );
+                }
+
+                builder.Remove(builder.Length - 5, 5);
+                builder.AppendLine(") ");
+            }
+
+            var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},{2},{4}.TflBatchId,{4}.TflKey FROM [{3}] {4} WITH (NOLOCK) {5};", c.Process.Star, masterNames, slaveNames, master.OutputTableName(c.Process.Name), masterAlias, builder);
             c.Debug(sql);
             return sql;
         }
@@ -250,7 +293,7 @@ namespace Pipeline.Provider.SqlServer {
                 if (entity.IsMaster) {
                     starFields[master].AddRange(new PipelineContext(new NullLogger(), process, entity).GetAllEntityOutputFields());
                 } else {
-                    starFields[other].AddRange(entity.GetAllOutputFields().Where(f => !f.KeyType.HasFlag(KeyType.Primary) && f.Type != "byte[]"));
+                    starFields[other].AddRange(entity.GetAllOutputFields().Where(f => f.KeyType == KeyType.None && f.Name != Constants.TflHashCode && f.Type != "byte[]"));
                 }
             }
             return starFields;

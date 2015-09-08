@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Pipeline.Configuration;
 
 namespace Pipeline {
     public static class Constants {
 
         static HashSet<string> _types;
         static Dictionary<string, object> _typeDefaults;
+        static Dictionary<string, string> _stringDefaults;
         static Dictionary<string, Type> _typeSystem;
         static Dictionary<string, Func<string, bool>> _canConvert;
 
@@ -54,6 +56,36 @@ namespace Pipeline {
                 });
         }
 
+        public static Dictionary<string, string> StringDefaults() {
+            return _stringDefaults ?? (
+                _stringDefaults = new Dictionary<string, string> {
+                    {"bool","false"},
+                    {"boolean","false"},
+                    {"byte", default(byte).ToString()},
+                    {"byte[]",Field.BytesToHexString(new byte[0])},
+                    {"char",default(char).ToString()},
+                    {"date","0001-01-01"},
+                    {"datetime","0001-01-01"},
+                    {"decimal","0.0"},
+                    {"double","0.0"},
+                    {"float","0.0"},
+                    {"guid","00000000-0000-0000-0000-000000000000"},
+                    {"int","0"},
+                    {"int16","0"},
+                    {"int32","0"},
+                    {"int64","0"},
+                    {"long","0"},
+                    {"object",string.Empty},
+                    {"real","0.0"},
+                    {"short","0"},
+                    {"single","0.0"},
+                    {"string",string.Empty},
+                    {"uint16","0"},
+                    {"uint32","0"},
+                    {"uint64","0"},
+                });
+        }
+
         public static Dictionary<string, Func<string, bool>> CanConvert() {
             bool boolOut;
             byte byteOut;
@@ -62,10 +94,10 @@ namespace Pipeline {
             DateTime dateOut;
             double doubleOut;
             float floatOut;
-            Single singleOut;
+            float singleOut;
             Guid guidOut;
             int intOut;
-            Int16 int16Out;
+            short int16Out;
             long longOut;
             UInt16 uInt16Out;
             UInt32 uInt32Out;
@@ -80,31 +112,31 @@ namespace Pipeline {
                     {"char",s=>char.TryParse(s, out charOut)},
                     {"date",s=> s.Length > 5 && DateTime.TryParse(s, out dateOut)},
                     {"datetime",s=> s.Length > 5 && DateTime.TryParse(s, out dateOut)},
-                    {"decimal",s=>Decimal.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol, (IFormatProvider)CultureInfo.CurrentCulture.GetFormat(typeof(NumberFormatInfo)), out decOut)},
+                    {"decimal",s=>decimal.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol, (IFormatProvider)CultureInfo.CurrentCulture.GetFormat(typeof(NumberFormatInfo)), out decOut)},
                     {"double",s=>double.TryParse(s, out doubleOut)},
                     {"float",s=>float.TryParse(s, out floatOut)},
                     {"guid", s=>Guid.TryParse(s, out guidOut)},
                     {"int",s=>int.TryParse(s, out intOut)},
-                    {"int16", s=>Int16.TryParse(s, out int16Out)},
+                    {"int16", s=>short.TryParse(s, out int16Out)},
                     {"int32",s=>int.TryParse(s, out intOut)},
                     {"int64",s=>long.TryParse(s, out longOut)},
                     {"long",s=>long.TryParse(s, out longOut)},
                     {"object", s=>true},
-                    {"real",s=>Single.TryParse(s, out singleOut)},
+                    {"real",s=>float.TryParse(s, out singleOut)},
                     {"short",s=>short.TryParse(s, out int16Out)},
-                    {"single",s=>Single.TryParse(s, out singleOut)},
+                    {"single",s=>float.TryParse(s, out singleOut)},
                     {"string",s=>true},
-                    {"uint16",s=>UInt16.TryParse(s, out uInt16Out)},
-                    {"uint32",s=>UInt32.TryParse(s, out uInt32Out)},
-                    {"uint64",s=>UInt64.TryParse(s, out uInt64Out)}
+                    {"uint16",s=>ushort.TryParse(s, out uInt16Out)},
+                    {"uint32",s=>uint.TryParse(s, out uInt32Out)},
+                    {"uint64",s=>ulong.TryParse(s, out uInt64Out)}
                 });
         }
 
         public static Dictionary<string, Type> TypeSystem() {
             return _typeSystem ?? (
                 _typeSystem = new Dictionary<string, Type> {
-                    {"bool", typeof(Boolean)},
-                    {"boolean",typeof(Boolean)},
+                    {"bool", typeof(bool)},
+                    {"boolean",typeof(bool)},
                     {"byte",typeof(byte)},
                     {"byte[]",typeof(byte[])},
                     {"char",typeof(char)},
@@ -115,18 +147,18 @@ namespace Pipeline {
                     {"float",typeof(float)},
                     {"guid", typeof(Guid)},
                     {"int",typeof(int)},
-                    {"int16",typeof(Int16)},
-                    {"int32",typeof(Int32)},
-                    {"int64",typeof(Int64)},
+                    {"int16",typeof(short)},
+                    {"int32",typeof(int)},
+                    {"int64",typeof(long)},
                     {"long",typeof(long)},
                     {"object",null},
-                    {"real",typeof(Single)},
+                    {"real",typeof(float)},
                     {"short",typeof(short)},
-                    {"single",typeof(Single)},
+                    {"single",typeof(float)},
                     {"string",typeof(string)},
-                    {"uint16",typeof(UInt16)},
-                    {"uint32",typeof(UInt32)},
-                    {"uint64",typeof(UInt64)},
+                    {"uint16",typeof(ushort)},
+                    {"uint32",typeof(uint)},
+                    {"uint64",typeof(ulong)},
                 });
         }
 
@@ -134,7 +166,7 @@ namespace Pipeline {
             var name = Convert.ToString((char)('A' + (index % 26)));
             while (index >= 26) {
                 index = (index / 26) - 1;
-                name = System.Convert.ToString((char)('A' + (index % 26))) + name;
+                name = Convert.ToString((char)('A' + (index % 26))) + name;
             }
             return name;
         }

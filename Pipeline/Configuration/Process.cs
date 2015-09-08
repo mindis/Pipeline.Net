@@ -235,11 +235,11 @@ namespace Pipeline.Configuration {
                 calculatedField.Input = false;
             }
 
-            ModifyDefaultConnection("input");
-            ModifyDefaultConnection("output");
-            ModifyDefaultEntityConnections();
-            ModifyDefaultOutput();
-            ModifyDefaultSearchTypes();
+            PreValidateDefaultConnection("input");
+            PreValidateDefaultConnection("output");
+            PreValidateDefaultEntityConnections();
+            PreValidateDefaultOutput();
+            PreValidateDefaultSearchTypes();
 
             try {
                 ExpandShortHandTransforms();
@@ -247,11 +247,11 @@ namespace Pipeline.Configuration {
                 Error("Trouble expanding short hand transforms. {0}", ex.Message);
             }
 
-            ModifyMergeParameters();
-            ModifyPrimaryKeyTypes();
+            PreValidateMergeParameters();
+            PreValidatePrimaryKeyTypes();
         }
 
-        void ModifyPrimaryKeyTypes() {
+        void PreValidatePrimaryKeyTypes() {
             // set primary on none
             foreach (var entity in Entities) {
                 foreach (var field in entity.GetAllFields()) {
@@ -309,19 +309,19 @@ namespace Pipeline.Configuration {
         public int FieldLogLimit { get; set; }
         public int TransformLogLimit { get; set; }
 
-        void ModifyDefaultEntityConnections() {
+        void PreValidateDefaultEntityConnections() {
             foreach (var entity in Entities.Where(entity => !entity.HasConnection())) {
                 entity.Connection = Connections.Any(c => c.Name == "input") ? "input" : Connections.First().Name;
             }
         }
 
-        void ModifyDefaultConnection(string name) {
+        void PreValidateDefaultConnection(string name) {
             if (Connections.All(c => c.Name != name)) {
                 this.Connections.Add(this.GetDefaultOf<Connection>(c => { c.Name = name; }));
             }
         }
 
-        void ModifyMergeParameters() {
+        void PreValidateMergeParameters() {
             foreach (var entity in Entities) {
                 entity.MergeParameters();
             }
@@ -373,7 +373,7 @@ namespace Pipeline.Configuration {
             });
         }
 
-        void ModifyDefaultSearchTypes() {
+        void PreValidateDefaultSearchTypes() {
 
             if (SearchTypes.All(st => st.Name != "none"))
                 SearchTypes.Add(this.GetDefaultOf<SearchType>(st => {
@@ -392,7 +392,7 @@ namespace Pipeline.Configuration {
                 }));
         }
 
-        void ModifyDefaultOutput() {
+        void PreValidateDefaultOutput() {
             if (Connections.All(c => c.Name != "output"))
                 Connections.Add(this.GetDefaultOf<Connection>(c => {
                     c.Name = "output";

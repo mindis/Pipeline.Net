@@ -1,0 +1,85 @@
+﻿<transformalize>
+
+    <environments>
+        <add name="one">
+            <parameters>
+                <add name="Mode" value="default" />
+                <add name="Server" value="SBSQL1.mwf.local" />
+                <add name="InputDatabase" value="ClevestDukeCarolina" />
+                <add name="OutputDatabase" value="TflDukeCarolina" />
+            </parameters>
+        </add>
+    </environments>
+
+    <processes>
+        <add name="OrderHistory" mode="@(Mode)">
+
+            <connections>
+                <add name="input" provider="sqlserver" server="@(Server)" database="@(InputDatabase)" />
+                <add name="output" provider="sqlserver" server="@(Server)" database="@(OutputDatabase)" />
+            </connections>
+
+            <entities>
+                <add name="OrderHistory"
+                     alias="Records"
+                     version="Id"
+                     no-lock="true"
+                     pipeline="parallel.linq"
+                     mode="@(Mode)" >
+                    <fields>
+                        <add name="Id" type="long" primary-key="true" />
+                        <add name="OrderKey" type="guid" />
+                        <add name="WorkerKey" type="guid" />
+                        <add name="EventTypeKey" type="guid" />
+                        <add name="CreationDatetime" type="datetime" />
+                        <add name="DataXml" length="max" output="false" >
+                            <transforms>
+                                <add method="fromxml">
+                                    <fields>
+                                        <add name="GZipCompression" alias="Compressed" length="max" />
+                                    </fields>
+                                </add>
+                            </transforms>
+                        </add>
+                    </fields>
+                </add>
+
+                <add name="OrderHistoryRecords"
+                     alias="Fields"
+                     connection="output"
+                     no-lock="true"
+                     pipeline="parallel.linq"
+                     version="Id"
+                     mode="@(Mode)">
+                    <fields>
+                        <add name="Id" type="long" primary-key="true" />
+                        <add name="Compressed" alias="CompressedTemp" length="max" output="false" t="decompress()">
+                            <transforms>
+                                <add method="fromxml" >
+                                    <fields>
+                                        <add name="MeterOldKwhReading" length="32" />
+                                    </fields>
+                                </add>
+                            </transforms>
+                        </add>
+                    </fields>
+                </add>
+
+                <add name="EventType"
+                     version="SS_RowVersion"
+                     mode="@(Mode)">
+                    <fields>
+                        <add name="EventTypeKey" type="guid" primary-key="true" />
+                        <add name="Name" alias="EventType" />
+                        <add name="SS_RowVersion" alias="EventTypeVersion" type="byte[]" length="8" />
+                    </fields>
+                </add>
+            </entities>
+
+            <relationships>
+                <add left-entity="Records" left-field="Id" right-entity="Fields" right-field="Id" />
+                <add left-entity="Records" left-field="EventTypeKey" right-entity="EventType" right-field="EventTypeKey" />
+            </relationships>
+        </add>
+    </processes>
+</transformalize>

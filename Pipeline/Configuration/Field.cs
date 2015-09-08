@@ -9,7 +9,7 @@ using Cfg.Net.Shorthand;
 namespace Pipeline.Configuration {
     public class Field : CfgNode, IField {
 
-        static readonly List<string> _invalidNames = new List<string>() { "tflhashcode", "tflbatchid", "tflkey" };
+        static readonly List<string> InvalidNames = new List<string>() { "tflhashcode", "tflbatchid", "tflkey" };
 
         static readonly Dictionary<string, Func<string, object>> ConversionMap = new Dictionary<string, Func<string, object>> {
             {"string", (x => x)},
@@ -23,7 +23,7 @@ namespace Pipeline.Configuration {
             {"uint32", (x => System.Convert.ToUInt32(x))},
             {"uint64", (x => System.Convert.ToUInt64(x))},
             {"double", (x => System.Convert.ToDouble(x))},
-            {"decimal", (x => Decimal.Parse(x, NumberStyles.Float | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol, (IFormatProvider)CultureInfo.CurrentCulture.GetFormat(typeof(NumberFormatInfo))))},
+            {"decimal", (x => decimal.Parse(x, NumberStyles.Float | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol, (IFormatProvider)CultureInfo.CurrentCulture.GetFormat(typeof(NumberFormatInfo))))},
             {"char", (x => System.Convert.ToChar(x))},
             {"datetime", (x => System.Convert.ToDateTime(x))},
             {"boolean", (x => System.Convert.ToBoolean(x))},
@@ -197,7 +197,7 @@ namespace Pipeline.Configuration {
             }
             set {
                 if (value != null) {
-                    if (value != string.Empty && _invalidNames.Contains(value.ToLower())) {
+                    if (value != string.Empty && InvalidNames.Contains(value.ToLower())) {
                         Error("You may not alias fields TflHashCode, TflBatchId, or TflKey.  These are reserved words.  If you have fields named any of these, you must alias them to something different.");
                     }
                     alias = value;
@@ -407,7 +407,7 @@ namespace Pipeline.Configuration {
             return bytes;
         }
 
-        static string BytesToHexString(byte[] bytes) {
+        public static string BytesToHexString(byte[] bytes) {
             var c = new char[bytes.Length * 2];
             for (var i = 0; i < bytes.Length; i++) {
                 var b = bytes[i] >> 4;

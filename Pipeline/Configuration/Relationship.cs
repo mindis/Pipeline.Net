@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Cfg.Net;
 
 namespace Pipeline.Configuration {
@@ -30,12 +29,27 @@ namespace Pipeline.Configuration {
         [Cfg]
         public List<Join> Join { get; set; }
 
+        protected override void PreValidate() {
+            PreValidateNormalizeJoin();
+        }
+
+        private void PreValidateNormalizeJoin() {
+            if (LeftField == string.Empty)
+                return;
+            Join.Insert(0, GetDefaultOf<Join>(j => {
+                j.LeftField = LeftField;
+                j.RightField = RightField;
+            }));
+            LeftField = string.Empty;
+            RightField = string.Empty;
+        }
+
         public IEnumerable<string> GetLeftJoinFields() {
-            return LeftField == string.Empty ? Join.Select(j => j.LeftField).ToArray() : new[] { LeftField };
+            return Join.Select(j => j.LeftField).ToArray();
         }
 
         public IEnumerable<string> GetRightJoinFields() {
-            return RightField == string.Empty ? Join.Select(j => j.RightField).ToArray() : new[] { RightField };
+            return Join.Select(j => j.RightField).ToArray();
         }
 
     }

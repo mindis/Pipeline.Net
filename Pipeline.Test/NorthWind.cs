@@ -14,11 +14,9 @@ namespace Pipeline.Test {
             var composer = new PipelineComposer();
             var controller = composer.Compose(@"Files\Northwind.xml?Mode=init");
 
-            controller.Initialize();
-            foreach (var pipeline in controller.EntityPipelines) {
-                pipeline.Initialize();
-                pipeline.Execute();
-            }
+            controller.PreExecute();
+            controller.Execute();
+            controller.PostExecute();
 
             Assert.IsNotNull(composer);
 

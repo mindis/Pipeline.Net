@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Autofac;
+﻿using System.Linq;
 using NUnit.Framework;
-using Pipeline.Interfaces;
 
 namespace Pipeline.Test {
 
@@ -46,7 +41,7 @@ namespace Pipeline.Test {
             var composer = new PipelineComposer();
             var controller = composer.Compose(xml);
 
-            var output = controller.EntityPipelines.First().Run().ToArray();
+            var output = controller.Run().ToArray();
 
             Assert.AreEqual("123", output[0][composer.Process.Entities.First().CalculatedFields.First()]);
 

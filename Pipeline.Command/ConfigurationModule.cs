@@ -26,10 +26,12 @@ namespace Pipeline.Command {
                 ctx.ResolveNamed<IReader>("web")
             ));
 
+            builder.Register<IValidators>(ctx => new Cfg.Net.Validators("js", ctx.ResolveNamed<IValidator>("js")));
+
             builder.Register(ctx => new Root(
                 _cfg,
                 _shortHand,
-                ctx.ResolveNamed<IValidator>("js"),
+                ctx.Resolve<IValidators>(),
                 ctx.Resolve<IReader>()
             )).As<Root>();
 

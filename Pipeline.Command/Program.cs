@@ -43,11 +43,9 @@ namespace Pipeline.Command {
             // resolve and run
             foreach (var process in root.Processes) {
                 var controller = container.ResolveNamed<IProcessController>(process.Key);
-                controller.Initialize();
-                foreach (var pipeline in controller.EntityPipelines) {
-                    pipeline.Initialize();
-                    pipeline.Execute();
-                }
+                controller.PreExecute();
+                controller.Execute();
+                controller.PostExecute();
             }
 
             // release

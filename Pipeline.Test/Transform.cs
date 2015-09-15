@@ -43,11 +43,9 @@ namespace Pipeline.Test {
 </cfg>
             ".Replace('\'', '"');
 
-
-            var builder = new ContainerBuilder();
             var composer = new PipelineComposer();
             var controller = composer.Compose(xml);
-            var output = controller.EntityPipelines.First().Run().ToArray();
+            var output = controller.Run().ToArray();
 
             Assert.AreEqual("1-2+3", output[0][composer.Root.Processes.First().Entities.First().CalculatedFields.First()]);
 

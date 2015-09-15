@@ -45,11 +45,10 @@ namespace Pipeline.Test {
 </cfg>
             ".Replace('\'', '"');
 
-            var builder = new ContainerBuilder();
             var composer = new PipelineComposer();
             var controller = composer.Compose(xml);
 
-            var output = controller.EntityPipelines.First().Run().ToArray();
+            var output = controller.Run().ToArray();
             var process = composer.Root.Processes.First();
 
             Assert.AreEqual(true, output[0][process.Entities.First().CalculatedFields.First(cf => cf.Name == "c1")]);

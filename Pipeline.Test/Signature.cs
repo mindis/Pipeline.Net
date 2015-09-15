@@ -70,7 +70,7 @@ namespace Pipeline.Test {
 
             var process = root.Processes.First();
 
-            var output = container.ResolveNamed<IProcessController>(process.Key).EntityPipelines.First().Run().ToArray();
+            var output = container.ResolveNamed<IProcessController>(process.Key).Run().ToArray();
 
             var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
             Assert.AreEqual(2, output[0][field]);

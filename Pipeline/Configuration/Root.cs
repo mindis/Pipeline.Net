@@ -15,15 +15,10 @@ namespace Pipeline.Configuration {
         public Root(
                 string cfg,
                 string shorthand,
-                IValidator javascriptParser,
-                IReader configurationReader = null,
-                Dictionary<string, string> parameters = null)
-            : base(
-                  reader: configurationReader,
-                  validators: new Dictionary<string, IValidator>() { { "js", javascriptParser } }
-            ) {
+                params IDependency[] dependencies)
+            : base(dependencies) {
             LoadShorthand(shorthand);
-            Load(cfg, parameters);
+            Load(cfg);
         }
 
         public Root() {

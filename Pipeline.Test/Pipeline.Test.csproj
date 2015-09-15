@@ -38,8 +38,8 @@
       <HintPath>..\packages\Cfg-NET.Reader.0.0.4\lib\Cfg.Net.Reader.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="CfgNet, Version=0.2.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.2.5\lib\CfgNet.dll</HintPath>
+    <Reference Include="CfgNet, Version=0.2.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.6\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
@@ -72,6 +72,7 @@
     <Compile Include="MapTransform.cs" />
     <Compile Include="NorthWind.cs" />
     <Compile Include="PipelineComposer.cs" />
+    <Compile Include="Inventory.cs" />
     <Compile Include="ToStringTransform.cs" />
     <Compile Include="TraceLogger.cs" />
     <Compile Include="DataSets.cs" />

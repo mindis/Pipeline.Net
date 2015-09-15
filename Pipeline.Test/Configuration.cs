@@ -23,7 +23,7 @@ namespace Pipeline.Test {
         public void FieldsAreIndexed() {
 
             var composer = new PipelineComposer();
-            var controller = composer.Compose(@"Files\PersonAndPet.xml");
+            composer.Compose(@"Files\PersonAndPet.xml");
 
             var pet = composer.Process.Entities.First();
             var person = composer.Process.Entities.Last();
@@ -49,7 +49,8 @@ namespace Pipeline.Test {
 
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var root = new Root(cfg, shorthand, new JintParser());
+
+            var root = new Root(cfg, shorthand, new Cfg.Net.Validators("js", new JintParser()));
 
             foreach (var error in root.Errors()) {
                 Console.WriteLine(error);
@@ -74,7 +75,7 @@ namespace Pipeline.Test {
         public void TestRelationshipToMaster() {
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var root = new Root(cfg, shorthand, new JintParser());
+            var root = new Root(cfg, shorthand, new Cfg.Net.Validators("js", new JintParser()));
             var rtm = root.Processes[0].Entities[1].RelationshipToMaster;
 
             Assert.AreEqual(1, rtm.Count());

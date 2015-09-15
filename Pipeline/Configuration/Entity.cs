@@ -339,6 +339,13 @@ namespace Pipeline.Configuration {
         public int Updates { get; set; }
         public int Deletes { get; set; }
 
+        /// <summary>
+        /// A value greater than zero will pull all primary keys first 
+        /// and then "batch-read" the keys out of the table. Only change this 
+        /// if Pipeline.NET reads cause blocking for other clients. A non-zero setting  
+        /// may reduce locking. However, this technique reads slower and may be much slower if 
+        /// your data source is a view with many joins.
+        /// </summary>
         [Cfg(value=0)]
         public int ReadSize { get; set; }
 

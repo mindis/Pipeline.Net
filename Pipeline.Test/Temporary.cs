@@ -17,15 +17,7 @@ namespace Pipeline.Test {
         public void EntityPipeline() {
 
             var pipelines = new PipelineComposer().Compose(@"Files\PersonAndPet.xml");
-            var person = pipelines.EntityPipelines.Last().Run().ToArray();
-
-            Assert.AreEqual(3, person.Length);
-
-            foreach (var row in person) {
-                Console.WriteLine(row);
-            }
-
-            var pet = pipelines.EntityPipelines.First().Run().ToArray();
+            var pet = pipelines.Run().ToArray();
             Assert.AreEqual(2, pet.Count());
 
             foreach (var row in pet) {

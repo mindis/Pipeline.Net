@@ -16,16 +16,15 @@ namespace Pipeline.Test {
         }
 
         [Test(Description = "A DataSet can be stored in an configuration, typed, and enumerated through.")]
-        public void GetTypedDataSet()
-        {
+        public void GetTypedDataSet() {
 
             var cfg = File.ReadAllText(@"Files\PersonAndPet.xml");
             var shorthand = File.ReadAllText(@"Files\Shorthand.xml");
-            var process = new Root(cfg, shorthand, new JintParser()).Processes.First();
+            var process = new Root(cfg, shorthand, new Cfg.Net.Validators("js", new JintParser())).Processes.First();
             var personContext = new PipelineContext(new DebugLogger(), process, process.Entities.Last());
             var entityInput = new InputContext(personContext, new Incrementer(personContext));
             var rows = new DataSetEntityReader(entityInput).Read().ToArray();
-            
+
             Assert.IsInstanceOf<IEnumerable<Row>>(rows);
             Assert.AreEqual(3, rows.Length);
 

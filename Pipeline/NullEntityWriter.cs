@@ -2,7 +2,7 @@ using Pipeline.Interfaces;
 using System.Collections.Generic;
 
 namespace Pipeline {
-   public class NullEntityWriter : IWrite {
+   public class NullEntityWriter : IWriteOutput {
 
       public void Write(IEnumerable<Row> rows) {
       }

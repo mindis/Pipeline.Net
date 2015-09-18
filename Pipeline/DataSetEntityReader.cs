@@ -5,7 +5,7 @@ using System;
 
 namespace Pipeline {
 
-    public class DataSetEntityReader : IRead {
+    public class DataSetEntityReader : IReadInput {
         InputContext _input;
 
         public DataSetEntityReader(InputContext input) {

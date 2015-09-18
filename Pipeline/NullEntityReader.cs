@@ -2,7 +2,7 @@ using Pipeline.Interfaces;
 using System.Collections.Generic;
 
 namespace Pipeline {
-    public class NullEntityReader : IRead {
+    public class NullEntityReader : IReadInput {
         public void LoadVersion() {
             // not supported for this reader
         }

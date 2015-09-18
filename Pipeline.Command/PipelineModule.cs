@@ -20,7 +20,7 @@ namespace Pipeline.Command {
         readonly Root _root;
 
         public PipelineModule(
-            Root root, 
+            Root root,
             LogLevel level = LogLevel.Info
         ) {
             _root = root;
@@ -44,23 +44,31 @@ namespace Pipeline.Command {
             builder.Register<IProcessController>((ctx) => {
 
                 var pipelines = new List<IEntityPipeline>();
+                var deleteHandlers = new List<IEntityDeleteHandler>();
                 foreach (var entity in process.Entities) {
                     var pipeline = ctx.ResolveNamed<IEntityPipeline>(entity.Key);
                     pipelines.Add(ResolveEntityPipeline(ctx, pipeline, process, entity));
+                    if (entity.Delete) {
+                        deleteHandlers.Add(ctx.ResolveNamed<IEntityDeleteHandler>(entity.Key));
+                    }
                 }
 
                 var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
                 var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
-                IInitializer initializer = new NullInitializer();
 
-                if(process.Mode == "init") {
+                var controller = new ProcessController(pipelines, deleteHandlers);
+
+                if (process.Mode == "init") {
                     switch (outputProvider) {
                         case "sqlserver":
-                            initializer = new SqlInitializer(new OutputContext(context, new Incrementer(context)));
+                            var output = new OutputContext(context, new Incrementer(context));
+                            controller.PreActions.Add(new SqlInitializer(output));
+                            controller.PostActions.Add(new SqlStarViewCreator(output));
                             break;
                     }
                 }
-                return new ProcessController(initializer, pipelines);
+
+                return controller;
             }).Named<IProcessController>(process.Key);
         }
 
@@ -73,7 +81,7 @@ namespace Pipeline.Command {
             var outputProvider = process.Connections.First(c => c.Name == "output").Provider;
 
             // extract
-            pipeline.Register(ctx.ResolveNamed<IRead>(entity.Key));
+            pipeline.Register(ctx.ResolveNamed<IReadInput>(entity.Key));
 
             // configured transforms
             foreach (var field in entity.GetAllFields().Where(f => f.Transforms.Any())) {
@@ -89,7 +97,7 @@ namespace Pipeline.Command {
                 pipeline.Register(ctx.ResolveNamed<ITransform>(entity.Key + SqlMinDateTransform));
 
             //load
-            pipeline.Register(ctx.ResolveNamed<IWrite>(entity.Key));
+            pipeline.Register(ctx.ResolveNamed<IWriteOutput>(entity.Key));
             pipeline.Register(ctx.ResolveNamed<IUpdate>(entity.Key));
             return pipeline;
         }
@@ -110,7 +118,7 @@ namespace Pipeline.Command {
                     switch (provider) {
                         case "sqlserver":
                             context.Debug("Registering sql server controller");
-                            var initializer = entity.Mode == "init" ? (IInitializer) new SqlEntityInitializer(output) : new NullInitializer();
+                            var initializer = process.Mode == "init" ? (IAction)new SqlEntityInitializer(output) : new NullInitializer();
                             controller = new SqlEntityController(output, initializer);
                             break;
                         default:
@@ -129,7 +137,7 @@ namespace Pipeline.Command {
                     switch (type) {
                         case "parallel.linq":
                             context.Debug("Registering {0} pipeline.", type);
-                            return new Parallel(pipeline);
+                            return new ParallelPipeline(pipeline);
                         /*case "streams":
                             return new Streams.Serial(pipeline);
                         case "parallel.streams":
@@ -147,7 +155,7 @@ namespace Pipeline.Command {
                 }).Named<IEntityPipeline>(entity.Key);
 
                 //input
-                builder.Register<IRead>((ctx) => {
+                builder.Register<IReadInput>((ctx) => {
                     var connection = process.Connections.First(cn => cn.Name == entity.Connection);
                     var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                     var entityInput = new InputContext(context, new Incrementer(context));
@@ -158,20 +166,20 @@ namespace Pipeline.Command {
                         case "sqlserver":
                             if (entityInput.Entity.ReadSize == 0) {
                                 context.Debug("Registering {0} reader", connection.Provider);
-                                return new SqlEntityReader(entityInput, entityInput.InputFields);
+                                return new SqlInputReader(entityInput, entityInput.InputFields);
                             }
                             context.Debug("Registering {0} batch reader", connection.Provider);
-                            return new SqlEntityBatchReader(
-                                entityInput, 
-                                new SqlEntityReader(entityInput,
+                            return new SqlInputBatchReader(
+                                entityInput,
+                                new SqlInputReader(entityInput,
                                     entityInput.Entity.GetPrimaryKey()
-                                )
-                            );
+                                    )
+                                );
                         default:
                             context.Warn("Registering null reader", connection.Provider);
                             return new NullEntityReader();
                     }
-                }).Named<IRead>(entity.Key);
+                }).Named<IReadInput>(entity.Key);
 
                 foreach (var f in entity.GetAllFields().Where(f => f.Transforms.Any())) {
 
@@ -193,7 +201,7 @@ namespace Pipeline.Command {
                 RegisterSqlMinDateTransform(builder, process, entity);
 
                 //output
-                builder.Register<IWrite>((ctx) => {
+                builder.Register<IWriteOutput>((ctx) => {
                     var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                     var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                     var incrementer = new Incrementer(context);
@@ -206,7 +214,7 @@ namespace Pipeline.Command {
                             context.Warn("Registering null writer", provider);
                             return new NullEntityWriter();
                     }
-                }).Named<IWrite>(entity.Key);
+                }).Named<IWriteOutput>(entity.Key);
 
                 //master updater
                 builder.Register<IUpdate>((ctx) => {
@@ -223,6 +231,34 @@ namespace Pipeline.Command {
                             return new NullMasterUpdater();
                     }
                 }).Named<IUpdate>(entity.Key);
+
+                //register the delete handler
+                if (entity.Delete) {
+                    builder.Register<IEntityDeleteHandler>(ctx => {
+                        var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
+
+                        var inputConnection = process.Connections.First(c => c.Name == e.Connection);
+
+                        IRead input = new NullReader();
+                        switch (inputConnection.Provider) {
+                            case "sqlserver":
+                                input = new SqlReader(context, entity.GetPrimaryKey(), ReadFrom.Input);
+                                break;
+                        }
+
+                        IRead output = new NullReader();
+                        IDelete deleter = new NullDeleter();
+                        var outputConnection = process.Connections.First(c => c.Name == "output");
+                        switch (outputConnection.Provider) {
+                            case "sqlserver":
+                                output = new SqlReader(context, entity.GetPrimaryKey(), ReadFrom.Output);
+                                deleter = new SqlDeleter(new OutputContext(context, new Incrementer(context)));
+                                break;
+                        }
+
+                        return new ParallelDeleteHandler(new DefaultDeleteHandler(entity, input, output, deleter));
+                    }).Named<IEntityDeleteHandler>(entity.Key);
+                }
 
             }
         }

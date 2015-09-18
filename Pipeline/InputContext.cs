@@ -7,36 +7,20 @@ using Pipeline.Interfaces;
 namespace Pipeline {
     public class InputContext : IConnectionContext {
         readonly PipelineContext _context;
-        IIncrement _incrementer;
+        readonly IIncrement _incrementer;
 
         public Connection Connection { get; set; }
 
         public int RowCapacity { get; set; }
         public Field[] InputFields { get; set; }
 
-        public Entity Entity {
-            get {
-                return _context.Entity;
-            }
-        }
+        public Entity Entity => _context.Entity;
 
-        public Field Field {
-            get {
-                return _context.Field;
-            }
-        }
+        public Field Field => _context.Field;
 
-        public Process Process {
-            get {
-                return _context.Process;
-            }
-        }
+        public Process Process => _context.Process;
 
-        public Transform Transform {
-            get {
-                return _context.Transform;
-            }
-        }
+        public Transform Transform => _context.Transform;
 
         public InputContext(PipelineContext context, IIncrement incrementer) {
             _incrementer = incrementer;

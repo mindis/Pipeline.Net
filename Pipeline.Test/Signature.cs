@@ -5,6 +5,7 @@ using System.Linq;
 using Autofac;
 using NUnit.Framework;
 using Cfg.Net.Shorthand;
+using Pipeline.Command;
 using Pipeline.Interfaces;
 using Pipeline.Logging;
 using Pipeline.Configuration;

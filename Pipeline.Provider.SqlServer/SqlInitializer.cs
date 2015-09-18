@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 
 namespace Pipeline.Provider.SqlServer {
-    public class SqlInitializer : IInitializer {
+    public class SqlInitializer : IAction {
         readonly OutputContext _context;
         readonly string _connectionString;
 
@@ -24,7 +24,7 @@ namespace Pipeline.Provider.SqlServer {
             cn.Execute(_context.SqlCreateControl());
         }
 
-        public void Initialize() {
+        public void Execute() {
             using (var cn = new SqlConnection(_connectionString)) {
                 cn.Open();
                 Destroy(cn);

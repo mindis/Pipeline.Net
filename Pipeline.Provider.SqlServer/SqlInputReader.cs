@@ -6,19 +6,17 @@ using Pipeline.Configuration;
 using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
-
     /// <summary>
-    /// Writes one query to read all the data.
+    /// A reader for an entity's input (source).
     /// </summary>
-    public class SqlEntityReader : IRead {
+    public class SqlInputReader : IReadInput {
 
         int _rowCount;
-        HashSet<int> _errors = new HashSet<int>();
         readonly InputContext _input;
         readonly SqlRowCreator _rowCreator;
         readonly Field[] _fields;
 
-        public SqlEntityReader(InputContext input, Field[] fields) {
+        public SqlInputReader(InputContext input, Field[] fields) {
             _input = input;
             _fields = fields;
             _rowCreator = new SqlRowCreator(input);

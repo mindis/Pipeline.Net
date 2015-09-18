@@ -58,8 +58,7 @@
 
         <add name="Order Details"
              version="RowVersion"
-             prefix="OrderDetails"
-             mode="@(Mode)">
+             prefix="OrderDetails">
           <fields>
             <add name="Discount" type="single" ></add>
             <add name="OrderID" type="int" primary-key="true"></add>
@@ -80,8 +79,7 @@
 
         <add name="Orders"
              version="RowVersion"
-             prefix="Orders"
-             mode="@(Mode)">
+             prefix="Orders">
           <fields>
             <add name="CustomerID" type="char" length="5"/>
             <add name="EmployeeID" type="int"/>
@@ -123,8 +121,7 @@
         <add name="Customers" 
              version="RowVersion" 
              prefix="Customers" 
-             denormalize="true"
-             mode="@(Mode)">
+             denormalize="true">
           <fields>
             <add name="Address" length="60" ></add>
             <add name="City" length="15" ></add>
@@ -143,8 +140,7 @@
 
         <add name="Employees" 
              version="RowVersion" 
-             prefix="Employees"
-             mode="@(Mode)">
+             prefix="Employees">
           <fields>
             <add name="Address" length="60" ></add>
             <add name="BirthDate" type="datetime" ></add>
@@ -174,8 +170,7 @@
 
         <add name="Products" 
              version="RowVersion" 
-             prefix="Products"
-             mode="@(Mode)">
+             prefix="Products">
           <fields>
             <add name="CategoryID" type="int32"/>
             <add name="Discontinued" type="boolean"/>
@@ -193,8 +188,7 @@
 
         <add name="Suppliers" 
              version="RowVersion" 
-             prefix="Suppliers"
-             mode="@(Mode)">
+             prefix="Suppliers">
           <fields>
             <add name="Address" length="60" ></add>
             <add name="City" length="15" ></add>
@@ -214,8 +208,7 @@
 
         <add name="Categories" 
              version="RowVersion" 
-             prefix="Categories"
-             mode="@(Mode)">
+             prefix="Categories">
           <fields>
             <add name="CategoryID" type="int" primary-key="true"/>
             <add name="CategoryName" length="15"/>
@@ -227,8 +220,7 @@
 
         <add name="Shippers" 
              version="RowVersion" 
-             prefix="Shippers"
-             mode="@(Mode)">
+             prefix="Shippers">
           <fields>
             <add name="CompanyName" length="40"/>
             <add name="Phone" length="24"/>

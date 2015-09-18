@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Autofac;
 using NUnit.Framework;
-using Pipeline.Interfaces;
-using Pipeline.Configuration;
-using Pipeline.Logging;
 
 namespace Pipeline.Test {
 

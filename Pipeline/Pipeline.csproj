@@ -34,10 +34,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DefaultDeleteHandler.cs" />
+    <Compile Include="Interfaces\IEntityDeleteHandler.cs" />
+    <Compile Include="Interfaces\IAction.cs" />
+    <Compile Include="Interfaces\IDelete.cs" />
     <Compile Include="Interfaces\IEntityMatchingKeysReader.cs" />
     <Compile Include="InputContext.cs" />
     <Compile Include="Interfaces\IConnectionContext.cs" />
     <Compile Include="Interfaces\IProcessController.cs" />
+    <Compile Include="Interfaces\IRead.cs" />
+    <Compile Include="KeyComparer.cs" />
+    <Compile Include="NullDeleter.cs" />
+    <Compile Include="NullReader.cs" />
     <Compile Include="OutputContext.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -79,8 +87,7 @@
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Interfaces\IEntityController.cs" />
-    <Compile Include="Interfaces\IEntityInitializer.cs" />
-    <Compile Include="Interfaces\IEntityWriter.cs" />
+    <Compile Include="Interfaces\IWriteOutput.cs" />
     <Compile Include="Interfaces\IUpdate.cs" />
     <Compile Include="JintParser.cs" />
     <Compile Include="KeyType.cs" />
@@ -99,6 +106,7 @@
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
     <Compile Include="ProcessController.cs" />
+    <Compile Include="ReadFrom.cs" />
     <Compile Include="Transformers\System\TflHashCodeTransform.cs" />
     <Compile Include="Transformers\JoinTransform.cs" />
     <Compile Include="Transformers\ToLowerTransform.cs" />
@@ -126,7 +134,7 @@
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Interfaces\IField.cs" />
-    <Compile Include="Interfaces\IEntityReader.cs" />
+    <Compile Include="Interfaces\IReadInput.cs" />
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Interfaces\IRow.cs" />
     <Compile Include="DataSetEntityReader.cs" />

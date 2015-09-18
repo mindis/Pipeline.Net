@@ -18,9 +18,9 @@ namespace Pipeline.Transformers.System {
          _fields = context.GetAllEntityFields().ToArray();
          _typeDefaults = Constants.TypeDefaults();
          if (context.Entity.IsMaster) {
-            _index = (f) => { return f.MasterIndex; };
+            _index = (f) => f.MasterIndex;
          } else {
-            _index = (f) => { return f.Index; };
+            _index = (f) => f.Index;
          }
          foreach (var fld in _fields) {
             var f = fld;

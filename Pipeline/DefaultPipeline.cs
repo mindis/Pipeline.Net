@@ -9,26 +9,27 @@ namespace Pipeline {
 
         readonly IEntityController _controller;
 
-        protected IRead Reader { get; private set; }
-        protected IWrite Writer { get; private set; }
+        protected IReadInput Reader { get; private set; }
+        protected IWriteOutput Writer { get; private set; }
         protected IUpdate MasterUpdater { get; private set; }
-        protected List<ITransform> Transformers { get; private set; }
+        protected List<ITransform> Transformers { get; }
 
         readonly PipelineContext _context;
 
         public DefaultPipeline(IEntityController controller, IContext context) {
             _context = (PipelineContext)context;
             _controller = controller;
-            Transformers = new List<ITransform>();
-            Transformers.Add(new DefaultTransform(_context));
-            Transformers.Add(new TflHashCodeTransform(_context));
+            Transformers = new List<ITransform> {
+                new DefaultTransform(_context),
+                new TflHashCodeTransform(_context)
+            };
         }
 
         public void Initialize() {
             _controller.Initialize();
         }
 
-        public void Register(IRead reader) {
+        public void Register(IReadInput reader) {
             Reader = reader;
         }
 
@@ -43,7 +44,7 @@ namespace Pipeline {
             }
         }
 
-        public void Register(IWrite writer) {
+        public void Register(IWriteOutput writer) {
             Writer = writer;
         }
 
@@ -58,10 +59,9 @@ namespace Pipeline {
                 _context.Info("data change? Yes");
                 Transformers.Add(new StringTruncateTransfom(_context));
                 return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
-            } else {
-                _context.Info("data change? No");
-                return Enumerable.Empty<Row>();
             }
+            _context.Info("data change? No");
+            return Enumerable.Empty<Row>();
         }
 
         public void Execute() {

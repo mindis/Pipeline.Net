@@ -9,20 +9,20 @@ namespace Pipeline.Provider.SqlServer {
     /// <summary>
     /// Writes one query to read all the keys, 
     /// then writes many queries to read the data based on the keys.
-    /// Use this if reading the data with SqlEntityReader causes blocking 
+    /// Use this if reading the data with SqlInputReader causes blocking 
     /// for other applications.  It is slower, and requires the creation of
     /// temporary tables, but it reads according to the batch-size set on the 
     /// connection and is less likely to block (the smaller the batch size).  Of course, 
     /// you can also set no-lock on the entity to reduce blocking, but at the risk of 
     /// reading un-commited data.
     /// </summary>
-    public class SqlEntityBatchReader : IRead {
+    public class SqlInputBatchReader : IReadInput {
         readonly InputContext _input;
-        readonly IRead _reader;
+        readonly IReadInput _reader;
         readonly SqlEntityMatchingFieldsReader _fieldsReader;
         int _rowCount;
 
-        public SqlEntityBatchReader(InputContext input, IRead reader) {
+        public SqlInputBatchReader(InputContext input, IReadInput reader) {
             _input = input;
             _reader = reader;
             _fieldsReader = new SqlEntityMatchingFieldsReader(input);

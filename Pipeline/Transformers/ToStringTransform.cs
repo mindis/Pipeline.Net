@@ -39,7 +39,7 @@ namespace Pipeline.Transformers {
         }
 
         public Row Transform(Row row) {
-            row[Context.Field] = _toString(_input);
+            row[Context.Field] = _toString(row[_input]);
             Increment();
             return row;
         }

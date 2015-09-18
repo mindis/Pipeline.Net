@@ -4,6 +4,7 @@ using Pipeline.Interfaces;
 using Pipeline.Logging;
 using System;
 using System.Linq;
+using Pipeline.Command;
 
 namespace Pipeline.Test {
     public class PipelineComposer {

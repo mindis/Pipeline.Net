@@ -9,28 +9,6 @@ namespace Pipeline.Configuration {
 
         const string ALL = "*";
 
-        readonly Dictionary<string, string> _providerTypes = new Dictionary<string, string>();
-
-        public Process() {
-
-            _providerTypes.Add("sqlserver", "System.Data.SqlClient.SqlConnection, System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            _providerTypes.Add("mysql", "MySql.Data.MySqlClient.MySqlConnection, MySql.Data");
-            _providerTypes.Add("postgresql", "Npgsql.NpgsqlConnection, Npgsql");
-            var empties = new[] {
-                "file",
-                "folder",
-                "internal",
-                "console",
-                "log",
-                "elasticsearch",
-                "solr",
-                "lucene"
-            };
-            foreach (var empty in empties) {
-                _providerTypes.Add(empty, empty);
-            }
-        }
-
         /// <summary>
         /// A name (of your choosing) to identify the process.
         /// </summary>
@@ -421,6 +399,15 @@ namespace Pipeline.Configuration {
                 ModifyLogLimits();
                 ModifyRelationshipToMaster();
                 ModifyIndexes();
+                ModifyDefaultDatesForSqlServer();
+            }
+        }
+
+        private void ModifyDefaultDatesForSqlServer() {
+            if (Connections.First(c => c.Name == "output").Provider == "sqlserver") {
+                foreach (var field in GetAllFields().Where(f => f.Output && f.Type.StartsWith("date") && f.Default == Constants.DefaultSetting)) {
+                    field.Default = DateTime.MaxValue.ToString();
+                }
             }
         }
 
@@ -679,7 +666,7 @@ namespace Pipeline.Configuration {
                         }
                     }
                     if (r.Summary.RightEntity.Denormalize) {
-                        fields.AddRange(r.Summary.RightEntity.GetAllOutputFields().Where(f=>f.Name != Constants.TflHashCode).Except(r.Summary.RightFields));
+                        fields.AddRange(r.Summary.RightEntity.GetAllOutputFields().Where(f => f.Name != Constants.TflHashCode).Except(r.Summary.RightFields));
                     }
                 } else {
                     if (r.Summary.LeftEntity.Alias != entity.Alias && r.Summary.RightEntity.Alias != entity.Alias) {

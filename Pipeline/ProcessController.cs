@@ -5,19 +5,23 @@ using System.Linq;
 namespace Pipeline {
     public class ProcessController : IProcessController {
 
-        readonly IInitializer _initializer;
         private readonly IEnumerable<IEntityPipeline> _entityPipelines;
+        private readonly IEnumerable<IEntityDeleteHandler> _deleteHandlers;
+        public List<IAction> PreActions { get; } = new List<IAction>();
+        public List<IAction> PostActions { get; } = new List<IAction>();
 
         public ProcessController(
-            IInitializer initializer,
-            IEnumerable<IEntityPipeline> entityPipelines
+            IEnumerable<IEntityPipeline> entityPipelines,
+            IEnumerable<IEntityDeleteHandler> deleteHandlers
         ) {
-            _initializer = initializer;
             _entityPipelines = entityPipelines;
+            _deleteHandlers = deleteHandlers;
         }
 
         public void PreExecute() {
-            _initializer.Initialize();
+            foreach (var action in PreActions) {
+                action.Execute();
+            }
         }
 
         public void Execute() {
@@ -28,7 +32,12 @@ namespace Pipeline {
         }
 
         public void PostExecute() {
-            // todo, e.g. create star view for relational outputs
+            foreach (var handler in _deleteHandlers) {
+                handler.Delete();
+            }
+            foreach (var action in PostActions) {
+                action.Execute();
+            }
         }
 
         public IEnumerable<Row> Run() {

@@ -9,12 +9,11 @@ using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 
-    public class SqlEntityBulkInserter : IWrite {
+    public class SqlEntityBulkInserter : IWriteOutput {
 
         SqlBulkCopyOptions _bulkCopyOptions;
         readonly OutputContext _output;
         readonly SqlEntityMatchingKeysReader _outputKeysReader;
-        readonly Field _hashCode;
         readonly SqlEntityUpdater _sqlUpdater;
         readonly Field[] _keys;
 
@@ -30,7 +29,6 @@ namespace Pipeline.Provider.SqlServer {
 
             _keys = output.Entity.GetPrimaryKey();
             _outputKeysReader = new SqlEntityMatchingKeysReader(output, _keys);
-            _hashCode = output.Entity.CalculatedFields.First(f => f.Name == Constants.TflHashCode);
             _sqlUpdater = new SqlEntityUpdater(output);
         }
 

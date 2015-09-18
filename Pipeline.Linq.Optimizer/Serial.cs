@@ -28,7 +28,7 @@ namespace Pipeline.Linq.Optimizer {
             _pipeline.Register(updater);
         }
 
-        public void Register(IWrite writer) {
+        public void Register(IWriteOutput writer) {
             _pipeline.Register(writer);
         }
 
@@ -36,7 +36,7 @@ namespace Pipeline.Linq.Optimizer {
             _pipeline.Register(transformer);
         }
 
-        public void Register(IRead reader) {
+        public void Register(IReadInput reader) {
             _pipeline.Register(reader);
         }
 

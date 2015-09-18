@@ -49,12 +49,14 @@ namespace Pipeline.Provider.SqlServer {
             if (field.Default == null)
                 return "NULL";
 
-            var d = field.Default == Constants.DefaultSetting ?
-                Constants.StringDefaults()[field.Type] :
-                field.Default;
+            var d = field.Default == Constants.DefaultSetting ? Constants.StringDefaults()[field.Type] : field.Default;
 
             if (_stringTypes.Any(t => t == field.Type)) {
                 return "'" + d + "'";
+            }
+
+            if (field.Type.StartsWith("bool")) {
+                return d.Equals("true", StringComparison.OrdinalIgnoreCase) ? "1" : "0";
             }
 
             return d;
@@ -87,7 +89,7 @@ namespace Pipeline.Provider.SqlServer {
         public static string SqlInsertIntoOutput(this OutputContext c, int batchId) {
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
             var parameters = string.Join(",", fields.Select(f => "@" + f.FieldName()));
-            var sql = string.Format("INSERT {0} VALUES({1},{2});", c.Entity.OutputTableName(c.Process.Name), parameters, batchId);
+            var sql = $"INSERT {c.Entity.OutputTableName(c.Process.Name)} VALUES({parameters},{batchId});";
             c.Debug(sql);
             return sql;
         }
@@ -96,30 +98,32 @@ namespace Pipeline.Provider.SqlServer {
             var fields = c.Entity.GetAllFields().Where(f => f.Output).ToArray();
             var sets = string.Join(",", fields.Where(f => !f.PrimaryKey).Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
             var criteria = string.Join(" AND ", fields.Where(f => f.PrimaryKey).Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
-            var sql = string.Format("UPDATE [{0}] SET {1},TflBatchId={2} WHERE {3};",
-                c.Entity.OutputTableName(c.Process.Name),
-                sets,
-                batchId,
-                criteria
-            );
+            var sql = $"UPDATE [{c.Entity.OutputTableName(c.Process.Name)}] SET {sets},TflBatchId={batchId} WHERE {criteria};";
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlDeleteOutput(this OutputContext c, int batchId) {
+            var criteria = string.Join(" AND ", c.Entity.GetPrimaryKey().Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
+            var sql = $"DELETE FROM [{c.Entity.OutputTableName(c.Process.Name)}] WHERE {criteria};";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlDropOutput(this OutputContext c) {
-            var sql = string.Format("DROP TABLE [{0}];", c.Entity.OutputTableName(c.Process.Name));
+            var sql = $"DROP TABLE [{c.Entity.OutputTableName(c.Process.Name)}];";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlDropOutputView(this OutputContext c) {
-            var sql = string.Format("DROP VIEW [{0}];", c.Entity.OutputViewName(c.Process.Name));
+            var sql = $"DROP VIEW [{c.Entity.OutputViewName(c.Process.Name)}];";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlDropControl(this OutputContext c) {
-            var sql = string.Format("DROP TABLE [{0}];", SqlControlTableName(c));
+            var sql = $"DROP TABLE [{SqlControlTableName(c)}];";
             c.Debug(sql);
             return sql;
         }
@@ -240,6 +244,12 @@ namespace Pipeline.Provider.SqlServer {
         public static string SqlCreateOutputView(this OutputContext c) {
             var columnNames = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] AS [" + f.Alias + "]"));
             var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
+            c.Debug(sql);
+            return sql;
+        }
+
+        public static string SqlDropStarView(this OutputContext c) {
+            var sql = $"DROP VIEW [{c.Process.Star}];";
             c.Debug(sql);
             return sql;
         }

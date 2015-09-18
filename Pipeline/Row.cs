@@ -9,33 +9,17 @@ namespace Pipeline {
     public class Row : IRow {
         readonly object[] _storage;
         readonly string[] _stringStorage;
-        //readonly bool _isMaster;
         readonly Func<IField, short> _index;
 
-        //public bool Exists { get; set; }
-        //public bool Delta { get; set; }
         public int TflHashCode { get; set; }
 
-        //public Row(Row row, bool exists, bool delta) {
-        //    _storage = row._storage;
-        //    _stringStorage = row._stringStorage;
-        //    Exists = exists;
-        //    Delta = delta;
-        //    if (_isMaster) {
-        //        _index = (f) => { return f.MasterIndex; };
-        //    } else {
-        //        _index = (f) => { return f.Index; };
-        //    }
-        //}
-
         public Row(int capacity, bool isMaster) {
-            //_isMaster = isMaster;
             _storage = new object[capacity];
             _stringStorage = new string[capacity];
             if (isMaster) {
-                _index = (f) => { return f.MasterIndex; };
+                _index = (f) => f.MasterIndex;
             } else {
-                _index = (f) => { return f.Index; };
+                _index = (f) => f.Index;
             }
         }
 
@@ -73,10 +57,9 @@ namespace Pipeline {
         }
 
         public bool Match(Field[] fields, Row other) {
-            if (fields.Length > 1)
-                return fields.Select(f => this[f]).SequenceEqual(fields.Select(f => other[f]));
-            return this[fields[0]].Equals(other[fields[0]]);
+            return fields.Length > 1 ?
+                fields.Select(f => this[f]).SequenceEqual(fields.Select(f => other[f])) :
+                this[fields[0]].Equals(other[fields[0]]);
         }
-
     }
 }

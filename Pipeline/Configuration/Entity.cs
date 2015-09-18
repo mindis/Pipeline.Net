@@ -355,8 +355,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = 50)]
         public int UpdateSize { get; set; }
 
-        [Cfg(value ="default", domain ="init,default", toLower = true)]
-        public string Mode { get; set; }
-
+        [Cfg(value=50)]
+        public int DeleteSize { get; set; }
     }
 }

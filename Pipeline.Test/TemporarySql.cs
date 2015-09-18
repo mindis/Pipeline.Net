@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
+using Pipeline.Command;
 using Pipeline.Logging;
 using Pipeline.Interfaces;
 using Pipeline.Configuration;

@@ -35,7 +35,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Parallel.cs" />
+    <Compile Include="ParallelPipeline.cs" />
+    <Compile Include="ParallelDeleteHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

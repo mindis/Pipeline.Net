@@ -12,12 +12,12 @@ namespace Pipeline.Provider.SqlServer {
 
         readonly Stopwatch _stopWatch;
         readonly OutputContext _context;
-        readonly IInitializer _initializer;
+        readonly IAction _initializer;
         readonly Connection _output;
 
         public object StartVersion { get; private set; }
 
-        public SqlEntityController(OutputContext context, IInitializer initializer) {
+        public SqlEntityController(OutputContext context, IAction initializer) {
             _context = context;
             _initializer = initializer;
             _output = context.Process.Connections.First(c => c.Name == "output");
@@ -55,7 +55,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public void Initialize() {
-            _initializer.Initialize();
+            _initializer.Execute();
         }
 
     }

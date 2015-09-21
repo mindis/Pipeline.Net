@@ -208,7 +208,7 @@ namespace Pipeline.Provider.SqlServer {
                 SET [Inserts] = @Inserts,
                     [Updates] = @Updates,
                     [Deletes] = @Deletes,
-                    [End] = GETUTCDATE()
+                    [End] = GETDATE()
                 WHERE BatchId = @BatchId;", SqlControlTableName(c));
             c.Debug(sql);
             return sql;
@@ -255,7 +255,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlCreateStarView(this OutputContext c) {
-            var starFields = GetStarFields(c.Process).ToArray();
+            var starFields = c.Process.GetStarFields().ToArray();
             var master = c.Process.Entities.First(e => e.IsMaster);
             var masterAlias = Constants.GetExcelName(master.Index);
             var masterNames = string.Join(",", starFields[0].Select(f => masterAlias + ".[" + f.FieldName() + "] AS [" + f.Alias + "]"));
@@ -287,26 +287,6 @@ namespace Pipeline.Provider.SqlServer {
             var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},{2},{4}.TflBatchId,{4}.TflKey FROM [{3}] {4} WITH (NOLOCK) {5};", c.Process.Star, masterNames, slaveNames, master.OutputTableName(c.Process.Name), masterAlias, builder);
             c.Debug(sql);
             return sql;
-        }
-
-
-        private static IEnumerable<List<Field>> GetStarFields(Process process) {
-            const int master = 0;
-            const int other = 1;
-
-            var starFields = new List<Field>[2];
-
-            starFields[master] = new List<Field>();
-            starFields[other] = new List<Field>();
-
-            foreach (var entity in process.Entities.Where(e => e.IsMaster || !e.Denormalize)) {
-                if (entity.IsMaster) {
-                    starFields[master].AddRange(new PipelineContext(new NullLogger(), process, entity).GetAllEntityOutputFields());
-                } else {
-                    starFields[other].AddRange(entity.GetAllOutputFields().Where(f => f.KeyType == KeyType.None && f.Name != Constants.TflHashCode && f.Type != "byte[]"));
-                }
-            }
-            return starFields;
         }
 
         public static string SqlSelectInput(this InputContext c, Field[] fields) {

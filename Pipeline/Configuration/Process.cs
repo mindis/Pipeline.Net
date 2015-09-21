@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cfg.Net;
+using Pipeline.Logging;
 
 namespace Pipeline.Configuration {
 
@@ -390,6 +391,15 @@ namespace Pipeline.Configuration {
             ValidateMapConnections();
             ValidateMapTransforms();
             ValidateDataSets();
+            ValidateSearchTypes();
+        }
+
+        private void ValidateSearchTypes() {
+            foreach (var name in GetAllFields().SelectMany(f => f.SearchTypes).Select(st => st.Name).Distinct()) {
+                if (SearchTypes.All(st => st.Name != name)) {
+                    Error("Search type {0} is invalid.", name);
+                }
+            }
         }
 
         protected override void PostValidate() {
@@ -435,6 +445,10 @@ namespace Pipeline.Configuration {
                         field.MasterIndex = ++masterIndex;
                     }
                 }
+            }
+            var actionIndex = 0;
+            foreach (var action in Actions) {
+                action.Key = (++actionIndex).ToString();
             }
         }
 
@@ -651,6 +665,10 @@ namespace Pipeline.Configuration {
             return fields;
         }
 
+        public bool HasMultivaluedSearchType() {
+            return GetAllFields().SelectMany(f => f.SearchTypes).Select(st => st.Name).Distinct().Any(st => SearchTypes.First(s => s.Name == st).MultiValued);
+        }
+
         public IEnumerable<Field> GetRelationshipFields(Entity entity) {
 
             //var relationships = Relationships.Where(r => r.Summary.LeftEntity.Alias != entity.Alias && r.Summary.RightEntity.Alias != entity.Alias).ToArray();
@@ -684,5 +702,32 @@ namespace Pipeline.Configuration {
 
         }
 
+        public IEnumerable<Field> GetSearchFields() {
+            var fields = new List<Field>();
+            var starFields = GetStarFields().ToArray();
+
+            fields.AddRange(starFields[0].Where(f => f.SearchTypes.Any(st => st.Name != "none")));
+            fields.AddRange(starFields[1].Where(f => f.SearchTypes.Any(st => st.Name != "none")));
+            return fields;
+        }
+
+        public IEnumerable<List<Field>> GetStarFields() {
+            const int master = 0;
+            const int other = 1;
+
+            var starFields = new List<Field>[2];
+
+            starFields[master] = new List<Field>();
+            starFields[other] = new List<Field>();
+
+            foreach (var entity in Entities.Where(e => e.IsMaster || !e.Denormalize)) {
+                if (entity.IsMaster) {
+                    starFields[master].AddRange(new PipelineContext(new NullLogger(), this, entity).GetAllEntityOutputFields());
+                } else {
+                    starFields[other].AddRange(entity.GetAllOutputFields().Where(f => f.KeyType == KeyType.None && f.Name != Constants.TflHashCode && f.Type != "byte[]"));
+                }
+            }
+            return starFields;
+        }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Text;
-using Pipeline.Configuration;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
+using Pipeline.Configuration;
+using Pipeline.Transformers;
 
-namespace Pipeline.Transformers {
+namespace Pipeline.Desktop.Transformers {
     public class DecompressTransform : BaseTransform, ITransform {
         readonly Field _input;
         readonly Field _output;

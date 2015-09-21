@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Interfaces;
 
-namespace Pipeline.Linq {
+namespace Pipeline.Desktop {
     public class ParallelDeleteHandler : IEntityDeleteHandler {
         private readonly IEntityDeleteHandler _deleteHandler;
 

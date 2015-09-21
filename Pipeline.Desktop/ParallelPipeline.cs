@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
-using Nessos.LinqOptimizer.CSharp;
-using Pipeline.Transformers;
+using System.Linq;
 using Pipeline.Interfaces;
+using Pipeline.Transformers;
 
-namespace Pipeline.Linq.Optimizer {
-
-    public class Serial : IEntityPipeline {
+namespace Pipeline.Desktop {
+    public class ParallelPipeline : IEntityPipeline {
         readonly IEntityPipeline _pipeline;
-        public Serial(IEntityPipeline pipeline) {
+
+        public ParallelPipeline(IEntityPipeline pipeline) {
             _pipeline = pipeline;
         }
 
@@ -41,8 +40,7 @@ namespace Pipeline.Linq.Optimizer {
         }
 
         public IEnumerable<Row> Run() {
-            return _pipeline.Run().AsQueryExpr().Run();
+            return _pipeline.Run().AsParallel();
         }
-
     }
 }

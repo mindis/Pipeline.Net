@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autofac;
+using Cfg.Net.Contracts;
+using Cfg.Net.Reader;
 using Pipeline.Logging;
 using Pipeline.Configuration;
+using Pipeline.Desktop;
+using Pipeline.Desktop.Actions;
+using Pipeline.Desktop.Transformers;
 using Pipeline.Transformers;
 using Pipeline.Provider.SqlServer;
-using Pipeline.Linq;
 using Pipeline.Validators;
 using Pipeline.Transformers.System;
 using Pipeline.Interfaces;
+using Pipeline.Template.Razor;
+using Action = Pipeline.Configuration.Action;
 
 namespace Pipeline.Command {
 
@@ -29,10 +35,12 @@ namespace Pipeline.Command {
 
         protected override void Load(ContainerBuilder builder) {
 
-            builder.Register<IPipelineLogger>((ctx) => new ConsoleLogger(_level)).SingleInstance();
+            builder.Register<IPipelineLogger>(ctx => new ConsoleLogger(_level)).SingleInstance();
 
             foreach (var process in _root.Processes) {
                 RegisterMaps(builder, process);
+                RegisterTemplates(builder, process);
+                RegisterActions(builder, process);
                 RegisterCalculatedFieldTransforms(builder, process);
                 RegisterEntities(builder, process);
                 RegisterProcess(builder, process);
@@ -41,7 +49,7 @@ namespace Pipeline.Command {
         }
 
         static void RegisterProcess(ContainerBuilder builder, Process process) {
-            builder.Register<IProcessController>((ctx) => {
+            builder.Register<IProcessController>(ctx => {
 
                 var pipelines = new List<IEntityPipeline>();
                 var deleteHandlers = new List<IEntityDeleteHandler>();
@@ -65,6 +73,27 @@ namespace Pipeline.Command {
                             controller.PreActions.Add(new SqlInitializer(output));
                             controller.PostActions.Add(new SqlStarViewCreator(output));
                             break;
+                    }
+                }
+
+                foreach (var template in process.Templates.Where(t => t.Enabled)) {
+                    controller.PreActions.Add(new RenderTemplateAction(template, ctx.ResolveNamed<ITemplateEngine>(template.Name)));
+                    foreach (var action in template.Actions.Where(a => a.GetModes().Any(m => m == process.Mode))) {
+                        if (action.Before) {
+                            controller.PreActions.Add(ctx.ResolveNamed<IAction>(action.Key));
+                        }
+                        if (action.After) {
+                            controller.PostActions.Add(ctx.ResolveNamed<IAction>(action.Key));
+                        }
+                    }
+                }
+
+                foreach (var action in process.Actions.Where(a => a.GetModes().Any(m => m == process.Mode))) {
+                    if (action.Before) {
+                        controller.PreActions.Add(ctx.ResolveNamed<IAction>(action.Key));
+                    }
+                    if (action.After) {
+                        controller.PostActions.Add(ctx.ResolveNamed<IAction>(action.Key));
                     }
                 }
 
@@ -108,7 +137,7 @@ namespace Pipeline.Command {
                 var entity = e;
 
                 //controller
-                builder.Register<IEntityController>((ctx) => {
+                builder.Register(ctx => {
                     var provider = process.Connections.First(cn => cn.Name == "output").Provider;
                     var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity);
                     var output = new OutputContext(context, new Incrementer(context));
@@ -138,16 +167,6 @@ namespace Pipeline.Command {
                         case "parallel.linq":
                             context.Debug("Registering {0} pipeline.", type);
                             return new ParallelPipeline(pipeline);
-                        /*case "streams":
-                            return new Streams.Serial(pipeline);
-                        case "parallel.streams":
-                            return new Streams.Parallel(pipeline); */
-                        case "linq.optimizer":
-                            context.Debug("Registering {0} pipeline.", type);
-                            return new Linq.Optimizer.Serial(pipeline);
-                        case "parallel.linq.optimizer":
-                            context.Debug("Registering {0} pipeline.", type);
-                            return new Linq.Optimizer.Parallel(pipeline);
                         default:
                             context.Debug("Registering linq pipeline.", type);
                             return pipeline;
@@ -265,7 +284,7 @@ namespace Pipeline.Command {
 
         static void RegisterSqlMinDateTransform(ContainerBuilder builder, Process process, Entity entity) {
             if (process.Connections.First(c => c.Name == "output").Provider == "sqlserver") {
-                builder.Register<ITransform>((ctx) => {
+                builder.Register<ITransform>(ctx => {
                     var sqlDatesContext = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process, entity, null, entity.GetDefaultOf<Transform>(t => { t.Method = SqlMinDateTransform; }));
                     return new MinDateTransform(sqlDatesContext, new DateTime(1753, 1, 1));
                 }).Named<ITransform>(entity.Key + SqlMinDateTransform);
@@ -289,10 +308,63 @@ namespace Pipeline.Command {
             }
         }
 
+        static void RegisterActions(ContainerBuilder builder, Process process) {
+            foreach (var action in process.Templates.Where(t => t.Enabled).SelectMany(t => t.Actions).Where(a => a.GetModes().Any(m => m == process.Mode))) {
+                builder.Register(ctx => SwitchAction(ctx, process, action)).Named<IAction>(action.Key);
+            }
+            foreach (var action in process.Actions.Where(a => a.GetModes().Any(m => m == process.Mode))) {
+                builder.Register(ctx => SwitchAction(ctx, process, action)).Named<IAction>(action.Key);
+            }
+        }
+
+        private static IAction SwitchAction(IComponentContext ctx, Process process, Action action) {
+            var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
+            switch (action.Name) {
+                case "copy":
+                    return action.InTemplate ? (IAction)
+                        new ContentToFileAction(context, action) :
+                        new FileToFileAction(context, action);
+                case "web":
+                    return new WebAction(context, action);
+                default:
+                    context.Error("{0} action is not registered.", action.Name);
+                    return new NullAction();
+            }
+        }
+
+        static void RegisterTemplates(ContainerBuilder builder, Process process) {
+
+            // Using Cfg-Net.Reader to read templates, for now.
+            if (process.Templates.Any()) {
+                builder.RegisterType<SourceDetector>().As<ISourceDetector>();
+                builder.RegisterType<FileReader>().Named<IReader>("file");
+                builder.RegisterType<WebReader>().Named<IReader>("web");
+
+                builder.Register<IReader>(ctx => new DefaultReader(
+                    ctx.Resolve<ISourceDetector>(),
+                    ctx.ResolveNamed<IReader>("file"),
+                    ctx.ResolveNamed<IReader>("web")
+                ));
+            }
+
+            foreach (var t in process.Templates.Where(t => t.Enabled)) {
+                var template = t;
+                builder.Register<ITemplateEngine>(ctx => {
+                    var context = new PipelineContext(ctx.Resolve<IPipelineLogger>(), process);
+                    switch (template.Engine) {
+                        case "razor":
+                            return new RazorTemplateEngine(context, template, ctx.Resolve<IReader>());
+                        default:
+                            return new NullTemplateEngine();
+                    }
+                }).Named<ITemplateEngine>(t.Name);
+            }
+        }
+
         static void RegisterMaps(ContainerBuilder builder, Process process) {
             foreach (var m in process.Maps) {
                 var map = m;
-                builder.Register<IMapReader>((ctx) => {
+                builder.Register<IMapReader>(ctx => {
                     var connection = process.Connections.FirstOrDefault(cn => cn.Name == map.Connection);
                     var provider = connection == null ? string.Empty : connection.Provider;
                     switch (provider) {

@@ -10,7 +10,7 @@ namespace Pipeline.Provider.SqlServer {
             _output = output;
         }
 
-        public void Execute() {
+        public ActionResponse Execute() {
             using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
                 cn.Open();
                 try {
@@ -19,6 +19,7 @@ namespace Pipeline.Provider.SqlServer {
                 }
                 cn.Execute(_output.SqlCreateStarView());
             }
+            return new ActionResponse();
         }
     }
 }

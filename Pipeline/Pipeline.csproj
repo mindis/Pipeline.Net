@@ -34,7 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ActionResponse.cs" />
     <Compile Include="DefaultDeleteHandler.cs" />
+    <Compile Include="Extensions\StringBuilderExtensions.cs" />
     <Compile Include="Interfaces\IEntityDeleteHandler.cs" />
     <Compile Include="Interfaces\IAction.cs" />
     <Compile Include="Interfaces\IDelete.cs" />
@@ -43,9 +45,12 @@
     <Compile Include="Interfaces\IConnectionContext.cs" />
     <Compile Include="Interfaces\IProcessController.cs" />
     <Compile Include="Interfaces\IRead.cs" />
+    <Compile Include="Interfaces\ITemplateEngine.cs" />
     <Compile Include="KeyComparer.cs" />
+    <Compile Include="NullAction.cs" />
     <Compile Include="NullDeleter.cs" />
     <Compile Include="NullReader.cs" />
+    <Compile Include="NullTemplateEngine.cs" />
     <Compile Include="OutputContext.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -107,6 +112,7 @@
     <Compile Include="PipelineContext.cs" />
     <Compile Include="ProcessController.cs" />
     <Compile Include="ReadFrom.cs" />
+    <Compile Include="RenderTemplateAction.cs" />
     <Compile Include="Transformers\System\TflHashCodeTransform.cs" />
     <Compile Include="Transformers\JoinTransform.cs" />
     <Compile Include="Transformers\ToLowerTransform.cs" />

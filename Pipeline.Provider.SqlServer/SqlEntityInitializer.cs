@@ -33,12 +33,13 @@ namespace Pipeline.Provider.SqlServer {
             cn.Execute(_context.SqlCreateOutputView());
         }
 
-        public void Execute() {
+        public ActionResponse Execute() {
             using (var cn = new SqlConnection(_connectionString)) {
                 cn.Open();
                 Destroy(cn);
                 Create(cn);
             }
+            return new ActionResponse();
         }
     }
 }

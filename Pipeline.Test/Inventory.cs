@@ -16,7 +16,7 @@ namespace Pipeline.Test {
         public void InventoryTesting() {
 
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new ConfigurationModule(@"C:\temp\Inventory.xml", @"Files\Shorthand.xml"));
+            builder.RegisterModule(new ConfigurationModule(@"C:\temp\Inventory.xml?Mode=default", @"Files\Shorthand.xml"));
             var container = builder.Build();
 
             var root = container.Resolve<Root>();
@@ -25,6 +25,7 @@ namespace Pipeline.Test {
                 foreach (var error in root.Errors()) {
                     Console.Error.WriteLine(error);
                 }
+                throw new SystemException("Configuration Problem");
             }
 
             builder = new ContainerBuilder();

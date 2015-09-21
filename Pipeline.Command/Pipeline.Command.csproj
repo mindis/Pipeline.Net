@@ -62,21 +62,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Pipeline.Linq.Optimizer\Pipeline.Linq.Optimizer.csproj">
-      <Project>{7d3cfc55-5cb3-4b38-93e0-86921037b889}</Project>
-      <Name>Pipeline.Linq.Optimizer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Linq\Pipeline.Linq.csproj">
-      <Project>{512f7b8e-bd96-4c93-8286-8ae863bcadab}</Project>
-      <Name>Pipeline.Linq</Name>
+    <ProjectReference Include="..\Pipeline.Desktop\Pipeline.Desktop.csproj">
+      <Project>{ee20183d-3771-4d5e-890e-cf51eb696f89}</Project>
+      <Name>Pipeline.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pipeline.Provider.SqlServer\Pipeline.Provider.SqlServer.csproj">
       <Project>{16042794-2e30-42d8-a6f9-f5d8020f9ef3}</Project>
       <Name>Pipeline.Provider.SqlServer</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Transform.Compression\Pipeline.Transform.Compression.csproj">
-      <Project>{d2c12bac-53b2-43dc-a6e2-2085554e6877}</Project>
-      <Name>Pipeline.Transform.Compression</Name>
+    <ProjectReference Include="..\Pipeline.Template.Razor\Pipeline.Template.Razor.csproj">
+      <Project>{71372f65-12f1-4a72-ab2d-2c5eadbf75e0}</Project>
+      <Name>Pipeline.Template.Razor</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">
       <Project>{0c47eb64-41f4-43fa-a948-6a066285934f}</Project>

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Pipeline.Linq.Optimizer")]
+[assembly: AssemblyTitle("Pipeline.Desktop")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Pipeline.Linq.Optimizer")]
+[assembly: AssemblyProduct("Pipeline.Desktop")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("1178d8f3-1095-4fe5-a8c9-988615a6bd43")]
+[assembly: Guid("ee20183d-3771-4d5e-890e-cf51eb696f89")]
 
 // Version information for an assembly consists of the following four values:
 //

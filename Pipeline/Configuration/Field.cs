@@ -394,6 +394,10 @@ namespace Pipeline.Configuration {
                 Output = true;
             }
 
+            if (SearchType != string.Empty && SearchTypes.All(st => st.Name != SearchType)) {
+                SearchTypes.Insert(0, GetDefaultOf<NameReference>(st => { st.Name = SearchType; }));
+            }
+
         }
 
         static byte[] HexStringToByteArray(string hex) {

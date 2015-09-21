@@ -1,7 +1,7 @@
 using Pipeline.Interfaces;
 
 namespace Pipeline {
-    public class NullInitializer : IAction {
+    public class NullAction : IAction {
         public ActionResponse Execute() {
             return new ActionResponse();
         }

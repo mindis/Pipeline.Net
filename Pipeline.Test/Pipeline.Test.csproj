@@ -44,18 +44,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="LinqOptimizer.Base, Version=0.6.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqOptimizer.CSharp.0.6.3\lib\LinqOptimizer.Base.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="LinqOptimizer.Core, Version=0.6.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqOptimizer.CSharp.0.6.3\lib\LinqOptimizer.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="LinqOptimizer.CSharp, Version=0.6.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LinqOptimizer.CSharp.0.6.3\lib\LinqOptimizer.CSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -97,25 +85,13 @@
       <Project>{c0ad9d94-4126-4452-bd01-1118fb827f39}</Project>
       <Name>Pipeline.Command</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Linq.Optimizer\Pipeline.Linq.Optimizer.csproj">
-      <Project>{7d3cfc55-5cb3-4b38-93e0-86921037b889}</Project>
-      <Name>Pipeline.Linq.Optimizer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Linq\Pipeline.Linq.csproj">
-      <Project>{512f7b8e-bd96-4c93-8286-8ae863bcadab}</Project>
-      <Name>Pipeline.Linq</Name>
+    <ProjectReference Include="..\Pipeline.Desktop\Pipeline.Desktop.csproj">
+      <Project>{ee20183d-3771-4d5e-890e-cf51eb696f89}</Project>
+      <Name>Pipeline.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pipeline.Provider.SqlServer\Pipeline.Provider.SqlServer.csproj">
       <Project>{16042794-2E30-42D8-A6F9-F5D8020F9EF3}</Project>
       <Name>Pipeline.Provider.SqlServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Streams\Pipeline.Streams.csproj">
-      <Project>{90c59514-c296-47f7-8b19-6758d8bf9e95}</Project>
-      <Name>Pipeline.Streams</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pipeline.Transform.Compression\Pipeline.Transform.Compression.csproj">
-      <Project>{d2c12bac-53b2-43dc-a6e2-2085554e6877}</Project>
-      <Name>Pipeline.Transform.Compression</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj">
       <Project>{0c47eb64-41f4-43fa-a948-6a066285934f}</Project>

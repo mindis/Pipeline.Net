@@ -30,7 +30,7 @@ namespace Pipeline.Configuration {
         public string From { get; set; }
         [Cfg(value = true)]
         public bool Html { get; set; }
-        [Cfg(value = "get")]
+        [Cfg(value = "get", domain = "get,post", toLower = true, ignoreCase = true)]
         public string Method { get; set; }
 
         [Cfg(value = "*", toLower = true)]
@@ -49,6 +49,9 @@ namespace Pipeline.Configuration {
         [Cfg(value = "")]
         public string Url { get; set; }
 
+        public bool InTemplate { get; set; }
+        public string Content { get; set; }
+
         [Cfg]
         public List<NameReference> Modes { get; set; }
 
@@ -61,5 +64,16 @@ namespace Pipeline.Configuration {
                 Error("The {0} action is set to run before AND after.  Please choose before OR after.", Name);
             }
         }
+
+        protected override void PreValidate() {
+            if (Name != null && Name == "copy" && File != string.Empty && To == string.Empty) {
+                To = File;
+            }
+        }
+
+        /// <summary>
+        /// Set for dependency injection
+        /// </summary>
+        public string Key { get; set; }
     }
 }

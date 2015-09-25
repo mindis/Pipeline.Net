@@ -190,9 +190,7 @@ namespace Pipeline.Command {
                             context.Debug("Registering {0} batch reader", connection.Provider);
                             return new SqlInputBatchReader(
                                 entityInput,
-                                new SqlInputReader(entityInput,
-                                    entityInput.Entity.GetPrimaryKey()
-                                    )
+                                new SqlInputReader(entityInput, entityInput.Entity.GetPrimaryKey())
                                 );
                         default:
                             context.Warn("Registering null reader", connection.Provider);
@@ -392,6 +390,7 @@ namespace Pipeline.Command {
                 case "padleft": return new PadLeftTransform(context);
                 case "padright": return new PadRightTransform(context);
                 case "splitlength": return new SplitLengthTransform(context);
+                case "timezone": return new TimeZoneOperation(context);
                 case "trim": return new TrimTransform(context);
                 case "trimstart": return new TrimStartTransform(context);
                 case "trimend": return new TrimEndTransform(context);
@@ -406,7 +405,9 @@ namespace Pipeline.Command {
                 case "contains": return new ContainsValidater(context);
                 case "is": return new IsValidator(context);
 
-                default: return new NullTransformer(context);
+                default:
+                    context.Warn("The {0} method is undefined.", context.Transform.Method);
+                    return new NullTransformer(context);
             }
         }
     }

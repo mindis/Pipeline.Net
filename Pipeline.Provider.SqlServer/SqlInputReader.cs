@@ -34,7 +34,7 @@ namespace Pipeline.Provider.SqlServer {
                 } else {
                     if (_input.Entity.MinVersion == null) {
                         cmd.CommandText = _input.SqlSelectInputWithMaxVersion(_fields);
-                        cmd.Parameters.AddWithValue("@Version", _input.Entity.MaxVersion);
+                        cmd.Parameters.AddWithValue("@MaxVersion", _input.Entity.MaxVersion);
                     } else {
                         cmd.CommandText = _input.SqlSelectInputWithMinAndMaxVersion(_fields);
                         cmd.Parameters.AddWithValue("@MinVersion", _input.Entity.MinVersion);

@@ -114,7 +114,7 @@ namespace Pipeline.Configuration {
                 return true;
 
             var field = GetVersionField();
-            if(field.Type == "byte[]") {
+            if (field.Type == "byte[]") {
                 var beginBytes = (byte[])MinVersion;
                 var endBytes = (byte[])MaxVersion;
                 return !beginBytes.SequenceEqual(endBytes);
@@ -346,16 +346,17 @@ namespace Pipeline.Configuration {
         /// may reduce locking. However, this technique reads slower and may be much slower if 
         /// your data source is a view with many joins.
         /// </summary>
-        [Cfg(value=0)]
+        [Cfg(value = 0)]
         public int ReadSize { get; set; }
 
-        [Cfg(value =250)]
+        [Cfg(value = 250)]
         public int InsertSize { get; set; }
 
         [Cfg(value = 50)]
         public int UpdateSize { get; set; }
 
-        [Cfg(value=50)]
+        [Cfg(value = 50)]
         public int DeleteSize { get; set; }
+
     }
 }

@@ -67,8 +67,6 @@
     <Compile Include="ToStringTransform.cs" />
     <Compile Include="TraceLogger.cs" />
     <Compile Include="DataSets.cs" />
-    <Compile Include="TemporarySql.cs" />
-    <Compile Include="Temporary.cs" />
     <Compile Include="Signature.cs" />
     <Compile Include="JavascriptTransform.cs" />
     <Compile Include="Validate.cs" />
@@ -99,13 +97,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\Pipeline.Command\Shorthand.xml">
+      <Link>Files\Shorthand.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Files\NorthWind.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Files\PersonAndPet.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Files\Shorthand.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

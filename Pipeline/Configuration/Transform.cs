@@ -9,12 +9,14 @@ namespace Pipeline.Configuration {
     public class Transform : CfgNode, IScript {
 
         public const string ProducerDomain = "fromxml,fromsplit";
-        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength,trim,trimstart,trimend,javascript,tostring,toupper,tolower,join,map,decompress";
+        public const string TransformerDomain = "concat,copy,format,hashcode,htmldecode,left,right,xmldecode,padleft,padright,splitlength,trim,trimstart,trimend,javascript,tostring,toupper,tolower,join,map,decompress,timezone";
         public const string ValidatorDomain = "contains,is";
+        public const string TimeZoneIdDomain = "Dateline Standard Time,UTC-11,Samoa Standard Time,Hawaiian Standard Time,Alaskan Standard Time,Pacific Standard Time (Mexico),Pacific Standard Time,US Mountain Standard Time,Mountain Standard Time (Mexico),Mountain Standard Time,Central America Standard Time,Central Standard Time,Central Standard Time (Mexico),Canada Central Standard Time,SA Pacific Standard Time,Eastern Standard Time,US Eastern Standard Time,Venezuela Standard Time,Paraguay Standard Time,Atlantic Standard Time,Central Brazilian Standard Time,SA Western Standard Time,Pacific SA Standard Time,Newfoundland Standard Time,E. South America Standard Time,Argentina Standard Time,SA Eastern Standard Time,Greenland Standard Time,Montevideo Standard Time,UTC-02,Mid-Atlantic Standard Time,Azores Standard Time,Cape Verde Standard Time,Morocco Standard Time,UTC,GMT Standard Time,Greenwich Standard Time,W. Europe Standard Time,Central Europe Standard Time,Romance Standard Time,Central European Standard Time,W. Central Africa Standard Time,Namibia Standard Time,Jordan Standard Time,GTB Standard Time,Middle East Standard Time,Egypt Standard Time,Syria Standard Time,South Africa Standard Time,FLE Standard Time,Israel Standard Time,E. Europe Standard Time,Arabic Standard Time,Arab Standard Time,Russian Standard Time,E. Africa Standard Time,Iran Standard Time,Arabian Standard Time,Azerbaijan Standard Time,Mauritius Standard Time,Georgian Standard Time,Caucasus Standard Time,Afghanistan Standard Time,Ekaterinburg Standard Time,Pakistan Standard Time,West Asia Standard Time,India Standard Time,Sri Lanka Standard Time,Nepal Standard Time,Central Asia Standard Time,Bangladesh Standard Time,N. Central Asia Standard Time,Myanmar Standard Time,SE Asia Standard Time,North Asia Standard Time,China Standard Time,North Asia East Standard Time,Singapore Standard Time,W. Australia Standard Time,Taipei Standard Time,Ulaanbaatar Standard Time,Tokyo Standard Time,Korea Standard Time,Yakutsk Standard Time,Cen. Australia Standard Time,AUS Central Standard Time,E. Australia Standard Time,AUS Eastern Standard Time,West Pacific Standard Time,Tasmania Standard Time,Vladivostok Standard Time,Central Pacific Standard Time,New Zealand Standard Time,UTC+12,Fiji Standard Time,Kamchatka Standard Time,Tonga Standard Time";
 
         static HashSet<string> _transformSet;
         static HashSet<string> _validateSet;
         static HashSet<string> _producerSet;
+        static HashSet<string> _timeZoneIdSet;
 
         public IScriptParser Parser { get; set; }
 
@@ -33,7 +35,7 @@ namespace Pipeline.Configuration {
         [Cfg(value = 0)]
         public int Count { get; set; }
         [Cfg(value = Constants.DefaultSetting)]
-        public string Data { get; set;}
+        public string Data { get; set; }
         [Cfg(value = "")]
         public string Domain { get; set; }
         [Cfg(value = "...")]
@@ -50,7 +52,8 @@ namespace Pipeline.Configuration {
         public string FromLat { get; set; }
         [Cfg(value = "0.0")]
         public string FromLong { get; set; }
-        [Cfg(value = "")]
+
+        [Cfg(value = Constants.DefaultSetting, domain = Constants.DefaultSetting + "," + TimeZoneIdDomain)]
         public string FromTimeZone { get; set; }
         [Cfg(value = false)]
         public bool IgnoreEmpty { get; set; }
@@ -139,7 +142,8 @@ namespace Pipeline.Configuration {
         public string ToLong { get; set; }
         [Cfg(value = 0)]
         public int TotalWidth { get; set; }
-        [Cfg(value = "")]
+
+        [Cfg(value = Constants.DefaultSetting, domain = Constants.DefaultSetting + "," + TimeZoneIdDomain)]
         public string ToTimeZone { get; set; }
         [Cfg(value = " ")]
         public string TrimChars { get; set; }
@@ -294,6 +298,14 @@ namespace Pipeline.Configuration {
                 case "join":
                     if (Separator == Constants.DefaultSetting) {
                         Error("The {0} transform requires a separator.", Method);
+                    }
+                    break;
+                case "timezone":
+                    if (FromTimeZone == Constants.DefaultSetting) {
+                        Error("The {0} transform requires from-time-zone to be set.", Method);
+                    }
+                    if (ToTimeZone == Constants.DefaultSetting) {
+                        Error("The {0} transform requires to-time-zone to be set.", Method);
                     }
                     break;
                 case "htmldecode":

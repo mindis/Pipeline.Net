@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipeline.Template.Razor", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipeline.Desktop", "Pipeline.Desktop\Pipeline.Desktop.csproj", "{EE20183D-3771-4D5E-890E-CF51EB696F89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipeline.Orchard", "Pipeline.Orchard\Pipeline.Orchard.csproj", "{F98FC8EC-F122-4261-9304-3B2865BBD49D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{EE20183D-3771-4D5E-890E-CF51EB696F89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE20183D-3771-4D5E-890E-CF51EB696F89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE20183D-3771-4D5E-890E-CF51EB696F89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F98FC8EC-F122-4261-9304-3B2865BBD49D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F98FC8EC-F122-4261-9304-3B2865BBD49D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F98FC8EC-F122-4261-9304-3B2865BBD49D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F98FC8EC-F122-4261-9304-3B2865BBD49D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

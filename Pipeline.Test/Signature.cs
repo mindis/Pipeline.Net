@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Cfg.Net.Shorthand;
 using Pipeline.Command;
 using Pipeline.Interfaces;
 using Pipeline.Logging;
@@ -66,7 +64,7 @@ namespace Pipeline.Test {
             }
 
             builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
+            builder.RegisterModule(new PipelineModule(root));
             container = builder.Build();
 
             var process = root.Processes.First();

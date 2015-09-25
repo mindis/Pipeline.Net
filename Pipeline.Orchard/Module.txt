@@ -1,0 +1,10 @@
+﻿Name: Pipeline.Orchard
+AntiForgery: enabled
+Author: Dale Newman
+Website: https://github.com/dalenewman/Pipeline.Net
+Version: 0.0.1
+OrchardVersion: 1.8.1
+Description: Design and run processes for Pipeline.Net
+Features:
+    Pipeline.Orchard:
+        Description: Design and run processes for Pipeline.Net

@@ -45,9 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SqlConstants.cs" />
     <Compile Include="SqlDeleter.cs" />
     <Compile Include="SqlEntityMatchingFieldsReader.cs" />
     <Compile Include="SqlEntityMatchingKeysReader.cs" />
+    <Compile Include="SqlFilterExtensions.cs" />
     <Compile Include="SqlInputBatchReader.cs" />
     <Compile Include="SqlInitializer.cs" />
     <Compile Include="SqlEntityBulkInserter.cs" />

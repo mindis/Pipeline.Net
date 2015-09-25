@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Pipeline")]
-[assembly: AssemblyDescription("Configurable Pipeline for Denormalization")]
+[assembly: AssemblyDescription("Configurable Pipeline for Incremental Denormalization")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Transformalize")]
 [assembly: AssemblyProduct("Pipeline.NET")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright ©  Dale Newman 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]

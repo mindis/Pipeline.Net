@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -6,43 +5,11 @@ using Pipeline.Configuration;
 using Pipeline.Extensions;
 using System.Text;
 using System;
-using Pipeline.Logging;
+using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 
     public static class SqlExtensions {
-
-        static readonly string[] _stringTypes = { "string", "char", "datetime", "guid", "xml" };
-
-        static Dictionary<string, string> _types;
-        static Dictionary<string, string> Types {
-            get {
-                return _types ?? (_types = new Dictionary<string, string>
-                {
-                    {"int64", "BIGINT"},
-                    {"int", "INT"},
-                    {"long", "BIGINT"},
-                    {"boolean", "BIT"},
-                    {"bool", "BIT"},
-                    {"string", "NVARCHAR"},
-                    {"datetime", "DATETIME"},
-                    {"date", "DATETIME"},
-                    {"time", "DATETIME"},
-                    {"decimal", "DECIMAL"},
-                    {"numeric", "DECIMAL"},
-                    {"double", "FLOAT"},
-                    {"int32", "INT"},
-                    {"char", "NCHAR"},
-                    {"single", "REAL"},
-                    {"int16", "SMALLINT"},
-                    {"byte", "TINYINT"},
-                    {"byte[]", "VARBINARY"},
-                    {"guid", "UNIQUEIDENTIFIER"},
-                    {"rowversion", "BINARY"},
-                    {"xml", "XML"}
-                });
-            }
-        }
 
         private static string DefaultValue(Field field) {
 
@@ -51,8 +18,8 @@ namespace Pipeline.Provider.SqlServer {
 
             var d = field.Default == Constants.DefaultSetting ? Constants.StringDefaults()[field.Type] : field.Default;
 
-            if (_stringTypes.Any(t => t == field.Type)) {
-                return "'" + d + "'";
+            if (SqlConstants.StringTypes.Any(t => t == field.Type)) {
+                return SqlConstants.T + d + SqlConstants.T;
             }
 
             if (field.Type.StartsWith("bool")) {
@@ -63,9 +30,13 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlDataType(this Field f) {
+
             var length = (new[] { "string", "char", "binary", "byte[]", "rowversion", "varbinary" }).Any(t => t == f.Type) ? string.Concat("(", f.Length, ")") : string.Empty;
-            var dimensions = (new[] { "decimal" }).Any(s => s.Equals(f.Type)) ? string.Format("({0},{1})", f.Precision, f.Scale) : string.Empty;
-            var sqlDataType = Types[f.Type];
+            var dimensions = (new[] { "decimal" }).Any(s => s.Equals(f.Type)) ?
+                $"({f.Precision},{f.Scale})" :
+                string.Empty;
+
+            var sqlDataType = SqlConstants.Types[f.Type];
 
             if (!f.Unicode && sqlDataType.StartsWith("N", StringComparison.Ordinal)) {
                 sqlDataType = sqlDataType.TrimStart("N".ToCharArray());
@@ -78,7 +49,7 @@ namespace Pipeline.Provider.SqlServer {
             return string.Concat(sqlDataType, length, dimensions);
         }
 
-        public static string SqlSchemaPrefix(this InputContext c) {
+        public static string SqlSchemaPrefix(this IContext c) {
             return c.Entity.Schema == string.Empty ? string.Empty : "[" + c.Entity.Schema + "].";
         }
 
@@ -129,7 +100,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         static string Enclose(string name) {
-            return "[" + name + "]";
+            return SqlConstants.L + name + SqlConstants.R;
         }
 
         public static string SqlUpdateMaster(this OutputContext c) {
@@ -187,29 +158,19 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlControlLastBatchId(this OutputContext c) {
-            var sql = string.Format(@"
-                SELECT ISNULL(MAX([BatchId]),0) FROM {0};
-            ", SqlControlTableName(c));
+            var sql = $"SELECT ISNULL(MAX([BatchId]),0) FROM {SqlControlTableName(c)};";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlControlStartBatch(this OutputContext c) {
-            var sql = string.Format(@"
-                INSERT {0}([BatchId],[Entity],[Inserts],[Updates],[Deletes],[Start],[End]) 
-                VALUES(@BatchId,@Entity,0,0,0,GETUTCDATE(),NULL);", SqlControlTableName(c));
+            var sql = $@"INSERT {SqlControlTableName(c)}([BatchId],[Entity],[Inserts],[Updates],[Deletes],[Start],[End]) VALUES(@BatchId,@Entity,0,0,0,GETUTCDATE(),NULL);";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlControlEndBatch(this OutputContext c) {
-            var sql = string.Format(@"
-                UPDATE {0}
-                SET [Inserts] = @Inserts,
-                    [Updates] = @Updates,
-                    [Deletes] = @Deletes,
-                    [End] = GETDATE()
-                WHERE BatchId = @BatchId;", SqlControlTableName(c));
+            var sql = $"UPDATE {SqlControlTableName(c)} SET [Inserts] = @Inserts, [Updates] = @Updates, [Deletes] = @Deletes, [End] = GETDATE() WHERE BatchId = @BatchId;";
             c.Debug(sql);
             return sql;
         }
@@ -236,14 +197,14 @@ namespace Pipeline.Provider.SqlServer {
 
         public static string SqlCreateOutput(this OutputContext c) {
             var columnsAndDefinitions = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] " + f.SqlDataType() + " NOT NULL"));
-            var sql = string.Format("CREATE TABLE [{0}]({1}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));", c.Entity.OutputTableName(c.Process.Name), columnsAndDefinitions);
+            var sql = $"CREATE TABLE [{c.Entity.OutputTableName(c.Process.Name)}]({columnsAndDefinitions}, TflBatchId INT NOT NULL, TflKey INT IDENTITY(1,1));";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlCreateOutputView(this OutputContext c) {
             var columnNames = string.Join(",", c.GetAllEntityOutputFields().Select(f => "[" + f.FieldName() + "] AS [" + f.Alias + "]"));
-            var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},TflBatchId,TflKey FROM [{2}] WITH (NOLOCK);", c.Entity.OutputViewName(c.Process.Name), columnNames, c.Entity.OutputTableName(c.Process.Name));
+            var sql = $@"CREATE VIEW [{c.Entity.OutputViewName(c.Process.Name)}] AS SELECT {columnNames},TflBatchId,TflKey FROM [{c.Entity.OutputTableName(c.Process.Name)}] WITH (NOLOCK);";
             c.Debug(sql);
             return sql;
         }
@@ -289,46 +250,46 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlSelectInput(this InputContext c, Field[] fields) {
+        public static string SqlSelectInput(this IContext c, Field[] fields) {
             var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
             var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
-
-            var sql = string.Format("SELECT {0} FROM {1}[{2}] {3};", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock);
+            var sql = $"SELECT {fieldList} FROM {SqlSchemaPrefix(c)}[{c.Entity.Name}] {noLock}";
+            if (c.Entity.Filter.Any()) {
+                sql += " WHERE " + c.ResolveFilter();
+            }
             c.Debug(sql);
             return sql;
         }
 
-        public static string SqlSelectInputWithMaxVersion(this InputContext c, Field[] fields) {
-            var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
-            var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
-
-            var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] <= @Version;", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
+        public static string SqlSelectInputWithMaxVersion(this IContext c, Field[] fields) {
+            var coreSql = SqlSelectInput(c, fields);
+            var hasWhere = coreSql.Contains(" WHERE ");
+            var sql = $@"{coreSql} {(hasWhere ? " AND " : " WHERE ")} [{c.Entity.GetVersionField().Name}] <= @MaxVersion";
             c.Debug(sql);
             return sql;
         }
 
-        public static string SqlSelectInputWithMinAndMaxVersion(this InputContext c, Field[] fields) {
-            var fieldList = string.Join(",", fields.Select(f => "[" + f.Name + "]"));
-            var noLock = c.Entity.NoLock ? "WITH (NOLOCK) " : string.Empty;
-            var sql = string.Format(@"SELECT {0} FROM {1}[{2}] {3} WHERE [{4}] >= @MinVersion AND [{4}] <= @MaxVersion", fieldList, SqlSchemaPrefix(c), c.Entity.Name, noLock, c.Entity.GetVersionField().Name);
+        public static string SqlSelectInputWithMinAndMaxVersion(this IContext c, Field[] fields) {
+            var coreSql = SqlSelectInputWithMaxVersion(c, fields);
+            var sql = $"{coreSql} AND [{c.Entity.GetVersionField().Name}] >= @MinVersion";
             c.Debug(sql);
             return sql;
         }
 
-        public static string SqlGetInputMaxVersion(this InputContext c) {
-            var sql = string.Format("SELECT MAX([{0}]) FROM {1}[{2}];", c.Entity.GetVersionField().Name, SqlSchemaPrefix(c), c.Entity.Name);
+        public static string SqlGetInputMaxVersion(this IContext c) {
+            var sql = $"SELECT MAX([{c.Entity.GetVersionField().Name}]) FROM {SqlSchemaPrefix(c)}[{c.Entity.Name}];";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlGetOutputMaxVersion(this OutputContext c, Field version) {
-            var sql = string.Format("SELECT MAX([{0}]) FROM [{1}] WITH (NOLOCK);", version.Alias, c.Entity.OutputViewName(c.Process.Name));
+            var sql = $"SELECT MAX([{version.Alias}]) FROM [{c.Entity.OutputViewName(c.Process.Name)}] WITH (NOLOCK);";
             c.Debug(sql);
             return sql;
         }
 
         public static string SqlSelectOutputSchema(this OutputContext c) {
-            var sql = string.Format("SELECT TOP 0 * FROM [{0}] WITH (NOLOCK);", c.Entity.OutputTableName(c.Process.Name));
+            var sql = $"SELECT TOP 0 * FROM [{c.Entity.OutputTableName(c.Process.Name)}] WITH (NOLOCK);";
             c.Debug(sql);
             return sql;
         }
@@ -338,7 +299,7 @@ namespace Pipeline.Provider.SqlServer {
         }
 
         public static string SqlCreateOutputUniqueClusteredIndex(this OutputContext c) {
-            var sql = string.Format("CREATE UNIQUE CLUSTERED INDEX [UX_{0}_TflKey] ON [{1}] (TflKey ASC);", SqlIdentifier(c.Entity.OutputTableName(c.Process.Name)), c.Entity.OutputTableName(c.Process.Name));
+            var sql = $"CREATE UNIQUE CLUSTERED INDEX [UX_{SqlIdentifier(c.Entity.OutputTableName(c.Process.Name))}_TflKey] ON [{c.Entity.OutputTableName(c.Process.Name)}] (TflKey ASC);";
             c.Debug(sql);
             return sql;
         }
@@ -346,13 +307,7 @@ namespace Pipeline.Provider.SqlServer {
         public static string SqlCreateOutputPrimaryKey(this OutputContext c) {
             var pk = c.Entity.GetAllFields().Where(f => f.PrimaryKey).Select(f => f.FieldName()).ToArray();
             var keyList = string.Join(", ", pk);
-            var sql = string.Format(
-                "ALTER TABLE [{0}] ADD CONSTRAINT [PK_{1}_{2}] PRIMARY KEY NONCLUSTERED ({3}) WITH (IGNORE_DUP_KEY = ON);",
-                c.Entity.OutputTableName(c.Process.Name),
-                SqlIdentifier(c.Entity.OutputTableName(c.Process.Name)),
-                SqlKeyName(pk),
-                keyList
-            );
+            var sql = $"ALTER TABLE [{c.Entity.OutputTableName(c.Process.Name)}] ADD CONSTRAINT [PK_{SqlIdentifier(c.Entity.OutputTableName(c.Process.Name))}_{SqlKeyName(pk)}] PRIMARY KEY NONCLUSTERED ({keyList}) WITH (IGNORE_DUP_KEY = ON);";
             c.Debug(sql);
             return sql;
         }
@@ -368,7 +323,7 @@ namespace Pipeline.Provider.SqlServer {
                 return c.ConnectionString;
             }
 
-            var builder = new SqlConnectionStringBuilder {
+            return (new SqlConnectionStringBuilder {
                 ApplicationName = Constants.ApplicationName,
                 ConnectTimeout = c.Timeout,
                 DataSource = c.Server,
@@ -376,10 +331,7 @@ namespace Pipeline.Provider.SqlServer {
                 IntegratedSecurity = c.User == string.Empty,
                 UserID = c.User,
                 Password = c.Password
-            };
-
-            return builder.ConnectionString;
+            }).ConnectionString;
         }
-
     }
 }

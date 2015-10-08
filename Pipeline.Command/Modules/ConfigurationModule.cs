@@ -3,7 +3,7 @@ using Cfg.Net.Contracts;
 using Cfg.Net.Reader;
 using Pipeline.Configuration;
 
-namespace Pipeline.Command {
+namespace Pipeline.Command.Modules {
     public class ConfigurationModule : Module {
         readonly string _cfg;
         readonly string _shortHand;

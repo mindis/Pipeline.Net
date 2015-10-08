@@ -5,16 +5,15 @@ using System.Linq;
 namespace Pipeline {
     public class ProcessController : IProcessController {
 
-        private readonly IEnumerable<IEntityPipeline> _entityPipelines;
+        private readonly IEnumerable<IPipeline> _pipelines;
         private readonly IEnumerable<IEntityDeleteHandler> _deleteHandlers;
         public List<IAction> PreActions { get; } = new List<IAction>();
         public List<IAction> PostActions { get; } = new List<IAction>();
 
         public ProcessController(
-            IEnumerable<IEntityPipeline> entityPipelines,
-            IEnumerable<IEntityDeleteHandler> deleteHandlers
-        ) {
-            _entityPipelines = entityPipelines;
+            IEnumerable<IPipeline> pipelines,
+            IEnumerable<IEntityDeleteHandler> deleteHandlers) {
+            _pipelines = pipelines;
             _deleteHandlers = deleteHandlers;
         }
 
@@ -25,7 +24,7 @@ namespace Pipeline {
         }
 
         public void Execute() {
-            foreach (var entity in _entityPipelines) {
+            foreach (var entity in _pipelines) {
                 entity.Initialize();
                 entity.Execute();
             }
@@ -42,7 +41,7 @@ namespace Pipeline {
 
         public IEnumerable<Row> Run() {
             // todo, flatten and send all entity data back, for now, take first entity
-            return _entityPipelines.First().Run();
+            return _pipelines.First().Run();
         }
     }
 }

@@ -1,12 +1,11 @@
 using Pipeline.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace Pipeline {
 
-    public class DataSetEntityReader : IReadInput {
-        InputContext _input;
+    public class DataSetEntityReader : IRead {
+        readonly InputContext _input;
 
         public DataSetEntityReader(InputContext input) {
             _input = input;
@@ -41,8 +40,5 @@ namespace Pipeline {
             return rows;
         }
 
-        public void LoadVersion() {
-            // not supported for this reader
-        }
     }
 }

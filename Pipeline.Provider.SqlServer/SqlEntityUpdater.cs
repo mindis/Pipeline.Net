@@ -7,7 +7,7 @@ using Pipeline.Extensions;
 using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
-    public class SqlEntityUpdater : IWriteOutput {
+    public class SqlEntityUpdater : IWrite {
         readonly OutputContext _output;
 
         public SqlEntityUpdater(OutputContext output) {
@@ -37,18 +37,5 @@ namespace Pipeline.Provider.SqlServer {
             _output.Entity.Updates += count;
         }
 
-        public void LoadVersion() {
-            if (_output.Entity.Version == string.Empty)
-                return;
-
-            var field = _output.Entity.GetVersionField();
-
-            if (field == null)
-                return;
-
-            using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
-                _output.Entity.MinVersion = cn.ExecuteScalar(_output.SqlGetOutputMaxVersion(field));
-            }
-        }
     }
 }

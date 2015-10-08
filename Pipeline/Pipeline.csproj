@@ -51,6 +51,7 @@
     <Compile Include="NullDeleter.cs" />
     <Compile Include="NullReader.cs" />
     <Compile Include="NullTemplateEngine.cs" />
+    <Compile Include="NullUpdater.cs" />
     <Compile Include="OutputContext.cs" />
     <Compile Include="Configuration\Action.cs" />
     <Compile Include="Configuration\Connection.cs" />
@@ -92,7 +93,7 @@
     <Compile Include="Configuration\TransformFieldsToParametersAdapter.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Interfaces\IEntityController.cs" />
-    <Compile Include="Interfaces\IWriteOutput.cs" />
+    <Compile Include="Interfaces\IWrite.cs" />
     <Compile Include="Interfaces\IUpdate.cs" />
     <Compile Include="JintParser.cs" />
     <Compile Include="KeyType.cs" />
@@ -106,7 +107,7 @@
     <Compile Include="NullEntityController.cs" />
     <Compile Include="NullEntityInitializer.cs" />
     <Compile Include="NullEntityReader.cs" />
-    <Compile Include="NullEntityWriter.cs" />
+    <Compile Include="NullWriter.cs" />
     <Compile Include="NullMasterUpdater.cs" />
     <Compile Include="PipelineActivity.cs" />
     <Compile Include="PipelineContext.cs" />
@@ -136,16 +137,15 @@
     <Compile Include="Transformers\CopyTransform.cs" />
     <Compile Include="Transformers\FromXmlTransform.cs" />
     <Compile Include="Transformers\HashcodeTransform.cs" />
-    <Compile Include="Transformers\HtmlDecodeTransform.cs" />
+    <Compile Include="Transformers\DecodeTransform.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Interfaces\IField.cs" />
-    <Compile Include="Interfaces\IReadInput.cs" />
     <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Interfaces\IRow.cs" />
     <Compile Include="DataSetEntityReader.cs" />
     <Compile Include="DefaultPipeline.cs" />
-    <Compile Include="Interfaces\IEntityPipeline.cs" />
+    <Compile Include="Interfaces\IPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
@@ -157,12 +157,12 @@
     <Compile Include="Validators\IsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="CfgNet, Version=0.2.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.2.6\lib\CfgNet.dll</HintPath>
+    <Reference Include="CfgNet, Version=0.2.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.9\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Jint, Version=2.5.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Jint.2.5.0\lib\portable-net40+sl50+win+wpa81+wp80\Jint.dll</HintPath>
+    <Reference Include="Jint, Version=2.6.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.2.6.0\lib\portable-net40+sl50+win+WindowsPhoneApp81+wp80\Jint.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>

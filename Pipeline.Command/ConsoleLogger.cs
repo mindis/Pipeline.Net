@@ -2,7 +2,6 @@ using Pipeline.Logging;
 using System;
 
 namespace Pipeline.Command {
-
     public class ConsoleLogger : BaseLogger, IPipelineLogger {
 
         const string FORMAT = "{0:u} | {1} | {2} | {3}";

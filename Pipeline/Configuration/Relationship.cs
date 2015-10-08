@@ -36,7 +36,7 @@ namespace Pipeline.Configuration {
         private void PreValidateNormalizeJoin() {
             if (LeftField == string.Empty)
                 return;
-            Join.Insert(0, GetDefaultOf<Join>(j => {
+            Join.Insert(0, this.GetDefaultOf<Join>(j => {
                 j.LeftField = LeftField;
                 j.RightField = RightField;
             }));

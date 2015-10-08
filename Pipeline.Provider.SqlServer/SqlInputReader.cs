@@ -9,7 +9,7 @@ namespace Pipeline.Provider.SqlServer {
     /// <summary>
     /// A reader for an entity's input (source).
     /// </summary>
-    public class SqlInputReader : IReadInput {
+    public class SqlInputReader : IRead {
 
         int _rowCount;
         readonly InputContext _input;
@@ -53,13 +53,6 @@ namespace Pipeline.Provider.SqlServer {
                     yield return _rowCreator.Create(reader, _input.RowCapacity, _fields);
                 }
                 _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
-            }
-        }
-
-        public void LoadVersion() {
-            using (var cn = new SqlConnection(_input.Connection.GetConnectionString())) {
-                cn.Open();
-                _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
             }
         }
 

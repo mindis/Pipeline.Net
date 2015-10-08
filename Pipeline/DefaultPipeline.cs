@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pipeline.Transformers;
-using Pipeline.Transformers.System;
 using Pipeline.Interfaces;
 
 namespace Pipeline {
-    public class DefaultPipeline : IEntityPipeline {
+    public class DefaultPipeline : IPipeline {
 
         readonly IEntityController _controller;
 
-        protected IReadInput Reader { get; private set; }
-        protected IWriteOutput Writer { get; private set; }
-        protected IUpdate MasterUpdater { get; private set; }
+        protected IRead Reader { get; private set; }
+        protected IWrite Writer { get; private set; }
+        protected IUpdate Updater { get; private set; }
         protected List<ITransform> Transformers { get; }
 
         readonly PipelineContext _context;
@@ -19,23 +18,19 @@ namespace Pipeline {
         public DefaultPipeline(IEntityController controller, IContext context) {
             _context = (PipelineContext)context;
             _controller = controller;
-            Transformers = new List<ITransform> {
-                new DefaultTransform(_context),
-                new TflHashCodeTransform(_context)
-            };
+            Transformers = new List<ITransform>();
         }
 
         public void Initialize() {
             _controller.Initialize();
         }
 
-        public void Register(IReadInput reader) {
+        public void Register(IRead reader) {
             Reader = reader;
         }
 
-        public void Register(ITransform transformer) {
-            transformer.Context.Activity = PipelineActivity.Transform;
-            Transformers.Add(transformer);
+        public void Register(ITransform transform) {
+            Transformers.Add(transform);
         }
 
         public void Register(IEnumerable<ITransform> transforms) {
@@ -44,20 +39,17 @@ namespace Pipeline {
             }
         }
 
-        public void Register(IWriteOutput writer) {
+        public void Register(IWrite writer) {
             Writer = writer;
         }
 
         public void Register(IUpdate updater) {
-            MasterUpdater = updater;
+            Updater = updater;
         }
 
         public virtual IEnumerable<Row> Run() {
-            Reader.LoadVersion();
-            Writer.LoadVersion();
             if (_context.Entity.NeedsUpdate()) {
                 _context.Info("data change? Yes");
-                Transformers.Add(new StringTruncateTransfom(_context));
                 return Transformers.Aggregate(Reader.Read(), (current, transform) => current.Select(transform.Transform));
             }
             _context.Info("data change? No");
@@ -67,7 +59,7 @@ namespace Pipeline {
         public void Execute() {
             _controller.Start();
             Writer.Write(Run());
-            MasterUpdater.Update();
+            Updater.Update();
             _controller.End();
         }
 

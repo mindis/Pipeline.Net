@@ -74,6 +74,15 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
+        public static string SqlUpdateCalculatedFields(this OutputContext c, Process original) {
+            var master = original.Entities.First(e => e.IsMaster);
+            var fields = c.Entity.CalculatedFields.Where(f => f.Output && f.Name != Constants.TflKey && f.Name != Constants.TflHashCode).ToArray();
+            var sets = string.Join(",", fields.Select(f => "[" + original.CalculatedFields.First(cf=>cf.Name == f.Name).FieldName() + "] = @" + f.FieldName()));
+            var sql = $"UPDATE [{master.OutputTableName(original.Name)}] SET {sets} WHERE TflKey = @TflKey;";
+            c.Debug(sql);
+            return sql;
+        }
+
         public static string SqlDeleteOutput(this OutputContext c, int batchId) {
             var criteria = string.Join(" AND ", c.Entity.GetPrimaryKey().Select(f => f.FieldName()).Select(n => "[" + n + "] = @" + n));
             var sql = $"DELETE FROM [{c.Entity.OutputTableName(c.Process.Name)}] WHERE {criteria};";
@@ -215,7 +224,7 @@ namespace Pipeline.Provider.SqlServer {
             return sql;
         }
 
-        public static string SqlCreateStarView(this OutputContext c) {
+        public static string SqlCreateStarView(this IContext c) {
             var starFields = c.Process.GetStarFields().ToArray();
             var master = c.Process.Entities.First(e => e.IsMaster);
             var masterAlias = Constants.GetExcelName(master.Index);
@@ -245,7 +254,7 @@ namespace Pipeline.Provider.SqlServer {
                 builder.AppendLine(") ");
             }
 
-            var sql = string.Format(@"CREATE VIEW [{0}] AS SELECT {1},{2},{4}.TflBatchId,{4}.TflKey FROM [{3}] {4} WITH (NOLOCK) {5};", c.Process.Star, masterNames, slaveNames, master.OutputTableName(c.Process.Name), masterAlias, builder);
+            var sql = $"CREATE VIEW[{c.Process.Star}] AS SELECT {masterNames},{slaveNames},{masterAlias}.TflBatchId,{masterAlias}.TflKey FROM[{master.OutputTableName(c.Process.Name)}] {masterAlias} WITH(NOLOCK) {builder};";
             c.Debug(sql);
             return sql;
         }

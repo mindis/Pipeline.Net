@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using Pipeline.Extensions;
 using Pipeline.Interfaces;
-using Dapper;
 
 namespace Pipeline.Provider.SqlServer {
 
@@ -16,13 +15,13 @@ namespace Pipeline.Provider.SqlServer {
     /// you can also set no-lock on the entity to reduce blocking, but at the risk of 
     /// reading un-commited data.
     /// </summary>
-    public class SqlInputBatchReader : IReadInput {
+    public class SqlInputBatchReader : IRead {
         readonly InputContext _input;
-        readonly IReadInput _reader;
+        readonly IRead _reader;
         readonly SqlEntityMatchingFieldsReader _fieldsReader;
         int _rowCount;
 
-        public SqlInputBatchReader(InputContext input, IReadInput reader) {
+        public SqlInputBatchReader(InputContext input, IRead reader) {
             _input = input;
             _reader = reader;
             _fieldsReader = new SqlEntityMatchingFieldsReader(input);
@@ -42,11 +41,5 @@ namespace Pipeline.Provider.SqlServer {
             _input.Info("{0} from {1}", _rowCount, _input.Connection.Name);
         }
 
-        public void LoadVersion() {
-            using (var cn = new SqlConnection(_input.Connection.GetConnectionString())) {
-                cn.Open();
-                _input.Entity.MaxVersion = _input.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_input.SqlGetInputMaxVersion());
-            }
-        }
     }
 }

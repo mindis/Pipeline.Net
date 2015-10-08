@@ -18,13 +18,13 @@ namespace Pipeline.Configuration {
 
         [Cfg(value = "razor", domain = "razor,velocity", toLower = true)]
         public string Engine { get; set; }
-        [Cfg]
-        public string Path { get; set; }
 
         [Cfg]
         public List<Parameter> Parameters { get; set; }
         [Cfg]
         public List<Action> Actions { get; set; }
+
+        public string Key { get; set; }
 
         protected override void PostValidate() {
             var index = 0;

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Command;
+using Pipeline.Command.Modules;
 using Pipeline.Interfaces;
 using Pipeline.Logging;
 using Pipeline.Configuration;
@@ -56,35 +55,15 @@ namespace Pipeline.Test {
   </processes>
 </cfg>";
 
-            var builder = new ContainerBuilder();
-            builder.RegisterModule(new ConfigurationModule(xml, File.ReadAllText(@"Files\Shorthand.xml")));
-            var container = builder.Build();
-
-            var root = container.Resolve<Root>();
-
-            if (root.Errors().Any()) {
-                foreach (var error in root.Errors()) {
-                    Console.Error.WriteLine(error);
-                }
-                throw new Exception("Configuration Error(s)");
-            }
-
-            builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root, LogLevel.Info));
-            container = builder.Build();
-
-            var process = root.Processes.First();
-
-            var output = container.ResolveNamed<IProcessController>(process.Key).Run().ToArray();
-
-            var field = process.Entities.First().CalculatedFields.First();
+            var composer = new PipelineComposer();
+            var controller = composer.Compose(xml);
+            var field = composer.Process.Entities.First().CalculatedFields.First();
+            var output = controller.Run().ToArray();
 
             Assert.AreEqual("One", output[0][field]);
             Assert.AreEqual("Two", output[1][field]);
             Assert.AreEqual("$THREE$", output[2][field]);
             Assert.AreEqual("None", output[3][field]);
-
-
         }
     }
 }

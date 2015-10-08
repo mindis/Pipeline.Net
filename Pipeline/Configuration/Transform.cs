@@ -16,7 +16,6 @@ namespace Pipeline.Configuration {
         static HashSet<string> _transformSet;
         static HashSet<string> _validateSet;
         static HashSet<string> _producerSet;
-        static HashSet<string> _timeZoneIdSet;
 
         public IScriptParser Parser { get; set; }
 
@@ -194,11 +193,6 @@ namespace Pipeline.Configuration {
 
         [Cfg]
         public DateTime Date { get; set; }
-
-        /// <summary>
-        /// Set by Process.ModifyKeys for keyed dependency injection
-        /// </summary>
-        public string Key { get; set; }
 
         protected override void PreValidate() {
             switch (Method) {

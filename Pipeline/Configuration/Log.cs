@@ -32,8 +32,6 @@ namespace Pipeline.Configuration {
         public string Subject { get; set; }
         [Cfg(value = Constants.DefaultSetting)]
         public string To { get; set; }
-        [Cfg(value = (long)10000)]
-        public long Rows { get; set; }
 
         public LogLevel ToLogLevel() {
             switch (Level) {

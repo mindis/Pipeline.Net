@@ -1,9 +1,9 @@
 ﻿using Autofac;
 using Pipeline.Configuration;
 using Pipeline.Interfaces;
-using System;
-using System.IO;
 using System.Linq;
+using Pipeline.Command.Modules;
+using Pipeline.Logging;
 
 namespace Pipeline.Command {
     class Program {
@@ -18,9 +18,9 @@ namespace Pipeline.Command {
 
             var builder = new ContainerBuilder();
             builder.RegisterModule(new ConfigurationModule(args[0], "Shorthand.xml"));
-            var container = builder.Build();
+            var cfg = builder.Build();
 
-            var root = container.Resolve<Root>();
+            var root = cfg.Resolve<Root>();
 
             if (root.Warnings().Any()) {
                 foreach (var warning in root.Warnings()) {
@@ -34,22 +34,32 @@ namespace Pipeline.Command {
                 System.Environment.Exit(1);
             }
             context.Info("Configuration is Ok");
+            cfg.Dispose();
 
             // register pipeline
             builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root));
-            container = builder.Build();
+            builder.Register<IPipelineLogger>(ctx => new ConsoleLogger(LogLevel.Info)).SingleInstance();
+            builder.RegisterModule(new MapModule(root));
+            builder.RegisterModule(new TemplateModule(root));
+            builder.RegisterModule(new ActionModule(root));
+            builder.RegisterModule(new EntityControlModule(root));
+            builder.RegisterModule(new EntityInputModule(root));
+            builder.RegisterModule(new EntityOutputModule(root));
+            builder.RegisterModule(new EntityMasterUpdateModule(root));
+            builder.RegisterModule(new EntityDeleteModule(root));
+            builder.RegisterModule(new EntityPipelineModule(root));
+            builder.RegisterModule(new ProcessPipelineModule(root));
+            builder.RegisterModule(new ProcessControlModule(root));
 
-            // resolve and run
-            foreach (var process in root.Processes) {
-                var controller = container.ResolveNamed<IProcessController>(process.Key);
-                controller.PreExecute();
-                controller.Execute();
-                controller.PostExecute();
+            using (var c = builder.Build().BeginLifetimeScope()) {
+                // resolve, run, and release
+                var container = c;
+                foreach (var controller in root.Processes.Select(process => container.ResolveNamed<IProcessController>(process.Key))) {
+                    controller.PreExecute();
+                    controller.Execute();
+                    controller.PostExecute();
+                }
             }
-
-            // release
-            container.Dispose();
         }
     }
 }

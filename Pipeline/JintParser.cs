@@ -13,7 +13,7 @@ namespace Pipeline {
             _options = new ParserOptions() { Tolerant = true };
         }
 
-        public ValidatorResult Validate(string parent, string name, object value) {
+        public ValidatorResult Validate(string name, object value) {
             var result = new ValidatorResult();
 
             if (value == null)
@@ -38,5 +38,6 @@ namespace Pipeline {
             }
             return result;
         }
+
     }
 }

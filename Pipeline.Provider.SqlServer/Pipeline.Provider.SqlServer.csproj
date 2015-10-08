@@ -31,8 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CfgNet, Version=0.2.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cfg-NET.0.2.6\lib\CfgNet.dll</HintPath>
+    <Reference Include="Cfg.Net.Reader, Version=0.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.Reader.0.0.5\lib\Cfg.Net.Reader.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CfgNet, Version=0.2.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.9\lib\CfgNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -45,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SqlCalculatedFieldUpdater.cs" />
     <Compile Include="SqlConstants.cs" />
     <Compile Include="SqlDeleter.cs" />
     <Compile Include="SqlEntityMatchingFieldsReader.cs" />
@@ -63,6 +68,7 @@
     <Compile Include="SqlExtensions.cs" />
     <Compile Include="SqlReader.cs" />
     <Compile Include="SqlRowCreator.cs" />
+    <Compile Include="SqlStarParametersReader.cs" />
     <Compile Include="SqlStarViewCreator.cs" />
   </ItemGroup>
   <ItemGroup>

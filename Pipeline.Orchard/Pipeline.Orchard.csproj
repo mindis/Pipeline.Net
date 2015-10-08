@@ -48,6 +48,14 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cfg.Net.Reader, Version=0.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.Reader.0.0.5\lib\Cfg.Net.Reader.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CfgNet, Version=0.2.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cfg-NET.0.2.9\lib\CfgNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Orchard.Core">
       <HintPath>..\..\Orchard.Source.1.8.1\src\Orchard.Web\bin\Orchard.Core.dll</HintPath>
     </Reference>
@@ -308,6 +316,9 @@
     <Content Include="Scripts\node_modules\codemirror\CONTRIBUTING.md" />
     <Content Include="Scripts\node_modules\codemirror\LICENSE" />
     <Content Include="Scripts\node_modules\codemirror\package.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

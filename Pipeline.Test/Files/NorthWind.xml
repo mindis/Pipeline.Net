@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<transformalize>
+<transformalize environment="test">
 
-  <environments default="test" >
+  <environments >
     <add name="prod" >
       <parameters>
         <add name="SqlServer" value="127.0.0.1" />

@@ -5,6 +5,7 @@ using Pipeline.Logging;
 using System;
 using System.Linq;
 using Pipeline.Command;
+using Pipeline.Command.Modules;
 
 namespace Pipeline.Test {
     public class PipelineComposer {
@@ -12,7 +13,7 @@ namespace Pipeline.Test {
         public Root Root { get; set; }
         public Process Process { get; set; }
 
-        public IProcessController Compose(string cfg, string mode = "default") {
+        public IProcessController Compose(string cfg, LogLevel logLevel = LogLevel.Debug) {
 
             var builder = new ContainerBuilder();
             builder.RegisterModule(new ConfigurationModule(cfg, @"Files\Shorthand.xml"));
@@ -27,10 +28,29 @@ namespace Pipeline.Test {
                 throw new Exception("Configuration Error(s)");
             }
 
+            if (Root.Warnings().Any()) {
+                foreach (var warning in Root.Warnings()) {
+                    Console.Error.WriteLine(warning);
+                }
+            }
+
             Process = Root.Processes.First();
 
             builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(Root, LogLevel.Info));
+            builder.Register<IPipelineLogger>(ctx => new ConsoleLogger(logLevel)).SingleInstance();
+            builder.RegisterModule(new MapModule(Root));
+            builder.RegisterModule(new TemplateModule(Root));
+            builder.RegisterModule(new ActionModule(Root));
+            builder.RegisterModule(new EntityControlModule(Root));
+            builder.RegisterModule(new EntityPipelineModule(Root));
+            builder.RegisterModule(new EntityInputModule(Root));
+            builder.RegisterModule(new EntityOutputModule(Root));
+            builder.RegisterModule(new EntityMasterUpdateModule(Root));
+            builder.RegisterModule(new EntityDeleteModule(Root));
+            builder.RegisterModule(new EntityPipelineModule(Root));
+            builder.RegisterModule(new ProcessPipelineModule(Root));
+            builder.RegisterModule(new ProcessControlModule(Root));
+
             container = builder.Build();
 
             return container.ResolveNamed<IProcessController>(Process.Key);

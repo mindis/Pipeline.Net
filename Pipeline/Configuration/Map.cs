@@ -20,5 +20,7 @@ namespace Pipeline.Configuration {
                 Error(string.Format("Map '{0}' needs items or a query.", Name));
             }
         }
+
+        public string Key { get; set; }
     }
 }

@@ -5,23 +5,20 @@ using Pipeline.Configuration;
 namespace Pipeline.Transformers {
 
     public abstract class BaseTransform {
-        long _rowCount;
-
-        public PipelineContext Context { get; private set; }
+        public PipelineContext Context { get; }
 
         protected BaseTransform(PipelineContext context) {
+            context.Activity = PipelineActivity.Transform;
             Context = context;
+            Context.Debug("Registered");
         }
 
-        public long RowCount {
-            get { return _rowCount; }
-            set { _rowCount = value; }
-        }
+        public long RowCount { get; set; }
 
         protected virtual void Increment() {
-            _rowCount++;
-            if (_rowCount % Context.Entity.LogInterval == 0) {
-                Context.Info(_rowCount.ToString());
+            RowCount++;
+            if (RowCount % Context.Entity.LogInterval == 0) {
+                Context.Info(RowCount.ToString());
             }
         }
 
@@ -32,12 +29,9 @@ namespace Pipeline.Transformers {
         List<Field> ParametersToFields() {
 
             var fields = Context.Transform.Parameters
-                .Where(p => p.Field != string.Empty)
-                .Select(p =>
-                    Context.Entity == null ?
-                    Context.Process.GetAllFields().First(f => f.Alias == p.Field || f.Name == p.Field) :
-                    Context.GetAllEntityFields().First(f => f.Alias == p.Field || f.Name == p.Field)
-                ).ToList();
+                .Where(p => p.IsField(Context.Process))
+                .Select(p => p.AsField(Context.Process))
+                .ToList();
 
             if (!fields.Any()) {
                 fields.Add(Context.Field);

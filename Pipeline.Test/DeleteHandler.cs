@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Cfg.Net;
 using NUnit.Framework;
 using Pipeline.Configuration;
 using Pipeline.Interfaces;

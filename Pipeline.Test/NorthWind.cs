@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using Pipeline.Logging;
 using Pipeline.Provider.SqlServer;
 using PoorMansTSqlFormatterLib;
 
@@ -12,14 +13,13 @@ namespace Pipeline.Test {
         public void NorthwindIntegrationTesting() {
 
             var composer = new PipelineComposer();
-            var controller = composer.Compose(@"Files\Northwind.xml?Mode=init");
+            var controller = composer.Compose(@"Files\Northwind.xml", LogLevel.Info);
 
             controller.PreExecute();
             controller.Execute();
             controller.PostExecute();
 
             Assert.IsNotNull(composer);
-
         }
 
         [Test]
@@ -30,8 +30,7 @@ namespace Pipeline.Test {
             Assert.AreEqual(0, composer.Root.Errors().Length);
 
             var pipe = new PipelineContext(new TraceLogger(), composer.Process);
-            var context = new OutputContext(pipe, new Incrementer(pipe));
-            var actual = new SqlFormattingManager().Format(context.SqlCreateStarView());
+            var actual = new SqlFormattingManager().Format(pipe.SqlCreateStarView());
 
             Assert.IsNotNull(controller);
             const string expected = @"CREATE VIEW [NorthWindStar]

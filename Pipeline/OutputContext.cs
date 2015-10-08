@@ -13,29 +13,13 @@ namespace Pipeline {
         public Connection Connection { get; set; }
         public Field[] OutputFields { get; set; }
 
-        public Entity Entity {
-            get {
-                return _context.Entity;
-            }
-        }
+        public Entity Entity => _context.Entity;
 
-        public Field Field {
-            get {
-                return _context.Field;
-            }
-        }
+        public Field Field => _context.Field;
 
-        public Process Process {
-            get {
-                return _context.Process;
-            }
-        }
+        public Process Process => _context.Process;
 
-        public Transform Transform {
-            get {
-                return _context.Transform;
-            }
-        }
+        public Transform Transform => _context.Transform;
 
         public OutputContext(PipelineContext context, IIncrement incrementer) {
             context.Activity = PipelineActivity.Load;

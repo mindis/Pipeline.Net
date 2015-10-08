@@ -13,14 +13,12 @@ namespace Pipeline.Provider.SqlServer {
         readonly Stopwatch _stopWatch;
         readonly OutputContext _context;
         readonly IAction _initializer;
-        readonly Connection _output;
 
         public object StartVersion { get; private set; }
 
         public SqlEntityController(OutputContext context, IAction initializer) {
             _context = context;
             _initializer = initializer;
-            _output = context.Process.Connections.First(c => c.Name == "output");
             StartVersion = null;
             _stopWatch = new Stopwatch();
         }
@@ -33,15 +31,35 @@ namespace Pipeline.Provider.SqlServer {
 
         public void Start() {
             _stopWatch.Start();
-            using (var cn = new SqlConnection(_output.GetConnectionString())) {
+
+            // load input version
+            using (var cn = new SqlConnection(_context.Process.Connections.First(c => c.Name == _context.Entity.Connection).GetConnectionString())) {
+                cn.Open();
+                _context.Entity.MaxVersion = _context.Entity.Version == string.Empty ? null : cn.ExecuteScalar(_context.SqlGetInputMaxVersion());
+            }
+
+            // load control batch
+            using (var cn = new SqlConnection(_context.Connection.GetConnectionString())) {
                 cn.Open();
                 _context.Entity.BatchId = GetBatchId(cn);
                 cn.Execute(_context.SqlControlStartBatch(), new { _context.Entity.BatchId, Entity = _context.Entity.Alias });
+
+                // load output version
+                if (_context.Entity.Version == string.Empty)
+                    return;
+
+                var field = _context.Entity.GetVersionField();
+
+                if (field == null)
+                    return;
+
+                _context.Entity.MinVersion = cn.ExecuteScalar(_context.SqlGetOutputMaxVersion(field));
             }
+
         }
 
         public void End() {
-            using (var cn = new SqlConnection(_output.GetConnectionString())) {
+            using (var cn = new SqlConnection(_context.Connection.GetConnectionString())) {
                 cn.Open();
                 cn.Execute(_context.SqlControlEndBatch(), new {
                     _context.Entity.Inserts,

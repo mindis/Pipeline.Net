@@ -5,8 +5,12 @@ using Cfg.Net.Contracts;
 namespace Pipeline.Configuration {
     public class Root : CfgNode {
 
-        [Cfg(sharedProperty = "default", sharedValue = "")]
+        [Cfg(value="")]
+        public string Environment { get; set; }
+
+        [Cfg]
         public List<Environment> Environments { get; set; }
+
         [Cfg(required = true)]
         public List<Process> Processes { get; set; }
         [Cfg]

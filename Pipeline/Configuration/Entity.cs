@@ -118,9 +118,8 @@ namespace Pipeline.Configuration {
                 var beginBytes = (byte[])MinVersion;
                 var endBytes = (byte[])MaxVersion;
                 return !beginBytes.SequenceEqual(endBytes);
-            } else {
-                return !MinVersion.Equals(MaxVersion);
             }
+            return !MinVersion.Equals(MaxVersion);
         }
 
         public short Index { get; internal set; }
@@ -164,7 +163,7 @@ namespace Pipeline.Configuration {
         }
 
         void ModifyTflHashCode() {
-            var hash = GetDefaultOf<Field>(f => {
+            var hash = this.GetDefaultOf<Field>(f => {
                 f.Name = Constants.TflHashCode;
                 f.Alias = Constants.TflHashCode;
                 f.Type = "int";
@@ -273,7 +272,7 @@ namespace Pipeline.Configuration {
         }
 
         Parameter GetParameter(string entity, string field, string type) {
-            return GetDefaultOf<Parameter>(p => {
+            return this.GetDefaultOf<Parameter>(p => {
                 p.Entity = entity;
                 p.Field = field;
                 p.Type = type;
@@ -281,7 +280,7 @@ namespace Pipeline.Configuration {
         }
 
         Parameter GetParameter(string entity, string field) {
-            return GetDefaultOf<Parameter>(p => {
+            return this.GetDefaultOf<Parameter>(p => {
                 p.Entity = entity;
                 p.Field = field;
             });

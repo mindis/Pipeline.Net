@@ -4,10 +4,10 @@ using Pipeline.Interfaces;
 using Pipeline.Transformers;
 
 namespace Pipeline.Desktop {
-    public class ParallelPipeline : IEntityPipeline {
-        readonly IEntityPipeline _pipeline;
+    public class ParallelPipeline : IPipeline {
+        readonly IPipeline _pipeline;
 
-        public ParallelPipeline(IEntityPipeline pipeline) {
+        public ParallelPipeline(IPipeline pipeline) {
             _pipeline = pipeline;
         }
 
@@ -27,7 +27,7 @@ namespace Pipeline.Desktop {
             _pipeline.Register(updater);
         }
 
-        public void Register(IWriteOutput writer) {
+        public void Register(IWrite writer) {
             _pipeline.Register(writer);
         }
 
@@ -35,7 +35,7 @@ namespace Pipeline.Desktop {
             _pipeline.Register(transformer);
         }
 
-        public void Register(IReadInput reader) {
+        public void Register(IRead reader) {
             _pipeline.Register(reader);
         }
 

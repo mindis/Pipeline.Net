@@ -3,9 +3,8 @@ using System.IO;
 using System.Linq;
 using Autofac;
 using NUnit.Framework;
-using Pipeline.Command;
+using Pipeline.Command.Modules;
 using Pipeline.Interfaces;
-using Pipeline.Logging;
 using Pipeline.Configuration;
 
 namespace Pipeline.Test {
@@ -50,26 +49,10 @@ namespace Pipeline.Test {
   </processes>
 </cfg>";
 
-            var builder = new ContainerBuilder();
-            builder.RegisterModule(new ConfigurationModule(xml, File.ReadAllText(@"Files\Shorthand.xml")));
-            var container = builder.Build();
-
-            var root = container.Resolve<Root>();
-
-            if (root.Errors().Any()) {
-                foreach (var error in root.Errors()) {
-                    Console.Error.WriteLine(error);
-                }
-                throw new Exception("Configuration Error(s)");
-            }
-
-            builder = new ContainerBuilder();
-            builder.RegisterModule(new PipelineModule(root));
-            container = builder.Build();
-
-            var process = root.Processes.First();
-
-            var output = container.ResolveNamed<IProcessController>(process.Key).Run().ToArray();
+            var composer = new PipelineComposer();
+            var controller = composer.Compose(xml);
+            var process = composer.Process;
+            var output = controller.Run().ToArray();
 
             var field = process.Entities.First().CalculatedFields.First(cf => cf.Name == "length");
             Assert.AreEqual(2, output[0][field]);

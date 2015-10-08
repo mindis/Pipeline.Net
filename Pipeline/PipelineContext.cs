@@ -4,6 +4,7 @@ using Pipeline.Extensions;
 using Pipeline.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using Cfg.Net;
 using Pipeline.Interfaces;
 
 namespace Pipeline {
@@ -13,7 +14,7 @@ namespace Pipeline {
         public Entity Entity { get; set; }
         public Field Field { get; set; }
         public Transform Transform { get; set; }
-        public object[] ForLog { get; private set; }
+        public object[] ForLog { get; }
         public IPipelineLogger Logger { get; set; }
 
         public PipelineActivity Activity {
@@ -35,8 +36,8 @@ namespace Pipeline {
             Logger = logger;
             Activity = PipelineActivity.Transform;
             Process = process;
-            Entity = entity ?? process.GetDefaultOf<Entity>(e => { e.Name = string.Empty; });
-            Field = field ?? process.GetDefaultOf<Field>(f => { f.Name = string.Empty; });
+            Entity = entity ?? process.GetValidatedOf<Entity>(e => { e.Name = string.Empty; });
+            Field = field ?? process.GetValidatedOf<Field>(f => { f.Name = string.Empty; });
             Transform = transform ?? process.GetDefaultOf<Transform>(t => { t.Method = string.Empty; });
             ForLog[0] = process.Name.PadRight(process.LogLimit, ' ').Left(process.LogLimit);
             ForLog[1] = Entity.Alias.PadRight(process.EntityLogLimit, ' ').Left(process.EntityLogLimit);

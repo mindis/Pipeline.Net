@@ -9,7 +9,7 @@ using Pipeline.Interfaces;
 
 namespace Pipeline.Provider.SqlServer {
 
-    public class SqlEntityBulkInserter : IWriteOutput {
+    public class SqlEntityBulkInserter : IWrite {
 
         SqlBulkCopyOptions _bulkCopyOptions;
         readonly OutputContext _output;
@@ -123,20 +123,6 @@ namespace Pipeline.Provider.SqlServer {
             var values = new List<object>(row.ToEnumerable(_output.OutputFields)) { _output.Entity.BatchId };
             dr.ItemArray = values.ToArray();
             return dr;
-        }
-
-        public void LoadVersion() {
-            if (_output.Entity.Version == string.Empty)
-                return;
-
-            var field = _output.Entity.GetVersionField();
-
-            if (field == null)
-                return;
-
-            using (var cn = new SqlConnection(_output.Connection.GetConnectionString())) {
-                _output.Entity.MinVersion = cn.ExecuteScalar(_output.SqlGetOutputMaxVersion(field));
-            }
         }
 
     }

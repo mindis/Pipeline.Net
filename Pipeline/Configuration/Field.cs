@@ -20,7 +20,10 @@ namespace Pipeline.Configuration {
             {"int64", (x => System.Convert.ToInt64(x))},
             {"long", (x => System.Convert.ToInt64(x))},
             {"uint16", (x => System.Convert.ToUInt16(x))},
+            {"ushort", (x => System.Convert.ToUInt16(x))},
             {"uint32", (x => System.Convert.ToUInt32(x))},
+            {"uint", (x => System.Convert.ToUInt32(x))},
+            {"ulong", (x => System.Convert.ToUInt64(x))},
             {"uint64", (x => System.Convert.ToUInt64(x))},
             {"double", (x => System.Convert.ToDouble(x))},
             {"decimal", (x => decimal.Parse(x, NumberStyles.Float | NumberStyles.AllowThousands | NumberStyles.AllowCurrencySymbol, (IFormatProvider)CultureInfo.CurrentCulture.GetFormat(typeof(NumberFormatInfo))))},
@@ -364,11 +367,6 @@ namespace Pipeline.Configuration {
         public List<string> Domain { get; set; }
 
         /// <summary>
-        /// Set by Process.ModifyKeys for keyed dependency injection
-        /// </summary>
-        public string Key { get; set; }
-
-        /// <summary>
         /// Set by Process.ModifyKeyTypes
         /// </summary>
         public KeyType KeyType { get; set; }
@@ -395,7 +393,7 @@ namespace Pipeline.Configuration {
             }
 
             if (SearchType != string.Empty && SearchTypes.All(st => st.Name != SearchType)) {
-                SearchTypes.Insert(0, GetDefaultOf<NameReference>(st => { st.Name = SearchType; }));
+                SearchTypes.Insert(0, this.GetDefaultOf<NameReference>(st => { st.Name = SearchType; }));
             }
 
         }
@@ -473,11 +471,14 @@ namespace Pipeline.Configuration {
         }
 
         public string FieldName() {
+            if (Name == Constants.TflKey)
+                return Constants.TflKey;
+
             return Constants.GetExcelName(EntityIndex) + (Index + 1);
         }
 
         public override string ToString() {
-            return string.Format("{0}:{1}", Alias, Type);
+            return $"{Alias}:{Type}";
         }
 
     }

@@ -12,11 +12,7 @@ namespace Pipeline.Transformers.System {
             public short MasterIndex { get; set; }
             public int Length { get; set; }
 
-            public string Type {
-                get {
-                    return "string";
-                }
-            }
+            public string Type => "string";
 
             public StringLength(short index, short masterIndex, int length) {
                 Index = index;

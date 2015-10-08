@@ -157,10 +157,7 @@ namespace Pipeline.Configuration {
         [Cfg]
         public List<FileInspection> FileInspection { get; set; }
 
-        /// <summary>
-        /// A collection of [Logs](/log)
-        /// </summary>
-        [Cfg(sharedProperty = "rows", sharedValue = (long)10000)]
+        [Cfg]
         public List<Log> Log { get; set; }
 
         /// <summary>
@@ -178,7 +175,6 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// A collection of [Scripts](/script)
         /// </summary>
-        [Cfg(sharedProperty = "path", sharedValue = "")]
         public List<Script> Scripts { get; set; }
 
         /// <summary>
@@ -190,7 +186,7 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// A collection of [Templates](/template)
         /// </summary>
-        [Cfg(sharedProperty = "path", sharedValue = "")]
+        [Cfg]
         public List<Template> Templates { get; set; }
 
         /// <summary>
@@ -241,37 +237,39 @@ namespace Pipeline.Configuration {
             }
         }
 
-        void ModifyLogLimits() {
+        public void ModifyLogLimits() {
             var entitiesAny = Entities.Any();
             var fieldsAny = GetAllFields().Any(f => f.Transforms.Any());
             var transformsAny = GetAllTransforms().Any();
 
             LogLimit = Name.Length;
-            EntityLogLimit = entitiesAny ? Entities.Select(e => e.Alias.Length).Max() : 0;
-            FieldLogLimit = fieldsAny ? GetAllFields().Where(f => f.Transforms.Any()).Select(f => f.Alias.Length).Max() : 0;
-            TransformLogLimit = transformsAny ? GetAllTransforms().Select(t => t.Method.Length).Max() : 0;
+            EntityLogLimit = entitiesAny ? Entities.Select(e => e.Alias.Length).Max() : 10;
+            FieldLogLimit = fieldsAny ? GetAllFields().Where(f => f.Transforms.Any()).Select(f => f.Alias.Length).Max() : 10;
+            TransformLogLimit = transformsAny ? GetAllTransforms().Select(t => t.Method.Length).Max() : 10;
         }
 
-        void ModifyKeys() {
-            var counter = 0;
+        public void ModifyKeys() {
             Key = Name;
-            // entities, fields, and transforms
+
+            // entities
             foreach (var entity in Entities) {
                 entity.Key = Key + entity.Alias;
-                foreach (var field in entity.GetAllFields()) {
-                    field.Key = entity.Key + field.Alias;
-                    foreach (var transform in field.Transforms) {
-                        transform.Key = field.Key + transform.Method + counter++;
-                    }
-                }
             }
 
-            //calculated fields, and transforms
-            foreach (var field in CalculatedFields) {
-                field.Key = Key + field.Alias;
-                foreach (var transform in field.Transforms) {
-                    transform.Key = field.Key + transform.Method + counter++;
-                }
+            // maps
+            foreach (var map in Maps) {
+                map.Key = Key + map.Name;
+            }
+
+            // templates
+            foreach (var template in Templates) {
+                template.Key = Key + template.Name;
+            }
+
+            // actions do not have unique names, so they get a counter too
+            var actionIndex = 0;
+            foreach (var action in Actions) {
+                action.Key = action.Key + action.Name + ++actionIndex;
             }
         }
 
@@ -283,9 +281,13 @@ namespace Pipeline.Configuration {
         /// <summary>
         /// Log limits, set by ModifyLogLimits
         /// </summary>
+        [Cfg]
         public int LogLimit { get; set; }
+        [Cfg]
         public int EntityLogLimit { get; set; }
+        [Cfg]
         public int FieldLogLimit { get; set; }
+        [Cfg]
         public int TransformLogLimit { get; set; }
 
         void PreValidateDefaultEntityConnections() {
@@ -332,20 +334,20 @@ namespace Pipeline.Configuration {
         }
 
         Parameter GetParameter(string field) {
-            return GetDefaultOf<Parameter>(p => {
+            return this.GetDefaultOf<Parameter>(p => {
                 p.Field = field;
             });
         }
 
         Parameter GetParameter(string entity, string field) {
-            return GetDefaultOf<Parameter>(p => {
+            return this.GetDefaultOf<Parameter>(p => {
                 p.Entity = entity;
                 p.Field = field;
             });
         }
 
         Parameter GetParameter(string entity, string field, string type) {
-            return GetDefaultOf<Parameter>(p => {
+            return this.GetDefaultOf<Parameter>(p => {
                 p.Entity = entity;
                 p.Field = field;
                 p.Type = type;
@@ -429,11 +431,11 @@ namespace Pipeline.Configuration {
             }
         }
 
-        void ModifyIndexes() {
+        public void ModifyIndexes() {
             short entityIndex = -1;
             for (int i = 0; i < Entities.Count; i++) {
                 short masterIndex = -1;
-                var context = new PipelineContext(new Logging.NullLogger(), this, Entities[i]);
+                var context = new PipelineContext(new NullLogger(), this, Entities[i]);
                 context.Entity.Index = ++entityIndex;
                 short fieldIndex = -1;
                 short stringIndex = -1;
@@ -446,10 +448,7 @@ namespace Pipeline.Configuration {
                     }
                 }
             }
-            var actionIndex = 0;
-            foreach (var action in Actions) {
-                action.Key = (++actionIndex).ToString();
-            }
+
         }
 
         void ModifyRelationshipToMaster() {
